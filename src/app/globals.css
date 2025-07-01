@@ -18,7 +18,7 @@ body {
     --primary-foreground: 210 40% 98%;
     --secondary: 197 78% 80%;
     --secondary-foreground: 210 10% 23%;
-    --muted: 354 30% 35%;
+    --muted: 354 30% 65%;
     --muted-foreground: 210 10% 45%;
     --accent: 180 100% 50%;
     --accent-foreground: 180 100% 20%;
@@ -69,5 +69,23 @@ body {
   body {
     @apply bg-background text-foreground;
     background-image: radial-gradient(ellipse at center, hsl(var(--background)) 0%, hsl(354 70% 15%) 60%, hsl(354 80% 5%) 100%);
+  }
+}
+
+@layer utilities {
+  .bulb {
+    @apply absolute w-4 h-4 bg-yellow-900 rounded-full -translate-x-1/2 -translate-y-1/2;
+    animation: bulb-chase 2s infinite linear;
+  }
+}
+
+@keyframes bulb-chase {
+  0% {
+    background-color: #fef08a; /* yellow-200 */
+    box-shadow: 0 0 7px 3px #fde047; /* yellow-300 */
+  }
+  50%, 100% {
+    background-color: #78350f; /* amber-900 */
+    box-shadow: none;
   }
 }

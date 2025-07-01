@@ -2,6 +2,7 @@ import type {Metadata} from 'next';
 import { cn } from "@/lib/utils";
 import './globals.css';
 import { Toaster } from "@/components/ui/toaster"
+import CabaretBorder from '@/components/cabaret-border';
 
 export const metadata: Metadata = {
   title: 'Card Deck Wheel',
@@ -20,9 +21,10 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Playfair+Display:wght@700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn("font-body antialiased")}>
+      <body className={cn("font-body antialiased relative")}>
         {children}
         <Toaster />
+        <CabaretBorder />
       </body>
     </html>
   );

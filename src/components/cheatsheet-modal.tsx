@@ -27,6 +27,12 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
     border: `14px solid black`
   };
   
+  const flippedRuleCardStyle = {
+    backgroundColor: "#1F2937", // dark gray/black
+    color: "#FFD262", // yellow
+    border: `14px solid black`
+  };
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-card text-card-foreground">
@@ -73,7 +79,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
                   <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
                     <div 
                       className="w-full h-full flex flex-col p-4 rounded-lg"
-                      style={ruleCardStyle}
+                      style={flippedRuleCardStyle}
                     >
                       <div className="flex justify-end items-start">
                         <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">

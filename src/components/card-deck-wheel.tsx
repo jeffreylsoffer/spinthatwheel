@@ -31,7 +31,7 @@ const CardDeckWheel = () => {
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
 
   const isMobile = useIsMobile();
-  const segmentHeight = isMobile ? 80 : 192;
+  const segmentHeight = isMobile ? 60 : 192;
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck();
@@ -267,7 +267,7 @@ const CardDeckWheel = () => {
 
       <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-48 lg:h-96">
         <div 
-          className="relative w-full max-w-sm lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-xs lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
