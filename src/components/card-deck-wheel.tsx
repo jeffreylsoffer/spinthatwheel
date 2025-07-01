@@ -72,23 +72,31 @@ const CardDeckWheel = () => {
     const segmentAngle = 360 / wheelItems.length;
     const targetAngle = targetIndex * segmentAngle;
     
-    const currentRevolutions = Math.floor(rotation / 360);
+    const direction = Math.sign(velocity) || 1;
     
     // Velocity-based spin dynamics
-    const baseRevolutions = 4; // Min revolutions for a gentle flick
-    const velocityMultiplier = 5; // How much velocity translates to revolutions
+    const baseRevolutions = 4;
+    const velocityMultiplier = 5;
     const additionalRevolutions = Math.abs(velocity) * velocityMultiplier;
     
     const totalRevolutions = baseRevolutions + additionalRevolutions;
     
-    // Cap total revolutions to keep it sane, but also ensure a minimum.
     const newRevolutions = Math.round(Math.min(30, Math.max(4, totalRevolutions)));
     
-    // Duration is based on a base time plus an amount per revolution.
     const duration = 4000 + newRevolutions * 300;
     setSpinDuration(duration);
     
-    let newRotation = (currentRevolutions + newRevolutions) * 360 + targetAngle;
+    const spinAmount = newRevolutions * 360 * direction;
+    const projectedRotation = rotation + spinAmount;
+
+    const revolutionNumber = direction > 0 ? Math.floor(projectedRotation / 360) : Math.ceil(projectedRotation / 360);
+    let newRotation = revolutionNumber * 360 + targetAngle;
+    
+    if (direction > 0 && newRotation < rotation) {
+        newRotation += 360;
+    } else if (direction < 0 && newRotation > rotation) {
+        newRotation -= 360;
+    }
     
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.7;
     

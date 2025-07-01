@@ -27,7 +27,10 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   };
 
   return (
-    <div className="relative w-full h-96 flex items-center justify-center">
+    <div 
+      className="relative w-full h-96 flex items-center justify-center"
+      style={{ perspective: '1200px' }}
+    >
       {/* Casing and Lighting Effects */}
       <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl shadow-black/50 border-4 border-gray-700 overflow-hidden">
          {/* Inner shadow to give depth */}
@@ -36,55 +39,49 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
         <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
       </div>
 
-      {/* Perspective container */}
+      {/* The spinning wheel element */}
       <div
-        className="absolute w-full h-full"
-        style={{ perspective: '1200px' }}
+        className={cn(
+          "relative w-full h-full transition-transform",
+          isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
+        )}
+        style={{
+          transformStyle: 'preserve-3d',
+          transform: `translateZ(${-radius}px) rotateX(${-rotation}deg)`,
+          transitionDuration: `${spinDuration}ms`,
+        }}
+        onTransitionEnd={handleTransitionEnd}
       >
-        {/* The spinning wheel element */}
-        <div
-          className={cn(
-            "relative w-full h-full transition-transform",
-            isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
-          )}
-          style={{
-            transformStyle: 'preserve-3d',
-            transform: `translateZ(${-radius}px) rotateX(${-rotation}deg)`,
-            transitionDuration: `${spinDuration}ms`,
-          }}
-          onTransitionEnd={handleTransitionEnd}
-        >
-          {items.map((item, i) => {
-            const angle = i * segmentAngle;
-            return (
-              <div
-                key={item.id}
-                className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center justify-center"
+        {items.map((item, i) => {
+          const angle = i * segmentAngle;
+          return (
+            <div
+              key={item.id}
+              className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center justify-center"
+              style={{
+                transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
+                backgroundColor: item.color,
+                backfaceVisibility: 'hidden',
+                boxShadow: 'inset 0 0 15px rgba(0,0,0,0.5)',
+              }}
+            >
+              <span 
+                className="absolute inset-0 flex items-center justify-center font-headline text-5xl font-bold text-black tracking-wider"
                 style={{
-                  transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
-                  backgroundColor: item.color,
-                  backfaceVisibility: 'hidden',
-                  boxShadow: 'inset 0 0 15px rgba(0,0,0,0.5)',
+                  textShadow: '0 0 5px rgba(255, 255, 255, 0.7)',
                 }}
               >
-                <span 
-                  className="absolute inset-0 flex items-center justify-center font-headline text-5xl font-bold text-black tracking-wider"
-                  style={{
-                    textShadow: '0 0 5px rgba(255, 255, 255, 0.7)',
-                  }}
-                >
-                  {item.label.toUpperCase()}
-                </span>
-                {/* Pegs for the ticker to "hit" */}
-                <div className="absolute right-6 top-0 flex flex-col justify-around h-full py-2">
-                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
-                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
-                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
-                </div>
+                {item.label.toUpperCase()}
+              </span>
+              {/* Pegs for the ticker to "hit" */}
+              <div className="absolute right-6 top-0 flex flex-col justify-around h-full py-2">
+                 <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
+                 <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
+                 <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
               </div>
-            );
-          })}
-        </div>
+            </div>
+          );
+        })}
       </div>
 
       {/* Flexible Ticker */}
