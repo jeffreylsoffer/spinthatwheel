@@ -8,10 +8,10 @@ import {
   DialogDescription,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { RefreshCw } from "lucide-react";
 import type { SessionRule } from "@/lib/types";
 import { cn } from "@/lib/utils";
+import { CARD_STYLES } from "@/lib/game-logic";
 
 interface CheatSheetModalProps {
   isOpen: boolean;
@@ -21,6 +21,11 @@ interface CheatSheetModalProps {
 }
 
 const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheetModalProps) => {
+  const ruleCardStyle = {
+    backgroundColor: CARD_STYLES.RULE.labelBg,
+    color: CARD_STYLES.RULE.labelColor,
+  };
+  
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg">
@@ -47,39 +52,41 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
                 >
                   {/* Front Face */}
                   <div className="absolute w-full h-full [backface-visibility:hidden]">
-                    <Card className="w-full h-full flex flex-col">
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <CardTitle>{rule.groupName}</CardTitle>
-                          <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Flip
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <h4 className="font-bold text-lg">{rule.primary.name}</h4>
-                        <p className="text-muted-foreground mt-1">{rule.primary.description}</p>
-                      </CardContent>
-                    </Card>
+                    <div 
+                      className="w-full h-full flex flex-col p-4 rounded-lg border-8 border-black"
+                      style={ruleCardStyle}
+                    >
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-headline text-2xl uppercase">{rule.groupName}</h3>
+                        <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Flip
+                        </Button>
+                      </div>
+                      <div className="flex-grow flex flex-col justify-center text-center">
+                        <h4 className="font-headline text-3xl uppercase">{rule.primary.name}</h4>
+                        <p className="text-sm mt-1 font-body normal-case opacity-80">{rule.primary.description}</p>
+                      </div>
+                    </div>
                   </div>
                   {/* Back Face */}
                   <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                    <Card className="w-full h-full flex flex-col">
-                      <CardHeader>
-                        <div className="flex justify-between items-center">
-                          <CardTitle>{rule.groupName}</CardTitle>
-                          <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)}>
-                            <RefreshCw className="h-4 w-4 mr-2" />
-                            Flip
-                          </Button>
-                        </div>
-                      </CardHeader>
-                      <CardContent className="flex-grow">
-                        <h4 className="font-bold text-lg">{rule.flipped.name}</h4>
-                        <p className="text-muted-foreground mt-1">{rule.flipped.description}</p>
-                      </CardContent>
-                    </Card>
+                    <div 
+                      className="w-full h-full flex flex-col p-4 rounded-lg border-8 border-black"
+                      style={ruleCardStyle}
+                    >
+                      <div className="flex justify-between items-start">
+                        <h3 className="font-headline text-2xl uppercase">{rule.groupName}</h3>
+                        <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">
+                          <RefreshCw className="h-4 w-4 mr-2" />
+                          Flip
+                        </Button>
+                      </div>
+                      <div className="flex-grow flex flex-col justify-center text-center">
+                        <h4 className="font-headline text-3xl uppercase">{rule.flipped.name}</h4>
+                        <p className="text-sm mt-1 font-body normal-case opacity-80">{rule.flipped.description}</p>
+                      </div>
+                    </div>
                   </div>
                 </div>
               </div>

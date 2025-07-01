@@ -59,11 +59,6 @@ const CardDeckWheel = () => {
     setWheelItems(newWheelItems);
     const usedItemIds = new Set(wheelItems.filter(item => item.type === 'END').map(item => item.id.replace('used-', '')));
     setAvailableItems(newWheelItems.filter(item => !usedItemIds.has(item.id)));
-
-    toast({
-      title: "Rules Flipped!",
-      description: "The wheel has been updated with the new rule set.",
-    })
   };
 
   const handleSpinClick = (velocity: number) => {
@@ -252,7 +247,7 @@ const CardDeckWheel = () => {
         </Card>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-96">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-64 lg:h-96">
         <div 
           className="relative w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
