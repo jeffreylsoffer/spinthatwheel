@@ -8,12 +8,13 @@ import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
 import { createSessionDeck, populateWheel, CARD_STYLES, RATIOS, TOTAL_SEGMENTS } from '@/lib/game-logic';
-import type { SessionRule, WheelItem, WheelItemType } from '@/lib/types';
+import type { SessionRule, WheelItem, WheelItemType, Rule } from '@/lib/types';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 
 const CardDeckWheel = () => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
+  const [activeRules, setActiveRules] = useState<SessionRule[]>([]);
   const [wheelItems, setWheelItems] = useState<WheelItem[]>([]);
   const [availableItems, setAvailableItems] = useState<WheelItem[]>([]);
   const [rotation, setRotation] = useState(0);
@@ -45,22 +46,24 @@ const CardDeckWheel = () => {
   }, [initializeGame]);
 
   const handleFlipRule = (ruleId: number) => {
-    setSessionRules(prevRules => {
-      const newRules = prevRules.map(r => 
-        r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r
-      );
-      const newWheelItems = populateWheel(newRules);
-      setWheelItems(newWheelItems);
-      // Keep available items in sync with the new wheel items, excluding already used ones.
-      const usedItemIds = new Set(wheelItems.filter(item => item.type === 'END').map(item => item.id.replace('used-', '')));
-      setAvailableItems(newWheelItems.filter(item => !usedItemIds.has(item.id)));
+    const newRules = sessionRules.map(r => 
+      r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r
+    );
+    setSessionRules(newRules);
 
-      toast({
-        title: "Rules Flipped!",
-        description: "The wheel has been updated with the new rule set.",
-      })
-      return newRules;
-    });
+    setActiveRules(prevActiveRules => prevActiveRules.map(ar => 
+      ar.id === ruleId ? newRules.find(nr => nr.id === ruleId)! : ar
+    ));
+
+    const newWheelItems = populateWheel(newRules);
+    setWheelItems(newWheelItems);
+    const usedItemIds = new Set(wheelItems.filter(item => item.type === 'END').map(item => item.id.replace('used-', '')));
+    setAvailableItems(newWheelItems.filter(item => !usedItemIds.has(item.id)));
+
+    toast({
+      title: "Rules Flipped!",
+      description: "The wheel has been updated with the new rule set.",
+    })
   };
 
   const handleSpinClick = (velocity: number) => {
@@ -111,6 +114,15 @@ const CardDeckWheel = () => {
     if (winningItem) {
       setResult(winningItem);
       setIsResultModalOpen(true);
+
+      if (winningItem.type === 'RULE') {
+        const ruleData = winningItem.data as Rule;
+        const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
+        if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
+          setActiveRules(prev => [...prev, sessionRule]);
+        }
+      }
+
       setWinningItem(null);
       setSpinCount(prev => prev + 1);
     }
@@ -161,6 +173,7 @@ const CardDeckWheel = () => {
 
   const handleReset = () => {
     initializeGame();
+    setActiveRules([]);
     toast({
       title: "Game Reset",
       description: "A new deck has been created and the wheel is ready to spin!",
@@ -259,7 +272,7 @@ const CardDeckWheel = () => {
       <CheatSheetModal 
         isOpen={isCheatSheetModalOpen} 
         onOpenChange={setIsCheatSheetModalOpen}
-        sessionRules={sessionRules}
+        rules={activeRules}
         onFlipRule={handleFlipRule}
       />
     </div>
