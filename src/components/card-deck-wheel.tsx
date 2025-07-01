@@ -11,6 +11,7 @@ import { createSessionDeck, populateWheel, CARD_STYLES } from '@/lib/game-logic'
 import type { SessionRule, WheelItem, WheelItemType, Rule } from '@/lib/types';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const CardDeckWheel = () => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
@@ -28,6 +29,9 @@ const CardDeckWheel = () => {
 
   const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
+
+  const isMobile = useIsMobile();
+  const segmentHeight = isMobile ? 120 : 192;
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck();
@@ -261,7 +265,7 @@ const CardDeckWheel = () => {
         </Card>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-56 lg:h-96">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-48 lg:h-96">
         <div 
           className="relative w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
@@ -269,7 +273,7 @@ const CardDeckWheel = () => {
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
         >
-          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
+          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} segmentHeight={segmentHeight} />
         </div>
       </div>
 

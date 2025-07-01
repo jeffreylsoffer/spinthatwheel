@@ -10,13 +10,13 @@ interface WheelProps {
   isSpinning: boolean;
   onSpinEnd?: () => void;
   spinDuration: number;
+  segmentHeight: number;
 }
 
-const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelProps) => {
+const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHeight }: WheelProps) => {
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  const segmentHeight = 192; // h-48
   const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
@@ -57,8 +57,9 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           return (
             <div
               key={item.id}
-              className="absolute w-full h-48 flex items-center justify-center"
+              className="absolute w-full flex items-center justify-center"
               style={{
+                height: `${segmentHeight}px`,
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: segmentColor,
                 backfaceVisibility: 'hidden',
