@@ -28,7 +28,6 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   return (
     <div 
       className="relative w-full h-96"
-      style={{ perspective: '1200px' }}
     >
       {/* The spinning wheel element */}
       <div
@@ -38,7 +37,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
         )}
         style={{
           transformStyle: 'preserve-3d',
-          transform: `translateZ(${-radius}px) rotateX(${rotation}deg)`,
+          transform: `perspective(1200px) translateZ(${-radius}px) rotateX(${rotation}deg)`,
           transitionDuration: `${spinDuration}ms`,
         }}
         onTransitionEnd={handleTransitionEnd}
