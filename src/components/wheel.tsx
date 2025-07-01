@@ -28,16 +28,8 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   return (
     <div 
       className="relative w-full h-96 flex items-center justify-center"
-      style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
+      style={{ perspective: '1200px' }}
     >
-      {/* Casing and Lighting Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl shadow-black/50 border-4 border-gray-700">
-         {/* Inner shadow to give depth */}
-        <div className="absolute inset-2 rounded-2xl shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]" />
-        {/* Spotlight effect */}
-        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
-      </div>
-
       {/* The spinning wheel element */}
       <div
         className={cn(
@@ -86,6 +78,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
       {/* Flexible Ticker */}
       <div 
         className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
+        style={{transform: 'translateX(50%)'}}
       >
         <svg viewBox="0 0 100 100">
             <polygon points="0,50 100,0 100,100" fill="#dc2626" />
