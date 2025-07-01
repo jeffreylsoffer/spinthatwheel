@@ -18,7 +18,7 @@ body {
     --primary-foreground: 210 40% 98%;
     --secondary: 197 78% 80%;
     --secondary-foreground: 210 10% 23%;
-    --muted: 354 30% 65%;
+    --muted: 354 70% 65%;
     --muted-foreground: 210 10% 45%;
     --accent: 180 100% 50%;
     --accent-foreground: 180 100% 20%;
@@ -88,4 +88,32 @@ body {
     background-color: #78350f; /* amber-900 */
     box-shadow: none;
   }
+}
+
+/* 7-Segment Display Styles */
+@layer components {
+  .segment-container {
+    @apply relative w-8 h-14;
+  }
+  .segment {
+    @apply absolute bg-foreground/10 rounded-[2px];
+    transition: background-color 0.2s ease-in-out;
+  }
+  .segment.on {
+    @apply bg-primary;
+    box-shadow: 0 0 5px hsl(var(--primary) / 0.7);
+  }
+  .segment-h { @apply w-6 h-2 left-1; }
+  .segment-v { @apply w-2 h-6; }
+
+  /* Horizontal Segments */
+  .segment-a { @apply segment-h top-0; }
+  .segment-g { @apply segment-h top-[1.5rem]; /* top-6 */ }
+  .segment-d { @apply segment-h bottom-0; }
+
+  /* Vertical Segments */
+  .segment-b { @apply segment-v right-0 top-1; }
+  .segment-c { @apply segment-v right-0 top-7; }
+  .segment-e { @apply segment-v left-0 top-7; }
+  .segment-f { @apply segment-v left-0 top-1; }
 }

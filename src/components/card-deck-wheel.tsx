@@ -4,16 +4,22 @@ import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Wheel from './wheel';
 import ResultModal from './result-modal';
 import CheatSheetModal from './cheatsheet-modal';
+import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
-import { Badge } from '@/components/ui/badge';
 import { createSessionDeck, populateWheel, CARD_STYLES } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, WheelItemType, Rule } from '@/lib/types';
+import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from '@/hooks/use-mobile';
 
-const CardDeckWheel = () => {
+interface CardDeckWheelProps {
+  players: Player[];
+  onScoreChange: (playerId: number, delta: number) => void;
+  onResetGame: () => void;
+}
+
+const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelProps) => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
   const [activeRules, setActiveRules] = useState<SessionRule[]>([]);
   const [wheelItems, setWheelItems] = useState<WheelItem[]>([]);
@@ -68,7 +74,6 @@ const CardDeckWheel = () => {
     
     const updateItem = (item: WheelItem): WheelItem => {
       if (item.type === 'RULE' && (item.data as Rule).id === fromRule.id) {
-        // Reconstruct the item ID to match the new rule data ID
         const oldIdParts = item.id.split('-');
         const newId = `${oldIdParts[0]}-${oldIdParts[1]}-${toRule.id}`;
         return { ...item, data: toRule, id: newId };
@@ -83,7 +88,6 @@ const CardDeckWheel = () => {
   const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
-    // Prevent landing on END cards before spin 5
     let selectableItems = availableItems;
     if (spinCount < 5) {
       const nonEndItems = availableItems.filter(i => i.type !== 'END');
@@ -114,9 +118,9 @@ const CardDeckWheel = () => {
     
     const targetSliceAngle = targetIndex * segmentAngle;
     
-    let desiredRotation = rotation - currentAngle; // Reset to 0 base
-    desiredRotation += (spinAmount * direction); // Add revolutions
-    desiredRotation -= targetSliceAngle; // Align to target
+    let desiredRotation = rotation - currentAngle;
+    desiredRotation += (spinAmount * direction);
+    desiredRotation -= targetSliceAngle;
     
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
 
@@ -145,7 +149,6 @@ const CardDeckWheel = () => {
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
-      // Replace the landed-on item with a visual "END" card
       setWheelItems(prevItems => {
         const newItems = [...prevItems];
         const index = newItems.findIndex(item => item.id === result.id);
@@ -163,34 +166,13 @@ const CardDeckWheel = () => {
         }
         return newItems;
       });
-
-      // Remove the original item from the pool of selectable items
       setAvailableItems(prev => prev.filter(item => item.id !== result.id));
     }
     setIsResultModalOpen(open);
   };
 
-
-  const statusCounts = useMemo(() => {
-    const totalCount = (type: WheelItemType) => {
-        return populateWheel(sessionRules).filter(item => item.type === type).length;
-    };
-    const availableCount = (type: WheelItemType) => availableItems.filter(item => item.type === type).length;
-
-    return {
-      prompts: { total: totalCount('PROMPT'), available: availableCount('PROMPT') },
-      rules: { total: totalCount('RULE'), available: availableCount('RULE') },
-      modifiers: { total: totalCount('MODIFIER'), available: availableCount('MODIFIER') },
-    }
-  }, [availableItems, sessionRules]);
-
-
   const handleReset = () => {
-    initializeGame();
-    toast({
-      title: "Game Reset",
-      description: "A new deck has been created and the wheel is ready to spin!",
-    })
+    onResetGame();
   }
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -203,7 +185,6 @@ const CardDeckWheel = () => {
     if (!dragStartRef.current.y) return;
     const dragY = e.clientY;
     const deltaY = dragStartRef.current.y - dragY;
-    // For live rotation during drag if desired in the future
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
@@ -231,7 +212,7 @@ const CardDeckWheel = () => {
   
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
-      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-md mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1">
+      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1">
         <Button 
           variant="outline"
           size="lg"
@@ -240,34 +221,16 @@ const CardDeckWheel = () => {
           <BookOpen className="mr-2 h-5 w-5" />
           Flip Cheat Sheet
         </Button>
-        <Card className="w-full">
-          <CardHeader>
-            <CardTitle className="font-headline text-2xl">Game Status</CardTitle>
-          </CardHeader>
-          <CardContent className="flex flex-wrap justify-around items-center gap-4">
-            <div className="text-center">
-              <h3 className="font-bold text-lg">Prompts</h3>
-              <Badge variant="secondary" className="text-lg">{statusCounts.prompts.available} / {statusCounts.prompts.total}</Badge>
-            </div>
-            <div className="text-center">
-              <h3 className="font-bold text-lg">Rules</h3>
-              <Badge variant="secondary" className="text-lg">{statusCounts.rules.available} / {statusCounts.rules.total}</Badge>
-            </div>
-            <div className="text-center">
-              <h3 className="font-bold text-lg">Modifiers</h3>
-              <Badge variant="secondary" className="text-lg">{statusCounts.modifiers.available} / {statusCounts.modifiers.total}</Badge>
-            </div>
-            <Button variant="ghost" onClick={handleReset} className="mt-4 sm:mt-0">
-              <RefreshCw className="mr-2 h-4 w-4" />
-              Reset Game
-            </Button>
-          </CardContent>
-        </Card>
+        <Scoreboard players={players} onScoreChange={onScoreChange} />
+        <Button variant="ghost" onClick={handleReset} className="self-center">
+            <RefreshCw className="mr-2 h-4 w-4" />
+            New Game
+        </Button>
       </div>
 
       <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-48 lg:h-96">
         <div 
-          className="relative w-full max-w-xs lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-[18rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}

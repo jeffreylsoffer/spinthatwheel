@@ -1,10 +1,13 @@
 "use client";
 
+import { useState } from 'react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { Settings } from 'lucide-react';
+import { Settings, Plus, Minus } from 'lucide-react';
 
-export default function StartScreen({ onStartGame }: { onStartGame: () => void }) {
+export default function StartScreen({ onStartGame }: { onStartGame: (playerCount: number) => void }) {
+  const [playerCount, setPlayerCount] = useState(2);
+
   const handleManagePrompts = () => {
     // Placeholder for future CMS functionality
     alert("Prompt management coming soon!");
@@ -42,7 +45,21 @@ export default function StartScreen({ onStartGame }: { onStartGame: () => void }
             </ol>
             <p className="text-center font-bold pt-4" style={{color: 'hsl(var(--card-foreground))'}}>Combine the rules and prompts for hilarious results!</p>
           </div>
-          <Button size="lg" onClick={onStartGame} className="font-headline text-2xl tracking-wider animate-pulse mt-4">
+          
+          <div className="flex flex-col items-center gap-4 w-full max-w-xs pt-4 border-t border-primary/20">
+            <h3 className="font-headline text-3xl" style={{ color: 'hsl(var(--card-foreground))' }}>Players</h3>
+            <div className="flex items-center justify-center gap-4">
+              <Button variant="outline" size="icon" onClick={() => setPlayerCount(p => Math.max(1, p - 1))} aria-label="Decrease player count">
+                <Minus className="h-5 w-5" />
+              </Button>
+              <span className="font-bold text-5xl tabular-nums w-16 text-center text-card-foreground">{playerCount}</span>
+              <Button variant="outline" size="icon" onClick={() => setPlayerCount(p => Math.min(8, p + 1))} aria-label="Increase player count">
+                <Plus className="h-5 w-5" />
+              </Button>
+            </div>
+          </div>
+
+          <Button size="lg" onClick={() => onStartGame(playerCount)} className="font-headline text-2xl tracking-wider animate-pulse mt-4">
             Start Game
           </Button>
         </CardContent>
