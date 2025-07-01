@@ -4,11 +4,22 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft } from 'lucide-react';
+import { ChevronLeft, RefreshCcw } from 'lucide-react';
 import CmsForm from './cms-form';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
 import { RATIOS as defaultRatios } from '@/lib/game-logic';
 import { Skeleton } from '@/components/ui/skeleton';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogTrigger,
+} from "@/components/ui/alert-dialog"
 
 export default function AdminPage() {
   const [initialData, setInitialData] = useState({ 
@@ -42,6 +53,14 @@ export default function AdminPage() {
     setIsLoading(false);
   }, []);
 
+  const handleResetToDefaults = () => {
+    localStorage.removeItem('cms_rules');
+    localStorage.removeItem('cms_prompts');
+    localStorage.removeItem('cms_modifiers');
+    localStorage.removeItem('cms_ratios');
+    window.location.reload();
+  };
+
   if (isLoading) {
     return (
       <main className="container mx-auto p-4 lg:p-8">
@@ -62,12 +81,34 @@ export default function AdminPage() {
     <main className="container mx-auto p-4 lg:p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-4xl lg:text-5xl">CMS - Card Content</h1>
-        <Link href="/">
-          <Button variant="outline">
-            <ChevronLeft className="mr-2 h-4 w-4" />
-            Back to Game
-          </Button>
-        </Link>
+        <div className="flex items-center gap-2">
+           <AlertDialog>
+            <AlertDialogTrigger asChild>
+                <Button variant="destructive-outline">
+                    <RefreshCcw className="mr-2 h-4 w-4" />
+                    Reset to Defaults
+                </Button>
+            </AlertDialogTrigger>
+            <AlertDialogContent>
+                <AlertDialogHeader>
+                <AlertDialogTitle>Are you absolutely sure?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This action will delete all your custom content and restore the original default cards and settings. This cannot be undone.
+                </AlertDialogDescription>
+                </AlertDialogHeader>
+                <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleResetToDefaults}>Yes, reset everything</AlertDialogAction>
+                </AlertDialogFooter>
+            </AlertDialogContent>
+            </AlertDialog>
+            <Link href="/">
+                <Button variant="outline">
+                    <ChevronLeft className="mr-2 h-4 w-4" />
+                    Back to Game
+                </Button>
+            </Link>
+        </div>
       </div>
 
       <p className="mb-8 text-muted-foreground max-w-prose">

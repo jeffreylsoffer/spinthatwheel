@@ -13,11 +13,11 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
     <div className="relative min-h-screen flex items-center justify-center p-4">
       <Link href="/admin" className="absolute top-4 right-4" aria-label="Manage Prompts">
         <Button 
-          variant="ghost" 
-          size="icon" 
-          className="text-foreground/50 hover:text-foreground"
+          variant="outline"
+          className="text-foreground/80 hover:text-foreground"
         >
-          <Settings className="h-6 w-6" />
+          <Settings className="mr-2 h-5 w-5" />
+          Manage Cards
         </Button>
       </Link>
 

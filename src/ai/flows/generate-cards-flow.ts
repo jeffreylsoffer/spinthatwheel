@@ -61,6 +61,7 @@ You must follow these instructions carefully:
 2.  **Preserve Mechanics:** Flipped rules should be the thematic opposite of their primary rule.
 3.  **Inject Theme:** Creatively infuse the "{{theme}}" into the 'name' and 'description' of each Rule and the 'text' of each Prompt. Be clever and funny.
 4.  **Keep IDs:** Do NOT change the 'id' fields. Preserve the original IDs from the existing cards.
+5.  **Be Practical:** Ensure the generated rules are actions or speech patterns that a person can reasonably perform during a conversation. Avoid overly complex physical tasks.
 
 Here are the existing cards for reference:
 - Rules: {{{json existingRules}}}
