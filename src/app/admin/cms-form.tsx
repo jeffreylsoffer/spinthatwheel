@@ -57,13 +57,11 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
         theme: aiPrompt,
         existingRules: rules,
         existingPrompts: prompts,
-        existingModifiers: modifiers,
       });
       
       setRules(result.ruleGroups);
       setPrompts(result.prompts);
-      setModifiers(result.modifiers);
-
+      
       toast({
         title: 'AI Generation Complete!',
         description: `New cards with the theme "${aiPrompt}" have been generated.`,
@@ -135,7 +133,9 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
   };
 
   const handleAddNewModifier = () => {
-    setModifiers([...modifiers, { id: Date.now(), type: 'SWAP', name: '', description: '' }]);
+    // Note: ModifierType in the component is hardcoded for simplicity.
+    // A more robust solution would involve a dropdown to select the type.
+    setModifiers([...modifiers, { id: Date.now(), type: 'FLIP', name: '', description: '' }]);
   };
 
   const handleDeleteModifier = (index: number) => {
@@ -178,34 +178,47 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
 
   return (
     <div className="space-y-8">
-      <Card>
-        <CardHeader>
-          <CardTitle>AI Card Generator</CardTitle>
-          <CardDescription>Enter a theme and let AI generate a new set of cards for your game. This will replace the current unsaved content.</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
-           <div className="space-y-2">
-            <Label htmlFor="ai-prompt">Game Theme</Label>
-            <Textarea 
-              id="ai-prompt" 
-              placeholder="e.g., Pirates, Space Opera, Film Noir, Cavemen..."
-              value={aiPrompt}
-              onChange={(e) => setAiPrompt(e.target.value)}
-              rows={2}
-            />
-          </div>
-        </CardContent>
-        <CardFooter>
-          <Button onClick={handleGenerate} disabled={isGenerating}>
-            {isGenerating ? (
-              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
-            ) : (
-              <Wand2 className="mr-2 h-5 w-5" />
-            )}
-            Generate
-          </Button>
-        </CardFooter>
-      </Card>
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="ai-generator">
+          <AccordionTrigger className="text-2xl font-headline hover:no-underline">
+            <div className="flex items-center gap-2">
+              <Wand2 className="h-6 w-6" />
+              <span>AI Card Generator</span>
+            </div>
+          </AccordionTrigger>
+          <AccordionContent>
+            <Card className="border-0 shadow-none">
+              <CardHeader className="pt-2">
+                <CardDescription>
+                  Enter a theme and let AI generate a new set of Rules and Prompts. This will replace any unsaved content in those sections. Modifiers will not be changed.
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <Label htmlFor="ai-prompt">Game Theme</Label>
+                  <Textarea
+                    id="ai-prompt"
+                    placeholder="e.g., Pirates, Space Opera, Film Noir, Cavemen..."
+                    value={aiPrompt}
+                    onChange={(e) => setAiPrompt(e.target.value)}
+                    rows={2}
+                  />
+                </div>
+              </CardContent>
+              <CardFooter>
+                <Button onClick={handleGenerate} disabled={isGenerating}>
+                  {isGenerating ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
+                    <Wand2 className="mr-2 h-5 w-5" />
+                  )}
+                  Generate
+                </Button>
+              </CardFooter>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
       
       <Card>
         <CardHeader>
