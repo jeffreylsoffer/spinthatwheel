@@ -70,9 +70,9 @@ const CardDeckWheel = () => {
     if (targetIndex === -1) return;
 
     const segmentAngle = 360 / wheelItems.length;
-    const targetAngle = targetIndex * segmentAngle;
     
-    const direction = Math.sign(velocity) || 1;
+    // Invert velocity because of the coordinate system
+    const direction = -Math.sign(velocity) || -1;
     
     // Velocity-based spin dynamics
     const baseRevolutions = 5;
@@ -86,23 +86,16 @@ const CardDeckWheel = () => {
     const duration = 5000 + newRevolutions * 300;
     setSpinDuration(duration);
     
-    const spinAmount = newRevolutions * 360 * direction;
-    const projectedRotation = rotation + spinAmount;
+    const spinAmount = newRevolutions * 360;
+    const endRotation = rotation + (spinAmount * direction);
+    
+    const targetAngle = targetIndex * segmentAngle;
+    
+    const finalRotation = Math.round(endRotation / 360) * 360 - targetAngle;
+    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
 
-    const revolutionNumber = direction > 0 ? Math.floor(projectedRotation / 360) : Math.ceil(projectedRotation / 360);
-    let newRotation = revolutionNumber * 360 - targetAngle;
-    
-    // Ensure it spins in the correct direction to the target
-    if (direction > 0 && newRotation < projectedRotation) {
-        newRotation += 360;
-    } else if (direction < 0 && newRotation > projectedRotation) {
-        newRotation -= 360;
-    }
-    
-    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.7;
-    
     setIsSpinning(true);
-    setRotation(newRotation + randomOffset);
+    setRotation(finalRotation + randomOffset);
   };
   
   const handleSpinEnd = () => {
@@ -175,7 +168,7 @@ const CardDeckWheel = () => {
           <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
         </div>
         <div 
-          className="w-full max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="w-full max-w-lg h-96 mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
