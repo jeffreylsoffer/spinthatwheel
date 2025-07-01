@@ -147,7 +147,7 @@ const CardDeckWheel = () => {
     const dragEndY = e.clientY;
     const dragEndTime = Date.now();
     
-    const dragDistance = dragEndY - dragStartRef.current.y;
+    const dragDistance = dragStartRef.current.y - dragEndY;
     const dragDuration = dragEndTime - dragStartRef.current.time;
 
     // A flick is a short, fast drag.
