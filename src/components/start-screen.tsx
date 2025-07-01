@@ -11,16 +11,6 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
-      <Link href="/admin" className="absolute top-4 right-4" aria-label="Manage Prompts">
-        <Button 
-          variant="outline"
-          className="text-foreground/80 hover:text-foreground"
-        >
-          <Settings className="mr-2 h-5 w-5" />
-          Manage Cards
-        </Button>
-      </Link>
-
       <Card className="w-full max-w-2xl bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-2xl shadow-black/50">
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-5xl lg:text-6xl tracking-wider text-card-foreground">SPIN THAT WHEEL</CardTitle>
@@ -60,9 +50,19 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
             </div>
           </div>
 
-          <Button size="lg" onClick={() => onStartGame(playerCount)} className="font-headline text-2xl tracking-wider animate-pulse mt-4">
-            Start Game
-          </Button>
+          <div className="flex items-center justify-center gap-4 mt-6">
+            <Button size="lg" onClick={() => onStartGame(playerCount)} className="font-headline text-2xl tracking-wider">
+              Start Game
+            </Button>
+            <Link href="/admin">
+              <Button 
+                variant="outline"
+              >
+                <Settings className="mr-2 h-5 w-5" />
+                Manage Cards
+              </Button>
+            </Link>
+          </div>
         </CardContent>
       </Card>
     </div>
