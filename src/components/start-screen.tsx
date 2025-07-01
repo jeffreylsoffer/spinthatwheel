@@ -29,17 +29,22 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 items-center">
-          <div className="text-left space-y-4 p-6 rounded-lg bg-background/50 max-w-prose">
-            <h3 className="font-headline text-3xl text-card-foreground">How to Play</h3>
-            <ol className="list-decimal list-inside space-y-2 text-muted-foreground">
-              <li>Spin the wheel by clicking and dragging (or flicking on mobile).</li>
-              <li>Whatever you land on, you must follow the instruction.</li>
-              <li>Landing on a <span className="font-bold text-accent">RULE</span> adds it to your collection. Use the "Flip Cheat Sheet" to see and flip your active rules.</li>
-              <li>Landing on a <span className="font-bold text-foreground">PROMPT</span> gives you a one-time challenge.</li>
-              <li>Landing on a <span className="font-bold text-chart-2">MODIFIER</span> introduces a special action.</li>
-              <li>Once a card is used, its slot becomes an <span className="font-bold text-muted-foreground/80">END</span> space.</li>
-            </ol>
-            <p className="text-center font-bold pt-4 text-card-foreground">Combine the rules and prompts for hilarious results!</p>
+          
+          <div className="text-left space-y-6 p-6 rounded-lg bg-background/50 max-w-prose">
+            <div>
+              <h3 className="font-headline text-3xl text-card-foreground">What You'll Need</h3>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
+                <li><span className="font-bold text-card-foreground">Sticky Notes:</span> Write down rules and stick them on each player's chest.</li>
+                <li><span className="font-bold text-card-foreground">A Referee:</span> To call out players who don't follow their rules.</li>
+              </ul>
+            </div>
+            <div>
+              <h3 className="font-headline text-3xl text-card-foreground">How to Score</h3>
+              <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
+                <li>Players get a point for successfully completing a <span className="font-bold text-accent">PROMPT</span> while following all their active rules.</li>
+                <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
+              </ul>
+            </div>
           </div>
           
           <div className="flex flex-col items-center gap-4 w-full max-w-xs pt-4 border-t border-primary/20">
