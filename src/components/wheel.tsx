@@ -36,8 +36,8 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
         {/* The spinning wheel element */}
         <div
           className={cn(
-            "relative w-full h-full transition-transform duration-[7000ms]",
-            isSpinning ? "ease-[cubic-bezier(0.22,1,0.36,1)]" : ""
+            "relative w-full h-full transition-transform duration-[5000ms]",
+            isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
           )}
           style={{
             transformStyle: 'preserve-3d',
@@ -58,14 +58,14 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
                 }}
               >
                 <span 
-                  className="font-headline text-5xl font-bold text-white tracking-wider"
+                  className="font-headline text-5xl font-bold text-black tracking-wider"
                   style={{
-                    textShadow: '0px 0px 10px rgba(0, 0, 0, 0.8), 2px 2px 2px rgba(0,0,0,0.7)',
+                    textShadow: '0 0 5px rgba(255, 255, 255, 0.7)',
                   }}
                 >
                   {item.label.toUpperCase()}
                 </span>
-                {/* Pegs on the side of the cards */}
+                {/* Pegs for the ticker to "hit" */}
                 <div className="flex flex-col justify-around h-full py-2">
                    <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
                    <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>

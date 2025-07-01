@@ -68,20 +68,26 @@ const CardDeckWheel = () => {
 
     const segmentAngle = 360 / wheelItems.length;
     const targetAngle = targetIndex * segmentAngle;
-    const currentRevolutions = Math.floor(rotation / 360);
-    const newRotation = (currentRevolutions + 5) * 360 + targetAngle;
     
-    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
+    const currentRevolutions = Math.floor(rotation / 360);
+    // Add 4 to 5 full revolutions for a satisfying but faster spin
+    const newRevolutions = 4 + Math.round(Math.random());
+    
+    let newRotation = (currentRevolutions + newRevolutions) * 360 + targetAngle;
+    
+    // Add a slight random offset so it doesn't land perfectly centered
+    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.7;
     
     setIsSpinning(true);
     setRotation(newRotation + randomOffset);
 
+    // Match this timeout to the CSS transition duration in Wheel.tsx
     setTimeout(() => {
       setResult(targetItem);
       setIsResultModalOpen(true);
       setAvailableItems(prev => prev.filter(item => item.id !== targetItem.id));
       setIsSpinning(false);
-    }, 7000); 
+    }, 5000); 
   };
   
   const statusCounts = useMemo(() => {
