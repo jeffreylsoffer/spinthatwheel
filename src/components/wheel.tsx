@@ -46,7 +46,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           const segmentAngle = 360 / segmentCount;
           const angle = i * segmentAngle;
 
-          const segmentColor = item.color.segment;
+          const segmentColor = item.type === 'END' ? '#111827' : item.color.segment;
           const r = parseInt(segmentColor.slice(1, 3), 16);
           const g = parseInt(segmentColor.slice(3, 5), 16);
           const b = parseInt(segmentColor.slice(5, 7), 16);
@@ -59,7 +59,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
               className="absolute w-full h-56 flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
-                backgroundColor: item.color.segment,
+                backgroundColor: segmentColor,
                 backfaceVisibility: 'hidden',
                 border: `8px solid ${borderColor}`,
                 boxShadow: `inset 0 2px 2px ${highlightColor}, inset 0 -2px 2px rgba(0,0,0,0.2)`
@@ -70,7 +70,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
-                  border: '2px solid #000',
+                  border: '8px solid #000',
                 }}
               >
                 <span 
