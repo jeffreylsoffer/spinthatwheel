@@ -28,11 +28,11 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
 
   return (
     <div 
-      className="relative w-full h-96 flex items-center justify-center"
-      style={{ perspective: '1200px' }}
+      className="relative w-full h-96 flex items-center justify-center overflow-hidden"
+      style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
     >
       {/* Casing and Lighting Effects */}
-      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl shadow-black/50 border-4 border-gray-700 overflow-hidden">
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl shadow-black/50 border-4 border-gray-700">
          {/* Inner shadow to give depth */}
         <div className="absolute inset-2 rounded-2xl shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]" />
         {/* Spotlight effect */}
@@ -47,7 +47,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
         )}
         style={{
           transformStyle: 'preserve-3d',
-          transform: `translateZ(${-radius}px) rotateX(${-rotation}deg)`,
+          transform: `translateZ(${-radius}px) rotateX(${rotation}deg)`,
           transitionDuration: `${spinDuration}ms`,
         }}
         onTransitionEnd={handleTransitionEnd}
@@ -57,7 +57,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           return (
             <div
               key={item.id}
-              className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center justify-center"
+              className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: item.color,
@@ -86,7 +86,8 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
 
       {/* Flexible Ticker */}
       <div 
-        className="absolute right-[-2.5rem] top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
+        style={{ transform: 'translateX(-25%)' }}
       >
         <svg viewBox="0 0 100 100">
             <polygon points="0,50 100,0 100,100" fill="#dc2626" />

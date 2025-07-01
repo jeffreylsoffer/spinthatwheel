@@ -90,11 +90,12 @@ const CardDeckWheel = () => {
     const projectedRotation = rotation + spinAmount;
 
     const revolutionNumber = direction > 0 ? Math.floor(projectedRotation / 360) : Math.ceil(projectedRotation / 360);
-    let newRotation = revolutionNumber * 360 + targetAngle;
+    let newRotation = revolutionNumber * 360 - targetAngle;
     
-    if (direction > 0 && newRotation < rotation) {
+    // Ensure it spins in the correct direction to the target
+    if (direction > 0 && newRotation < projectedRotation) {
         newRotation += 360;
-    } else if (direction < 0 && newRotation > rotation) {
+    } else if (direction < 0 && newRotation > projectedRotation) {
         newRotation -= 360;
     }
     
@@ -146,7 +147,7 @@ const CardDeckWheel = () => {
     const dragEndY = e.clientY;
     const dragEndTime = Date.now();
     
-    const dragDistance = dragStartRef.current.y - dragEndY;
+    const dragDistance = dragEndY - dragStartRef.current.y;
     const dragDuration = dragEndTime - dragStartRef.current.time;
 
     // A flick is a short, fast drag.
