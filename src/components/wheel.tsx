@@ -68,14 +68,20 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHe
               }}
             >
               <div 
-                className="w-[50%] aspect-video rounded-2xl flex items-center justify-center shadow-lg px-4"
+                className={cn(
+                  "w-[50%] aspect-video rounded-2xl flex items-center justify-center shadow-lg",
+                  segmentHeight < 150 ? 'px-2' : 'px-4'
+                )}
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
                 }}
               >
                 <span 
-                  className="font-headline text-5xl font-bold tracking-wider"
+                  className={cn(
+                    "font-headline font-bold tracking-wider",
+                    segmentHeight < 150 ? 'text-3xl' : 'text-5xl'
+                  )}
                   style={{
                     textShadow: item.type === 'END' ? 'none' : '1px 1px 3px rgba(0, 0, 0, 0.2)',
                   }}
