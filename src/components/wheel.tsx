@@ -14,7 +14,6 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  const segmentAngle = 360 / segmentCount;
   const segmentHeight = 140; // h-36
   const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
 
@@ -30,7 +29,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
 
       {/* Perspective container */}
       <div
-        className="w-full h-full"
+        className="w-full h-full overflow-hidden"
         style={{ perspective: '1200px' }}
       >
         {/* The spinning wheel element */}
@@ -79,8 +78,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
 
       {/* Flexible Ticker */}
       <div 
-        className="absolute right-0 z-20 w-16 h-16 drop-shadow-2xl"
-        style={{ transform: `translateX(30%)` }}
+        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
       >
         <svg viewBox="0 0 100 100">
             <polygon points="0,50 100,0 100,100" fill="#dc2626" />

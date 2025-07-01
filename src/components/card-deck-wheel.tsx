@@ -27,7 +27,7 @@ const CardDeckWheel = () => {
 
 
   const initializeGame = useCallback(() => {
-    const rules = createSessionDeck();
+    const rules = createSessiondeck();
     const items = populateWheel(rules);
     setSessionRules(rules);
     setWheelItems(items);
@@ -70,18 +70,15 @@ const CardDeckWheel = () => {
     const targetAngle = targetIndex * segmentAngle;
     
     const currentRevolutions = Math.floor(rotation / 360);
-    // Add 4 to 5 full revolutions for a satisfying but faster spin
     const newRevolutions = 4 + Math.round(Math.random());
     
     let newRotation = (currentRevolutions + newRevolutions) * 360 + targetAngle;
     
-    // Add a slight random offset so it doesn't land perfectly centered
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.7;
     
     setIsSpinning(true);
     setRotation(newRotation + randomOffset);
 
-    // Match this timeout to the CSS transition duration in Wheel.tsx
     setTimeout(() => {
       setResult(targetItem);
       setIsResultModalOpen(true);
@@ -141,7 +138,7 @@ const CardDeckWheel = () => {
       </div>
       
       <div 
-        className="w-full cursor-grab active:cursor-grabbing touch-none select-none"
+        className="w-full max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
         onPointerDown={handlePointerDown}
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
