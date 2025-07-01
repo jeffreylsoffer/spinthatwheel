@@ -70,7 +70,7 @@ const CardDeckWheel = () => {
     const targetAngle = targetIndex * segmentAngle;
     
     const currentRevolutions = Math.floor(rotation / 360);
-    const newRevolutions = 4 + Math.round(Math.random());
+    const newRevolutions = 8 + Math.round(Math.random() * 2);
     
     let newRotation = (currentRevolutions + newRevolutions) * 360 + targetAngle;
     
@@ -84,7 +84,7 @@ const CardDeckWheel = () => {
       setIsResultModalOpen(true);
       setAvailableItems(prev => prev.filter(item => item.id !== targetItem.id));
       setIsSpinning(false);
-    }, 5000); 
+    }, 8000); 
   };
   
   const statusCounts = useMemo(() => {

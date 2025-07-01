@@ -30,13 +30,13 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
 
       {/* Perspective container */}
       <div
-        className="absolute w-3/5 right-0 h-full overflow-hidden"
+        className="absolute w-full h-full"
         style={{ perspective: '1200px' }}
       >
         {/* The spinning wheel element */}
         <div
           className={cn(
-            "relative w-full h-full transition-transform duration-[4500ms]",
+            "relative w-full h-full transition-transform duration-[8000ms]",
             isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
           )}
           style={{
@@ -79,7 +79,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
 
       {/* Flexible Ticker */}
       <div 
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
+        className="absolute right-[-2.5rem] top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
       >
         <svg viewBox="0 0 100 100">
             <polygon points="0,50 100,0 100,100" fill="#dc2626" />
