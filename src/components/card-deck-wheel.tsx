@@ -75,15 +75,15 @@ const CardDeckWheel = () => {
     const direction = Math.sign(velocity) || 1;
     
     // Velocity-based spin dynamics
-    const baseRevolutions = 4;
-    const velocityMultiplier = 5;
+    const baseRevolutions = 5;
+    const velocityMultiplier = 15;
     const additionalRevolutions = Math.abs(velocity) * velocityMultiplier;
     
     const totalRevolutions = baseRevolutions + additionalRevolutions;
     
-    const newRevolutions = Math.round(Math.min(30, Math.max(4, totalRevolutions)));
+    const newRevolutions = Math.round(Math.min(50, Math.max(5, totalRevolutions)));
     
-    const duration = 4000 + newRevolutions * 300;
+    const duration = 5000 + newRevolutions * 300;
     setSpinDuration(duration);
     
     const spinAmount = newRevolutions * 360 * direction;
@@ -165,24 +165,27 @@ const CardDeckWheel = () => {
   };
 
   return (
-    <div className="w-full flex flex-col items-center gap-8">
-       <div className="text-center">
-         <h1 className="font-headline text-5xl md:text-7xl text-primary-foreground" style={{textShadow: '2px 2px 4px hsl(var(--primary))'}}>
-           Card Deck Wheel
-         </h1>
-        <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
-      </div>
-      
-      <div 
-        className="w-full max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
-        onPointerDown={handlePointerDown}
-        onPointerUp={handlePointerUp}
-        onPointerCancel={handlePointerCancel}
-      >
-        <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
+    <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
+      {/* Main content: Wheel */}
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center gap-8">
+        <div className="text-center">
+          <h1 className="font-headline text-5xl md:text-7xl text-primary-foreground" style={{textShadow: '2px 2px 4px hsl(var(--primary))'}}>
+            Card Deck Wheel
+          </h1>
+          <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
+        </div>
+        <div 
+          className="w-full max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          onPointerDown={handlePointerDown}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+        >
+          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
+        </div>
       </div>
 
-      <div className="flex flex-col sm:flex-row gap-4 items-center mt-4">
+      {/* Sidebar: Controls and Status */}
+      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-md mx-auto lg:max-w-none lg:mx-0">
         <Button 
           variant="outline"
           size="lg"
@@ -191,31 +194,30 @@ const CardDeckWheel = () => {
           <BookOpen className="mr-2 h-5 w-5" />
           Flip Cheat Sheet
         </Button>
+        <Card className="w-full">
+          <CardHeader>
+            <CardTitle className="font-headline text-2xl">Game Status</CardTitle>
+          </CardHeader>
+          <CardContent className="flex flex-wrap justify-around items-center gap-4">
+            <div className="text-center">
+              <h3 className="font-bold text-lg">Prompts</h3>
+              <Badge variant="secondary" className="text-lg">{statusCounts.prompts.available} / {statusCounts.prompts.total}</Badge>
+            </div>
+            <div className="text-center">
+              <h3 className="font-bold text-lg">Rules</h3>
+              <Badge variant="secondary" className="text-lg">{statusCounts.rules.available} / {statusCounts.rules.total}</Badge>
+            </div>
+            <div className="text-center">
+              <h3 className="font-bold text-lg">Modifiers</h3>
+              <Badge variant="secondary" className="text-lg">{statusCounts.modifiers.available} / {statusCounts.modifiers.total}</Badge>
+            </div>
+            <Button variant="ghost" onClick={handleReset} className="mt-4 sm:mt-0">
+              <RefreshCw className="mr-2 h-4 w-4" />
+              Reset Game
+            </Button>
+          </CardContent>
+        </Card>
       </div>
-      
-      <Card className="w-full max-w-2xl mt-4">
-        <CardHeader>
-          <CardTitle className="font-headline text-2xl">Game Status</CardTitle>
-        </CardHeader>
-        <CardContent className="flex flex-col sm:flex-row justify-around gap-4">
-          <div className="text-center">
-            <h3 className="font-bold text-lg">Prompts</h3>
-            <Badge variant="secondary" className="text-lg">{statusCounts.prompts.available} / {statusCounts.prompts.total}</Badge>
-          </div>
-          <div className="text-center">
-            <h3 className="font-bold text-lg">Rules</h3>
-            <Badge variant="secondary" className="text-lg">{statusCounts.rules.available} / {statusCounts.rules.total}</Badge>
-          </div>
-          <div className="text-center">
-            <h3 className="font-bold text-lg">Modifiers</h3>
-            <Badge variant="secondary" className="text-lg">{statusCounts.modifiers.available} / {statusCounts.modifiers.total}</Badge>
-          </div>
-           <Button variant="ghost" onClick={handleReset} className="mt-4 sm:mt-0 self-center">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            Reset Game
-          </Button>
-        </CardContent>
-      </Card>
 
       <ResultModal 
         isOpen={isResultModalOpen} 
