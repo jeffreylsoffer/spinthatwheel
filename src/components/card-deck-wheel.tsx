@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo, useCallback } from 'react';
+import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
 import Wheel from './wheel';
 import ResultModal from './result-modal';
 import CheatSheetModal from './cheatsheet-modal';
@@ -22,7 +22,9 @@ const CardDeckWheel = () => {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
 
-  const { toast } = useToast()
+  const { toast } = useToast();
+  const dragStartRef = useRef<{ y: number | null }>({ y: null });
+
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck();
@@ -44,10 +46,8 @@ const CardDeckWheel = () => {
       const newRules = prevRules.map(r => 
         r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r
       );
-      // Regenerate wheel items with the new rule state
       const newWheelItems = populateWheel(newRules);
       setWheelItems(newWheelItems);
-      // Reset available items to match the new wheel
       setAvailableItems(newWheelItems);
 
       toast({
@@ -67,18 +67,10 @@ const CardDeckWheel = () => {
     if (targetIndex === -1) return;
 
     const segmentAngle = 360 / wheelItems.length;
-
-    // The rotation needs to land with the targetIndex at the 'front' (0 degrees in the wheel's rotation).
-    // The wheel component will apply `rotateX(-rotation)`. The cards are at `rotateX(index * segmentAngle)`.
-    // So to get card `targetIndex` to 0, the wheel's rotation needs to be `targetIndex * segmentAngle`.
     const targetAngle = targetIndex * segmentAngle;
-
-    // To make it spin, we add several full revolutions.
-    // We need to figure out how many revolutions it has already done to keep it spinning forward.
     const currentRevolutions = Math.floor(rotation / 360);
     const newRotation = (currentRevolutions + 5) * 360 + targetAngle;
     
-    // Add a random offset so it doesn't land perfectly every time.
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
     
     setIsSpinning(true);
@@ -89,7 +81,7 @@ const CardDeckWheel = () => {
       setIsResultModalOpen(true);
       setAvailableItems(prev => prev.filter(item => item.id !== targetItem.id));
       setIsSpinning(false);
-    }, 7000); // Match wheel animation duration
+    }, 7000); 
   };
   
   const statusCounts = useMemo(() => {
@@ -111,26 +103,47 @@ const CardDeckWheel = () => {
     })
   }
 
+  const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (isSpinning || availableItems.length === 0) return;
+    dragStartRef.current.y = e.clientY;
+    (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
+  };
+
+  const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    if (isSpinning || dragStartRef.current.y === null) return;
+    
+    const dragDistance = Math.abs(e.clientY - dragStartRef.current.y);
+    if (dragDistance > 20) {
+      handleSpinClick();
+    }
+    dragStartRef.current.y = null;
+  };
+
+  const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
+    (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
+    dragStartRef.current.y = null;
+  };
+
   return (
     <div className="w-full flex flex-col items-center gap-8">
        <div className="text-center">
          <h1 className="font-headline text-5xl md:text-7xl text-primary-foreground" style={{textShadow: '2px 2px 4px hsl(var(--primary))'}}>
            Card Deck Wheel
          </h1>
-        <p className="text-lg text-foreground/80 mt-2">Spin the wheel to get your next challenge!</p>
+        <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
+      </div>
+      
+      <div 
+        className="w-full cursor-grab active:cursor-grabbing touch-none select-none"
+        onPointerDown={handlePointerDown}
+        onPointerUp={handlePointerUp}
+        onPointerCancel={handlePointerCancel}
+      >
+        <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} />
       </div>
 
-      <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} />
-      
-      <div className="flex flex-col sm:flex-row gap-4 items-center">
-        <Button 
-          onClick={handleSpinClick} 
-          disabled={isSpinning || availableItems.length === 0}
-          size="lg"
-          className="w-64 h-16 text-2xl font-bold rounded-full shadow-lg"
-        >
-          {isSpinning ? 'Spinning...' : 'SPIN'}
-        </Button>
+      <div className="flex flex-col sm:flex-row gap-4 items-center mt-4">
         <Button 
           variant="outline"
           size="lg"

@@ -68,7 +68,7 @@ export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
     wheel.push({
       id: `rule-${i}-${rule.id}`,
       type: 'RULE',
-      label: rule.name,
+      label: 'Rule',
       data: rule,
       color: COLORS.RULE,
     });
@@ -81,7 +81,7 @@ export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
     wheel.push({
       id: `modifier-${i}-${modifier.id}`,
       type: 'MODIFIER',
-      label: modifier.name,
+      label: 'Modifier',
       data: modifier,
       color: COLORS.MODIFIER,
     });
