@@ -14,6 +14,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
+  const segmentAngle = 360 / segmentCount;
   const segmentHeight = 140; // h-36
   const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
 
@@ -35,7 +36,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
         {/* The spinning wheel element */}
         <div
           className={cn(
-            "relative w-full h-full transition-transform duration-[5000ms]",
+            "relative w-full h-full transition-transform duration-[4500ms]",
             isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
           )}
           style={{
