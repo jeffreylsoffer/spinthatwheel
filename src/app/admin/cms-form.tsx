@@ -13,10 +13,11 @@ import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle }
 import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
-import type { RuleGroup, Prompt, Modifier, ModifierType } from '@/lib/types';
-import { Save, Trash2, PlusCircle } from 'lucide-react';
+import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
+import { Save, Trash2, PlusCircle, Wand2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
+import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
 
 interface CmsFormProps {
   initialData: {
@@ -36,7 +37,50 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
   const [prompts, setPrompts] = useState(initialData.prompts);
   const [modifiers, setModifiers] = useState(initialData.modifiers);
   const [ratios, setRatios] = useState(initialRatios);
+  const [aiPrompt, setAiPrompt] = useState('');
+  const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+  // --- AI Generation ---
+  const handleGenerate = async () => {
+    if (!aiPrompt.trim()) {
+      toast({
+        variant: 'destructive',
+        title: 'Prompt is empty',
+        description: 'Please enter a theme to generate cards.',
+      });
+      return;
+    }
+    setIsGenerating(true);
+    try {
+      const result: GenerateCardsOutput = await generateCards({
+        theme: aiPrompt,
+        existingRules: rules,
+        existingPrompts: prompts,
+        existingModifiers: modifiers,
+      });
+      
+      setRules(result.ruleGroups);
+      setPrompts(result.prompts);
+      setModifiers(result.modifiers);
+
+      toast({
+        title: 'AI Generation Complete!',
+        description: `New cards with the theme "${aiPrompt}" have been generated.`,
+      });
+
+    } catch (error) {
+      console.error('AI Generation failed', error);
+      toast({
+        variant: 'destructive',
+        title: 'AI Generation Failed',
+        description: 'Could not generate new cards. Please try again.',
+      });
+    } finally {
+      setIsGenerating(false);
+    }
+  };
+
 
   // --- Change Handlers ---
   const handleRuleChange = (groupIdx: number, ruleType: 'primary' | 'flipped', field: 'name' | 'description', value: string) => {
@@ -134,6 +178,35 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
 
   return (
     <div className="space-y-8">
+      <Card>
+        <CardHeader>
+          <CardTitle>AI Card Generator</CardTitle>
+          <CardDescription>Enter a theme and let AI generate a new set of cards for your game. This will replace the current unsaved content.</CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-4">
+           <div className="space-y-2">
+            <Label htmlFor="ai-prompt">Game Theme</Label>
+            <Textarea 
+              id="ai-prompt" 
+              placeholder="e.g., Pirates, Space Opera, Film Noir, Cavemen..."
+              value={aiPrompt}
+              onChange={(e) => setAiPrompt(e.target.value)}
+              rows={2}
+            />
+          </div>
+        </CardContent>
+        <CardFooter>
+          <Button onClick={handleGenerate} disabled={isGenerating}>
+            {isGenerating ? (
+              <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+            ) : (
+              <Wand2 className="mr-2 h-5 w-5" />
+            )}
+            Generate
+          </Button>
+        </CardFooter>
+      </Card>
+      
       <Card>
         <CardHeader>
           <CardTitle>Wheel Configuration</CardTitle>
