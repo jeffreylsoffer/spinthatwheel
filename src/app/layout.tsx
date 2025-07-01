@@ -5,8 +5,8 @@ import { Toaster } from "@/components/ui/toaster"
 import CabaretBorder from '@/components/cabaret-border';
 
 export const metadata: Metadata = {
-  title: 'Card Deck Wheel',
-  description: 'An interactive card deck wheel game.',
+  title: 'SPIN THAT WHEEL',
+  description: 'An interactive spinning wheel game.',
 };
 
 export default function RootLayout({

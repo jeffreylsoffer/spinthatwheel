@@ -23,7 +23,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
 
       <Card className="w-full max-w-2xl bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-2xl shadow-black/50">
         <CardHeader className="text-center">
-          <CardTitle className="font-headline text-5xl lg:text-6xl tracking-wider text-card-foreground">Card Deck Wheel</CardTitle>
+          <CardTitle className="font-headline text-5xl lg:text-6xl tracking-wider text-card-foreground">SPIN THAT WHEEL</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
             A game of chaotic improvisation.
           </CardDescription>

@@ -1,6 +1,6 @@
 'use server';
 /**
- * @fileOverview An AI flow for generating themed card content for the Card Deck Wheel game.
+ * @fileOverview An AI flow for generating themed card content for the SPIN THAT WHEEL game.
  *
  * - generateCards - A function that takes a theme and existing card data to generate new content.
  * - GenerateCardsInput - The input type for the generateCards function.
@@ -53,7 +53,7 @@ const generationPrompt = ai.definePrompt({
   name: 'generateCardsPrompt',
   input: { schema: GenerateCardsInputSchema },
   output: { schema: GenerateCardsOutputSchema },
-  prompt: `You are a creative and witty game designer for a party game called "Card Deck Wheel".
+  prompt: `You are a creative and witty game designer for a party game called "SPIN THAT WHEEL".
 Your task is to generate a new set of Rules and Prompts based on a user-provided theme: "{{theme}}". The Modifiers are evergreen and should not be changed.
 
 You must follow these instructions carefully:
