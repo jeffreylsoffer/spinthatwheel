@@ -49,8 +49,8 @@ export const SevenSegmentDisplay = ({ score }: { score: number }) => {
 
   return (
     <div className="flex items-center justify-center gap-1.5 p-2 bg-black/50 rounded-lg border border-white/10">
-      <div className="relative w-4 h-14">
-        {isNegative && <div className="segment segment-g on !top-1/2 -translate-y-1/2" />}
+      <div className="relative w-4 h-14 flex justify-center items-center">
+        {isNegative && <div className="bg-primary shadow-[0_0_5px_hsl(var(--primary)/0.7)] w-4 h-2 rounded-[2px]" />}
       </div>
       <SevenSegmentDigit digit={digit1} />
       <SevenSegmentDigit digit={digit2} />

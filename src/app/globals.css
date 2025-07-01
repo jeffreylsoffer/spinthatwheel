@@ -8,24 +8,24 @@ body {
 
 @layer base {
   :root {
-    --background: 354 70% 30%;
-    --foreground: 0 0% 95%;
-    --card: 196 93% 98%;
+    --background: 207 90% 98%;
+    --foreground: 210 10% 23%;
+    --card: 207 90% 98%;
     --card-foreground: 210 10% 23%;
-    --popover: 196 93% 98%;
+    --popover: 207 90% 98%;
     --popover-foreground: 210 10% 23%;
     --primary: 197 78% 52%;
     --primary-foreground: 210 40% 98%;
     --secondary: 197 78% 80%;
     --secondary-foreground: 210 10% 23%;
-    --muted: 210 10% 85%;
+    --muted: 210 4% 45%;
     --muted-foreground: 210 10% 45%;
     --accent: 180 100% 50%;
     --accent-foreground: 180 100% 20%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 354 70% 35%;
-    --input: 354 70% 35%;
+    --border: 207 90% 85%;
+    --input: 207 90% 85%;
     --ring: 197 78% 52%;
     --radius: 0.8rem;
     --chart-1: 12 76% 61%;
@@ -68,7 +68,6 @@ body {
   }
   body {
     @apply bg-background text-foreground;
-    background-image: radial-gradient(ellipse at center, hsl(var(--background)) 0%, hsl(354 70% 15%) 60%, hsl(354 80% 5%) 100%);
   }
 }
 
@@ -104,7 +103,7 @@ body {
     box-shadow: 0 0 5px hsl(var(--primary) / 0.7);
   }
   .segment-h { @apply w-6 h-2 left-1; }
-  .segment-v { @apply w-2 h-6; }
+  .segment-v { @apply w-2 h-4; }
 
   /* Horizontal Segments */
   .segment-a { @apply segment-h top-0; }
@@ -112,8 +111,8 @@ body {
   .segment-d { @apply segment-h bottom-0; }
 
   /* Vertical Segments */
-  .segment-b { @apply segment-v right-0 top-1; }
-  .segment-c { @apply segment-v right-0 top-7; }
-  .segment-e { @apply segment-v left-0 top-7; }
-  .segment-f { @apply segment-v left-0 top-1; }
+  .segment-b { @apply segment-v right-0 top-2; }
+  .segment-c { @apply segment-v right-0 top-8; }
+  .segment-e { @apply segment-v left-0 top-8; }
+  .segment-f { @apply segment-v left-0 top-2; }
 }
