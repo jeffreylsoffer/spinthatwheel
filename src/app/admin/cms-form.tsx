@@ -16,6 +16,7 @@ import { Textarea } from '@/components/ui/textarea';
 import type { RuleGroup, Prompt, Modifier, ModifierType } from '@/lib/types';
 import { Save, Trash2, PlusCircle } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useToast } from '@/hooks/use-toast';
 
 interface CmsFormProps {
   initialData: {
@@ -35,6 +36,7 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
   const [prompts, setPrompts] = useState(initialData.prompts);
   const [modifiers, setModifiers] = useState(initialData.modifiers);
   const [ratios, setRatios] = useState(initialRatios);
+  const { toast } = useToast();
 
   // --- Change Handlers ---
   const handleRuleChange = (groupIdx: number, ruleType: 'primary' | 'flipped', field: 'name' | 'description', value: string) => {
@@ -69,7 +71,7 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
     const newId = Date.now();
     const newRuleGroup: RuleGroup = {
       id: newId,
-      name: `Rule Group ${newId}`,
+      name: `New Rule Group`,
       primary_rule: { id: newId + 1, name: '', description: '' },
       flipped_rule: { id: newId + 2, name: '', description: '' },
     };
@@ -98,8 +100,34 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
 
   // --- Save Handler ---
   const handleSaveChanges = () => {
-    console.log("Saving changes:", { rules, prompts, modifiers, ratios });
-    alert("Saving changes... (This is a placeholder. Data is not actually saved.)");
+    const totalRatio = ratios.prompts + ratios.rules + ratios.modifiers;
+    if (totalRatio !== 100) {
+      toast({
+        variant: "destructive",
+        title: "Invalid Ratios",
+        description: "The total percentage for wheel configuration must be exactly 100%.",
+      });
+      return;
+    }
+
+    try {
+      localStorage.setItem('cms_rules', JSON.stringify(rules));
+      localStorage.setItem('cms_prompts', JSON.stringify(prompts));
+      localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
+      localStorage.setItem('cms_ratios', JSON.stringify(ratios));
+
+      toast({
+        title: "Changes Saved!",
+        description: "Your new card and wheel configuration has been saved locally.",
+      });
+    } catch (error) {
+      console.error("Failed to save to localStorage", error);
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: "Could not save changes to your browser's local storage.",
+      });
+    }
   };
 
   const totalRatio = ratios.prompts + ratios.rules + ratios.modifiers;

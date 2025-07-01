@@ -1,16 +1,17 @@
+
 "use client";
 
-import { useState, useEffect, useMemo, useCallback, useRef } from 'react';
+import { useState, useEffect, useCallback, useRef } from 'react';
 import Wheel from './wheel';
 import ResultModal from './result-modal';
 import CheatSheetModal from './cheatsheet-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
-import { createSessionDeck, populateWheel, CARD_STYLES } from '@/lib/game-logic';
-import type { SessionRule, WheelItem, WheelItemType, Rule } from '@/lib/types';
+import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
+import { createSessionDeck, populateWheel, CARD_STYLES, RATIOS as defaultRatios } from '@/lib/game-logic';
+import type { SessionRule, WheelItem, Rule } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen } from 'lucide-react';
-import { useToast } from "@/hooks/use-toast"
 import { useIsMobile } from '@/hooks/use-mobile';
 
 interface CardDeckWheelProps {
@@ -33,15 +34,43 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [spinDuration, setSpinDuration] = useState(0);
   const [spinCount, setSpinCount] = useState(0);
 
-  const { toast } = useToast();
+  const [gameData, setGameData] = useState({
+    rules: defaultRuleGroups,
+    prompts: defaultPrompts,
+    modifiers: defaultModifiers,
+  });
+  const [gameRatios, setGameRatios] = useState(defaultRatios);
+
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
 
   const isMobile = useIsMobile();
-  const segmentHeight = isMobile ? 60 : 192;
+  const segmentHeight = isMobile ? 80 : 192;
+
+  useEffect(() => {
+    const savedRules = localStorage.getItem('cms_rules');
+    const savedPrompts = localStorage.getItem('cms_prompts');
+    const savedModifiers = localStorage.getItem('cms_modifiers');
+    const savedRatios = localStorage.getItem('cms_ratios');
+
+    setGameData({
+      rules: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
+      prompts: savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts,
+      modifiers: savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers,
+    });
+
+    if (savedRatios) {
+      const parsedRatios = JSON.parse(savedRatios);
+      setGameRatios({
+        RULES: parsedRatios.rules / 100,
+        PROMPTS: parsedRatios.prompts / 100,
+        MODIFIERS: parsedRatios.modifiers / 100,
+      });
+    }
+  }, []);
 
   const initializeGame = useCallback(() => {
-    const rules = createSessionDeck();
-    const items = populateWheel(rules);
+    const rules = createSessionDeck(gameData.rules);
+    const items = populateWheel(rules, gameData.prompts, gameData.modifiers, gameRatios);
     setSessionRules(rules);
     setWheelItems(items);
     setAvailableItems(items);
@@ -50,7 +79,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     setResult(null);
     setSpinCount(0);
     setActiveRules([]);
-  }, []);
+  }, [gameData, gameRatios]);
 
   useEffect(() => {
     initializeGame();
@@ -230,7 +259,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
 
       <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-[240px] lg:h-auto">
         <div 
-          className="relative w-full max-w-[14rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-[12rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -244,6 +273,10 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         isOpen={isResultModalOpen} 
         onOpenChange={handleModalOpenChange} 
         result={result} 
+        onOpenCheatSheet={() => {
+          setIsResultModalOpen(false);
+          setIsCheatSheetModalOpen(true);
+        }}
       />
       <CheatSheetModal 
         isOpen={isCheatSheetModalOpen} 
