@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from 'react';
+import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 import { Settings, Plus, Minus } from 'lucide-react';
@@ -8,22 +9,17 @@ import { Settings, Plus, Minus } from 'lucide-react';
 export default function StartScreen({ onStartGame }: { onStartGame: (playerCount: number) => void }) {
   const [playerCount, setPlayerCount] = useState(2);
 
-  const handleManagePrompts = () => {
-    // Placeholder for future CMS functionality
-    alert("Prompt management coming soon!");
-  };
-
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
-      <Button 
-        variant="ghost" 
-        size="icon" 
-        className="absolute top-4 right-4 text-foreground/50 hover:text-foreground"
-        onClick={handleManagePrompts}
-        aria-label="Manage Prompts"
-      >
-        <Settings className="h-6 w-6" />
-      </Button>
+      <Link href="/admin" className="absolute top-4 right-4" aria-label="Manage Prompts">
+        <Button 
+          variant="ghost" 
+          size="icon" 
+          className="text-foreground/50 hover:text-foreground"
+        >
+          <Settings className="h-6 w-6" />
+        </Button>
+      </Link>
 
       <Card className="w-full max-w-2xl bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-2xl shadow-black/50">
         <CardHeader className="text-center">
