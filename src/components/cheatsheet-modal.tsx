@@ -64,7 +64,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
                       style={ruleCardStyle}
                     >
                       <div className="flex justify-end items-start">
-                        <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">
+                        <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)}>
                           <RefreshCw className="h-4 w-4 mr-2" />
                           Flip
                         </Button>
@@ -82,7 +82,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
                       style={flippedRuleCardStyle}
                     >
                       <div className="flex justify-end items-start">
-                        <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">
+                        <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)}>
                           <RefreshCw className="h-4 w-4 mr-2" />
                           Flip
                         </Button>

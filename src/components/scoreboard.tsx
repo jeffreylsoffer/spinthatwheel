@@ -32,7 +32,10 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <div className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-primary text-4xl font-bold tabular-nums w-24 h-14 border border-white/10">
+              <div 
+                className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-accent text-4xl font-bold tabular-nums w-24 h-14 border border-white/10"
+                style={{ textShadow: '0 0 5px hsl(var(--accent) / 0.7)' }}
+              >
                 {player.score}
               </div>
               <Button
