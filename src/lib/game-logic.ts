@@ -11,9 +11,9 @@ export const TOTAL_SEGMENTS = 20;
 
 // Color palette for wheel segments based on show photos
 export const COLORS: Record<'PROMPT' | 'RULE' | 'MODIFIER' | 'END', WheelItemStyle> = {
-  PROMPT:   { segment: '#FBBF24', labelBg: '#FFFFFF', labelColor: '#1F2937' },   // Yellow segment, white card
-  MODIFIER: { segment: '#14B8A6', labelBg: '#0F766E', labelColor: '#FFFFFF' },   // Teal segment, dark teal card
-  RULE:     { segment: '#D8B4FE', labelBg: '#FB923C', labelColor: '#1F2937' },   // Purple segment, orange card
+  PROMPT:   { segment: '#FFD262', labelBg: '#FFFFFF', labelColor: '#1F2937' },   // Yellow segment, white card
+  MODIFIER: { segment: '#45B0C9', labelBg: '#0F766E', labelColor: '#FFFFFF' },   // Light Blue/Teal segment, dark teal card
+  RULE:     { segment: '#C8BFE7', labelBg: '#EE6352', labelColor: '#1F2937' },   // Lavender segment, Red-Orange card
   END:      { segment: '#374151', labelBg: '#111827', labelColor: '#F9FAFB' },   // Dark gray segment, black card
 };
 

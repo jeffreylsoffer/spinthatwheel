@@ -16,7 +16,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  const radius = Math.round((288 / 2) / Math.tan(Math.PI / segmentCount));
+  const radius = Math.round((320 / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName === 'transform' && isSpinning) {
@@ -49,7 +49,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           return (
             <div
               key={item.id}
-              className="absolute w-full h-72 flex items-center justify-center"
+              className="absolute w-full h-80 flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: item.color.segment,
@@ -59,7 +59,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
               }}
             >
               <div 
-                className="w-[60%] aspect-video rounded-2xl flex items-center justify-center shadow-lg px-4"
+                className="w-[50%] aspect-video rounded-2xl flex items-center justify-center shadow-lg px-4"
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
@@ -67,7 +67,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
                 }}
               >
                 <span 
-                  className="font-headline text-3xl font-bold tracking-wider"
+                  className="font-headline text-4xl font-bold tracking-wider"
                   style={{
                     textShadow: item.type === 'END' ? 'none' : '1px 1px 3px rgba(0, 0, 0, 0.2)',
                   }}

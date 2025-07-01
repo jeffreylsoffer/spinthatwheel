@@ -39,7 +39,7 @@ const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
     : result.data.name;
 
   const initialLabel = result.label;
-  const textColor = result.type === 'END' ? 'white' : 'black';
+  const textColor = result.type === 'PROMPT' || result.type === 'RULE' ? 'black' : 'white';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -53,7 +53,7 @@ const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
             <h2 
               style={{ color: textColor }}
               className={cn(
-                "text-5xl lg:text-6xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                "text-6xl lg:text-7xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                 showDetails ? "opacity-0" : "opacity-100"
               )}
             >
@@ -64,7 +64,7 @@ const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
             <h2 
               style={{ color: textColor }}
               className={cn(
-                "text-4xl lg:text-5xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                "text-5xl lg:text-6xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                 showDetails ? "opacity-100 delay-300" : "opacity-0"
               )}
             >
