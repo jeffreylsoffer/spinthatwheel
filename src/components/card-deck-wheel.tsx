@@ -66,15 +66,14 @@ const CardDeckWheel = () => {
   const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
-    // Prevent landing on END cards after spin 5
+    // Prevent landing on END cards before spin 5
     let selectableItems = availableItems;
     if (spinCount < 5) {
-      selectableItems = availableItems.filter(i => i.type !== 'END');
+      const nonEndItems = availableItems.filter(i => i.type !== 'END');
+      if (nonEndItems.length > 0) {
+        selectableItems = nonEndItems;
+      }
     }
-    if (selectableItems.length === 0) {
-      selectableItems = availableItems;
-    }
-
 
     const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
     setWinningItem(targetItem);
@@ -112,14 +111,21 @@ const CardDeckWheel = () => {
     if (winningItem) {
       setResult(winningItem);
       setIsResultModalOpen(true);
+      setWinningItem(null);
+      setSpinCount(prev => prev + 1);
+    }
+    setIsSpinning(false);
+  };
 
+  const handleModalOpenChange = (open: boolean) => {
+    if (!open && result) {
       // Replace the landed-on item with a visual "END" card
       setWheelItems(prevItems => {
         const newItems = [...prevItems];
-        const index = newItems.findIndex(item => item.id === winningItem.id);
+        const index = newItems.findIndex(item => item.id === result.id);
         if (index !== -1) {
           newItems[index] = {
-            id: `used-${winningItem.id}`,
+            id: `used-${result.id}`,
             type: 'END',
             label: 'END',
             data: { name: 'END', description: 'This slot has been used.' },
@@ -130,13 +136,11 @@ const CardDeckWheel = () => {
       });
 
       // Remove the original item from the pool of selectable items
-      setAvailableItems(prev => prev.filter(item => item.id !== winningItem.id));
-      
-      setWinningItem(null);
-      setSpinCount(prev => prev + 1);
+      setAvailableItems(prev => prev.filter(item => item.id !== result.id));
     }
-    setIsSpinning(false);
+    setIsResultModalOpen(open);
   };
+
 
   const statusCounts = useMemo(() => {
     const totalCount = (type: WheelItemType) => {
@@ -232,9 +236,9 @@ const CardDeckWheel = () => {
         </Card>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-96">
         <div 
-          className="w-full max-w-lg h-96 mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
@@ -246,7 +250,7 @@ const CardDeckWheel = () => {
 
       <ResultModal 
         isOpen={isResultModalOpen} 
-        onOpenChange={setIsResultModalOpen} 
+        onOpenChange={handleModalOpenChange} 
         result={result} 
       />
       <CheatSheetModal 

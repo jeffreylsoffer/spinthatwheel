@@ -46,7 +46,7 @@ const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
       <DialogContent className="bg-transparent border-none shadow-none p-0 data-[state=open]:animate-in data-[state=open]:zoom-in-75 w-auto">
         <div 
           style={{ backgroundColor: result.color.labelBg }}
-          className="w-[480px] h-[270px] p-6 rounded-2xl border-[10px] border-black flex items-center justify-center text-center"
+          className="w-[480px] h-[270px] p-6 rounded-2xl border-[14px] border-black flex items-center justify-center text-center"
         >
           <div className="relative w-full h-full flex items-center justify-center">
             {/* Initial Label (e.g., RULE) */}
