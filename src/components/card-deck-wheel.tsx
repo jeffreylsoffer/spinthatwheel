@@ -130,7 +130,7 @@ const CardDeckWheel = () => {
             label: 'END',
             data: { name: 'END', description: 'This slot has been used.' },
             color: {
-              segment: '#111827', // Use the END card color for the whole segment
+              segment: '#111827',
               ...CARD_STYLES.END
             }
           };
@@ -248,8 +248,6 @@ const CardDeckWheel = () => {
           onPointerCancel={handlePointerCancel}
         >
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
-          {/* Spotlight overlay */}
-          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_100%_4rem_at_center,transparent_40%,rgba(0,0,0,0.8))]"></div>
         </div>
       </div>
 

@@ -16,7 +16,8 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  const radius = Math.round((224 / 2) / Math.tan(Math.PI / segmentCount));
+  const segmentHeight = 192; // h-48
+  const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName === 'transform' && isSpinning) {
@@ -56,7 +57,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           return (
             <div
               key={item.id}
-              className="absolute w-full h-56 flex items-center justify-center"
+              className="absolute w-full h-48 flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: segmentColor,
@@ -86,6 +87,16 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           );
         })}
       </div>
+       {/* 3D Spotlight */}
+       <div 
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[250%] h-96 pointer-events-none"
+        style={{
+          background: 'radial-gradient(ellipse at center, rgba(255, 255, 240, 0.4) 0%, transparent 50%)',
+          transform: `translateZ(${radius + 50}px) translateY(-50%) rotateX(-15deg)`,
+          filter: 'blur(20px)',
+          mixBlendMode: 'plus-lighter'
+        }}
+      ></div>
     </div>
   );
 };
