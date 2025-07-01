@@ -6,9 +6,10 @@ import {
   DialogHeader,
   DialogTitle,
   DialogDescription,
+  DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import type { SessionRule } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { CARD_STYLES } from "@/lib/game-logic";
@@ -98,6 +99,10 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
             ))
           )}
         </div>
+        <DialogClose className="absolute right-4 top-4 rounded-sm opacity-70 ring-offset-background transition-opacity hover:opacity-100 focus:outline-none focus:ring-2 focus:ring-ring focus:ring-offset-2 disabled:pointer-events-none data-[state=open]:bg-accent">
+          <X className="h-4 w-4" />
+          <span className="sr-only">Close</span>
+        </DialogClose>
       </DialogContent>
     </Dialog>
   );

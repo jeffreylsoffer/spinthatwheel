@@ -5,11 +5,12 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogClose,
 } from "@/components/ui/dialog";
 import type { WheelItem, Modifier } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
-import { RefreshCw } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 
 interface ResultModalProps {
   isOpen: boolean;
@@ -39,8 +40,10 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
     : result.data.name;
 
   const initialLabel = result.label;
-  const textColor = result.type === 'PROMPT' || result.type === 'RULE' ? 'black' : 'white';
   const isFlipModifier = result.type === 'MODIFIER' && (result.data as Modifier).type === 'FLIP';
+  
+  const textColor = result.type === 'PROMPT' || result.type === 'RULE' ? 'black' : 'white';
+  const closeButtonColor = result.color.labelBg === '#FFFFFF' || result.color.labelBg === '#FFD262' ? 'text-black' : 'text-white';
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -48,8 +51,13 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
         <div className={cn("relative", isFlipModifier && "pb-16")}>
           <div 
             style={{ backgroundColor: result.color.labelBg }}
-            className="w-[640px] h-[360px] p-6 rounded-2xl border-[14px] border-black flex items-center justify-center text-center"
+            className="w-[640px] h-[360px] p-6 rounded-2xl border-[14px] border-black flex items-center justify-center text-center relative"
           >
+            <DialogClose className="absolute top-4 right-4 rounded-full p-1 transition-colors hover:bg-black/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
+                <X className={cn("h-8 w-8", closeButtonColor)} />
+                <span className="sr-only">Close</span>
+            </DialogClose>
+
             <div className="relative w-full h-full flex items-center justify-center">
               <h2 
                 style={{ color: textColor }}

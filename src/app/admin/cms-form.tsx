@@ -18,6 +18,7 @@ import { Save, Trash2, PlusCircle, Wand2, Loader2 } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
+import { Checkbox } from '@/components/ui/checkbox';
 
 interface CmsFormProps {
   initialData: {
@@ -87,6 +88,17 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
       newRules[groupIdx].primary_rule[field] = value;
     } else {
       newRules[groupIdx].flipped_rule[field] = value;
+    }
+    setRules(newRules);
+  };
+
+  const handleSpecialChange = (groupIdx: number, ruleType: 'primary' | 'flipped', checked: boolean | 'indeterminate') => {
+    const newRules = [...rules];
+    const rule = ruleType === 'primary' ? newRules[groupIdx].primary_rule : newRules[groupIdx].flipped_rule;
+    if (checked === true) {
+        rule.special = 'BUZZER';
+    } else {
+        delete rule.special;
     }
     setRules(newRules);
   };
@@ -274,6 +286,16 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
                           rows={2}
                         />
                       </div>
+                      <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id={`rule-${group.id}-primary-special`}
+                          checked={group.primary_rule.special === 'BUZZER'}
+                          onCheckedChange={(checked) => handleSpecialChange(groupIdx, 'primary', checked)}
+                        />
+                        <Label htmlFor={`rule-${group.id}-primary-special`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          This is a special "Buzzer" rule.
+                        </Label>
+                      </div>
                     </div>
                     <div className="space-y-4 p-4 border rounded-md bg-black/20">
                       <h4 className="font-bold text-lg">Flipped Rule</h4>
@@ -293,6 +315,16 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
                           onChange={(e) => handleRuleChange(groupIdx, 'flipped', 'description', e.target.value)}
                           rows={2}
                         />
+                      </div>
+                       <div className="flex items-center space-x-2 pt-2">
+                        <Checkbox
+                          id={`rule-${group.id}-flipped-special`}
+                          checked={group.flipped_rule.special === 'BUZZER'}
+                          onCheckedChange={(checked) => handleSpecialChange(groupIdx, 'flipped', checked)}
+                        />
+                        <Label htmlFor={`rule-${group.id}-flipped-special`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                          This is a special "Buzzer" rule.
+                        </Label>
                       </div>
                     </div>
                   </CardContent>
