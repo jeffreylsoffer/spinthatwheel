@@ -9,12 +9,20 @@ export const RATIOS = {
 };
 export const TOTAL_SEGMENTS = 20;
 
-// Color palette for wheel segments based on show photos
-export const COLORS: Record<'PROMPT' | 'RULE' | 'MODIFIER' | 'END', WheelItemStyle> = {
-  PROMPT:   { segment: '#FFD262', labelBg: '#FFFFFF', labelColor: '#1F2937' },   // Yellow segment, white card
-  MODIFIER: { segment: '#45B0C9', labelBg: '#0F766E', labelColor: '#FFFFFF' },   // Light Blue/Teal segment, dark teal card
-  RULE:     { segment: '#C8BFE7', labelBg: '#EE6352', labelColor: '#1F2937' },   // Lavender segment, Red-Orange card
-  END:      { segment: '#374151', labelBg: '#111827', labelColor: '#F9FAFB' },   // Dark gray segment, black card
+// New color scheme for segments
+export const SEGMENT_COLORS = [
+  '#C8BFE7', // Lavender
+  '#45B0C9', // Teal
+  '#FFD262', // Yellow
+  '#EE6352', // Red-Orange
+];
+
+// Color palette for cards based on their type
+export const CARD_STYLES: Record<'PROMPT' | 'RULE' | 'MODIFIER' | 'END', Omit<WheelItemStyle, 'segment'>> = {
+  PROMPT:   { labelBg: '#FFFFFF', labelColor: '#1F2937' },   // White card
+  RULE:     { labelBg: '#FFD262', labelColor: '#1F2937' },   // Yellow card
+  MODIFIER: { labelBg: '#45B0C9', labelColor: '#1F2937' },   // Teal card
+  END:      { labelBg: '#111827', labelColor: '#F9FAFB' },   // Black card
 };
 
 
@@ -43,7 +51,7 @@ function shuffle<T>(array: T[]): T[] {
 
 // Populates the wheel with a mix of items based on defined ratios
 export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
-  const wheel: WheelItem[] = [];
+  const rawWheel: Omit<WheelItem, 'color'>[] = [];
 
   const numPrompts = Math.floor(TOTAL_SEGMENTS * RATIOS.PROMPTS);
   const numRules = Math.floor(TOTAL_SEGMENTS * RATIOS.RULES);
@@ -53,12 +61,11 @@ export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
   const shuffledPrompts = shuffle([...prompts]);
   for (let i = 0; i < numPrompts; i++) {
     const prompt = shuffledPrompts[i % shuffledPrompts.length];
-    wheel.push({
+    rawWheel.push({
       id: `prompt-${i}-${prompt.id}`,
       type: 'PROMPT',
       label: 'Prompt',
       data: prompt,
-      color: COLORS.PROMPT,
     });
   }
 
@@ -68,12 +75,11 @@ export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
     const shuffledRules = shuffle([...availableRules]);
     for (let i = 0; i < numRules; i++) {
       const rule = shuffledRules[i % shuffledRules.length];
-      wheel.push({
+      rawWheel.push({
         id: `rule-${i}-${rule.id}`,
         type: 'RULE',
         label: 'Rule',
         data: rule,
-        color: COLORS.RULE,
       });
     }
   }
@@ -82,14 +88,25 @@ export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
   const shuffledModifiers = shuffle([...modifiers]);
   for (let i = 0; i < numModifiers; i++) {
     const modifier = shuffledModifiers[i % shuffledModifiers.length];
-    wheel.push({
+    rawWheel.push({
       id: `modifier-${i}-${modifier.id}`,
       type: 'MODIFIER',
       label: 'Modifier',
       data: modifier,
-      color: COLORS.MODIFIER,
     });
   }
 
-  return shuffle(wheel);
+  const shuffledWheel = shuffle(rawWheel);
+
+  return shuffledWheel.map((item, index) => {
+    const cardStyle = CARD_STYLES[item.type];
+    const segmentColor = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
+    return {
+      ...item,
+      color: {
+        segment: segmentColor,
+        ...cardStyle,
+      },
+    };
+  });
 }

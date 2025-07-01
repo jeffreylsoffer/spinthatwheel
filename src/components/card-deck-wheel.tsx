@@ -7,7 +7,7 @@ import CheatSheetModal from './cheatsheet-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { createSessionDeck, populateWheel, COLORS, RATIOS, TOTAL_SEGMENTS } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, CARD_STYLES, RATIOS, TOTAL_SEGMENTS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, WheelItemType } from '@/lib/types';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
@@ -124,12 +124,16 @@ const CardDeckWheel = () => {
         const newItems = [...prevItems];
         const index = newItems.findIndex(item => item.id === result.id);
         if (index !== -1) {
+          const originalItem = newItems[index];
           newItems[index] = {
             id: `used-${result.id}`,
             type: 'END',
             label: 'END',
             data: { name: 'END', description: 'This slot has been used.' },
-            color: COLORS.END
+            color: {
+              segment: originalItem.color.segment, // preserve original segment color
+              ...CARD_STYLES.END
+            }
           };
         }
         return newItems;

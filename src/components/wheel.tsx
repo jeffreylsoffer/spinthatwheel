@@ -27,7 +27,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   return (
     <div 
       className="relative w-full h-full"
-      style={{ perspective: '1200px' }}
+      style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
     >
       <div
         className={cn(
@@ -46,6 +46,13 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           const segmentAngle = 360 / segmentCount;
           const angle = i * segmentAngle;
 
+          const segmentColor = item.color.segment;
+          const r = parseInt(segmentColor.slice(1, 3), 16);
+          const g = parseInt(segmentColor.slice(3, 5), 16);
+          const b = parseInt(segmentColor.slice(5, 7), 16);
+          const borderColor = `rgb(${r * 0.7}, ${g * 0.7}, ${b * 0.7})`;
+          const highlightColor = `rgba(255, 255, 255, 0.2)`;
+
           return (
             <div
               key={item.id}
@@ -54,8 +61,9 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: item.color.segment,
                 backfaceVisibility: 'hidden',
-                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
-                borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
+                borderTop: `8px solid ${borderColor}`,
+                borderBottom: `8px solid ${borderColor}`,
+                boxShadow: `inset 0 2px 2px ${highlightColor}, inset 0 -2px 2px rgba(0,0,0,0.2)`
               }}
             >
               <div 
@@ -67,7 +75,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
                 }}
               >
                 <span 
-                  className="font-headline text-4xl font-bold tracking-wider"
+                  className="font-headline text-5xl font-bold tracking-wider"
                   style={{
                     textShadow: item.type === 'END' ? 'none' : '1px 1px 3px rgba(0, 0, 0, 0.2)',
                   }}
