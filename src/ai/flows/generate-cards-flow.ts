@@ -16,6 +16,7 @@ const RuleSchema = z.object({
   id: z.number(),
   name: z.string().describe('A short, catchy name for the rule (2-3 words).'),
   description: z.string().describe('A brief (1-sentence) description of what the player must do.'),
+  special: z.enum(['BUZZER']).optional().describe('A special flag for rules with unique game mechanics.'),
 });
 
 const RuleGroupSchema = z.object({

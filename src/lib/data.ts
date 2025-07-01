@@ -72,6 +72,12 @@ export const ruleGroups: RuleGroup[] = [
     name: "Repetition",
     primary_rule: { id: 1201, name: "Repeat Last Word", description: "You must repeat the last word of every sentence... sentence." },
     flipped_rule: { id: 1202, name: "Repeat First Word", description: "Repeat... repeat the first word of every sentence." },
+  },
+  {
+    id: 13,
+    name: "Special",
+    primary_rule: { id: 1301, name: "Buzzer Reaction", description: "When you hear the buzzer, you must immediately stand up and shout 'Bazinga!'", special: 'BUZZER' },
+    flipped_rule: { id: 1302, name: "Buzzer Stillness", description: "When you hear the buzzer, you must freeze in place until another player tells you to stop.", special: 'BUZZER' }
   }
 ];
 

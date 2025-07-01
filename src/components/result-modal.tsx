@@ -48,13 +48,13 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
         <div className={cn("relative", isFlipModifier && "pb-16")}>
           <div 
             style={{ backgroundColor: result.color.labelBg }}
-            className="w-[480px] h-[270px] p-6 rounded-2xl border-[14px] border-black flex items-center justify-center text-center"
+            className="w-[640px] h-[360px] p-6 rounded-2xl border-[14px] border-black flex items-center justify-center text-center"
           >
             <div className="relative w-full h-full flex items-center justify-center">
               <h2 
                 style={{ color: textColor }}
                 className={cn(
-                  "text-6xl lg:text-7xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                  "text-7xl lg:text-8xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                   showDetails ? "opacity-0" : "opacity-100"
                 )}
               >
@@ -64,7 +64,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
               <h2 
                 style={{ color: textColor }}
                 className={cn(
-                  "text-5xl lg:text-6xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                  "text-6xl lg:text-7xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                   showDetails ? "opacity-100 delay-300" : "opacity-0"
                 )}
               >

@@ -2,6 +2,7 @@ export interface Rule {
   id: number;
   name: string;
   description: string;
+  special?: 'BUZZER';
 }
 
 export interface RuleGroup {

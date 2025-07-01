@@ -20,9 +20,6 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
       </CardHeader>
       <CardContent className="flex flex-col gap-4">
         {players.map((player, index) => {
-          const scoreString = String(Math.abs(player.score)).padStart(2, '0');
-          const hasLeadingZero = player.score >= 0 && player.score < 10;
-
           return (
             <div
               key={player.id}
@@ -42,9 +39,14 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
                   className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-destructive text-4xl font-bold tabular-nums h-14 w-24 border border-white/10"
                   style={{ textShadow: '0 0 5px hsl(var(--destructive) / 0.7)' }}
                 >
-                  {player.score < 0 && <span>-</span>}
-                  <span className={cn(hasLeadingZero && "text-muted-foreground/70")}>{scoreString[0]}</span>
-                  <span>{scoreString[1]}</span>
+                  {player.score < 0 ? (
+                    `-${Math.abs(player.score)}`
+                  ) : (
+                    <>
+                      <span className={cn(player.score < 10 && "text-muted-foreground/70")}>{String(player.score).padStart(2, '0')[0]}</span>
+                      <span>{String(player.score).padStart(2, '0')[1]}</span>
+                    </>
+                  )}
                 </div>
                 <Button
                   variant="outline"

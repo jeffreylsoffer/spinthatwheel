@@ -9,7 +9,7 @@ import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
 import { createSessionDeck, populateWheel, CARD_STYLES, RATIOS as defaultRatios } from '@/lib/game-logic';
-import type { SessionRule, WheelItem, Rule } from '@/lib/types';
+import type { SessionRule, WheelItem, Rule, WheelItemType } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -33,6 +33,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
   const [spinCount, setSpinCount] = useState(0);
+  const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -42,9 +43,17 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [gameRatios, setGameRatios] = useState(defaultRatios);
 
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
+  const buzzerTimerRef = useRef<NodeJS.Timeout | null>(null);
 
   const isMobile = useIsMobile();
-  const segmentHeight = isMobile ? 80 : 192;
+  const segmentHeight = isMobile ? 120 : 192;
+
+  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer') => {
+    // This will try to play sounds from public/sounds.
+    // The actual audio files need to be added to that directory.
+    const audio = new Audio(`/sounds/${sound}.mp3`);
+    audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3`, e));
+  };
 
   useEffect(() => {
     const savedRules = localStorage.getItem('cms_rules');
@@ -84,6 +93,35 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   useEffect(() => {
     initializeGame();
   }, [initializeGame]);
+  
+  useEffect(() => {
+    const hasBuzzerRule = activeRules.some(sessionRule => {
+        const currentRule = sessionRule.isFlipped ? sessionRule.flipped : sessionRule.primary;
+        return currentRule.special === 'BUZZER';
+    });
+    setIsBuzzerRuleActive(hasBuzzerRule);
+  }, [activeRules]);
+  
+  useEffect(() => {
+    if (isBuzzerRuleActive) {
+      const setRandomBuzzer = () => {
+        if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+        const randomTime = (Math.random() * 45 + 15) * 1000; // 15-60 seconds
+        buzzerTimerRef.current = setTimeout(() => {
+          playSound('buzzer');
+          setRandomBuzzer();
+        }, randomTime);
+      };
+      setRandomBuzzer();
+      
+      return () => {
+        if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+      };
+    } else {
+      if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+    }
+  }, [isBuzzerRuleActive]);
+
 
   const handleFlipRule = (ruleId: number) => {
     const ruleToFlip = sessionRules.find(r => r.id === ruleId);
@@ -118,12 +156,23 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
     let selectableItems = availableItems;
+
+    // Prevent landing on modifier if no rules are active, if possible
+    if (activeRules.length === 0) {
+      const nonModifierItems = selectableItems.filter(i => i.type !== 'MODIFIER');
+      if (nonModifierItems.length > 0) {
+        selectableItems = nonModifierItems;
+      }
+    }
+    
     if (spinCount < 5) {
-      const nonEndItems = availableItems.filter(i => i.type !== 'END');
+      const nonEndItems = selectableItems.filter(i => i.type !== 'END');
       if (nonEndItems.length > 0) {
         selectableItems = nonEndItems;
       }
     }
+
+    if (selectableItems.length === 0) return; // Can't spin if no items are selectable
 
     const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
     setWinningItem(targetItem);
@@ -159,6 +208,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   
   const handleSpinEnd = () => {
     if (winningItem) {
+      playSound(winningItem.type.toLowerCase() as any);
       setResult(winningItem);
       setIsResultModalOpen(true);
 

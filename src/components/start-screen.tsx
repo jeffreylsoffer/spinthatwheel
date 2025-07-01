@@ -25,13 +25,13 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
               <h3 className="font-headline text-3xl text-card-foreground">What You'll Need</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
                 <li><span className="font-bold text-card-foreground">Sticky Notes:</span> Write down rules and stick them on each player's chest.</li>
-                <li><span className="font-bold text-card-foreground">A Referee:</span> To call out players who don't follow their rules.</li>
+                <li><span className="font-bold text-card-foreground">A Referee:</span> To take notes and call out players who don't follow their rules.</li>
               </ul>
             </div>
             <div>
               <h3 className="font-headline text-3xl text-card-foreground">How to Score</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-                <li>Players get a point for successfully completing a <span className="font-bold text-accent">PROMPT</span> while following all their active rules.</li>
+                <li>Players get a point for successfully completing a <span className="font-bold text-accent">PROMPT</span> while following all their active rules. In addition to a point, you also get to shred one of your active rules.</li>
                 <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
               </ul>
             </div>
