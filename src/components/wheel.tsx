@@ -69,8 +69,8 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHe
             >
               <div 
                 className={cn(
-                  "w-[50%] aspect-video rounded-2xl flex items-center justify-center shadow-lg",
-                  segmentHeight < 150 ? 'px-2' : 'px-4'
+                  "aspect-video rounded-2xl flex items-center justify-center shadow-lg",
+                  segmentHeight < 150 ? 'h-[70%] px-2' : 'h-[80%] px-4'
                 )}
                 style={{
                   backgroundColor: item.color.labelBg,
