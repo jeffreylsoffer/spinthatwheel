@@ -12,6 +12,7 @@ export default {
       fontFamily: {
         body: ['"PT Sans"', 'sans-serif'],
         headline: ['"League Gothic"', 'serif'],
+        digital: ['"Orbitron"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

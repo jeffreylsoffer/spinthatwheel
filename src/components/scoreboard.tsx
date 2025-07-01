@@ -3,7 +3,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
-import { SevenSegmentDisplay } from "./seven-segment-display";
 import type { Player } from "@/app/page";
 
 interface ScoreboardProps {
@@ -33,7 +32,9 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
               >
                 <Minus className="h-4 w-4" />
               </Button>
-              <SevenSegmentDisplay score={player.score} />
+              <div className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-primary text-4xl font-bold tabular-nums w-24 h-14 border border-white/10">
+                {player.score}
+              </div>
               <Button
                 variant="outline"
                 size="icon"
