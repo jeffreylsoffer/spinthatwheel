@@ -19,6 +19,7 @@ const CardDeckWheel = () => {
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<WheelItem | null>(null);
+  const [winningItem, setWinningItem] = useState<WheelItem | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
 
@@ -62,6 +63,7 @@ const CardDeckWheel = () => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
     const targetItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+    setWinningItem(targetItem);
     const targetIndex = wheelItems.findIndex(item => item.id === targetItem.id);
 
     if (targetIndex === -1) return;
@@ -70,7 +72,7 @@ const CardDeckWheel = () => {
     const targetAngle = targetIndex * segmentAngle;
     
     const currentRevolutions = Math.floor(rotation / 360);
-    const newRevolutions = 8 + Math.round(Math.random() * 2);
+    const newRevolutions = 15 + Math.round(Math.random() * 5);
     
     let newRotation = (currentRevolutions + newRevolutions) * 360 + targetAngle;
     
@@ -78,15 +80,18 @@ const CardDeckWheel = () => {
     
     setIsSpinning(true);
     setRotation(newRotation + randomOffset);
-
-    setTimeout(() => {
-      setResult(targetItem);
-      setIsResultModalOpen(true);
-      setAvailableItems(prev => prev.filter(item => item.id !== targetItem.id));
-      setIsSpinning(false);
-    }, 8000); 
   };
   
+  const handleSpinEnd = () => {
+    if (winningItem) {
+      setResult(winningItem);
+      setIsResultModalOpen(true);
+      setAvailableItems(prev => prev.filter(item => item.id !== winningItem.id));
+      setWinningItem(null);
+    }
+    setIsSpinning(false);
+  };
+
   const statusCounts = useMemo(() => {
     const count = (type: WheelItemType) => wheelItems.filter(item => item.type === type).length;
     const availableCount = (type: WheelItemType) => availableItems.filter(item => item.type === type).length;
@@ -143,7 +148,7 @@ const CardDeckWheel = () => {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
-        <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} />
+        <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center mt-4">

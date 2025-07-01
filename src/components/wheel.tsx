@@ -8,15 +8,22 @@ interface WheelProps {
   items: WheelItem[];
   rotation: number;
   isSpinning: boolean;
+  onSpinEnd?: () => void;
 }
 
-const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
+const Wheel = ({ items, rotation, isSpinning, onSpinEnd }: WheelProps) => {
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
   const segmentAngle = 360 / segmentCount;
   const segmentHeight = 140; // h-36
   const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
+
+  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
+    if (e.propertyName === 'transform' && isSpinning) {
+      onSpinEnd?.();
+    }
+  };
 
   return (
     <div className="relative w-full h-96 flex items-center justify-center">
@@ -36,13 +43,14 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
         {/* The spinning wheel element */}
         <div
           className={cn(
-            "relative w-full h-full transition-transform duration-[8000ms]",
+            "relative w-full h-full transition-transform duration-[12000ms]",
             isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
           )}
           style={{
             transformStyle: 'preserve-3d',
             transform: `translateZ(${-radius}px) rotateX(${-rotation}deg)`,
           }}
+          onTransitionEnd={handleTransitionEnd}
         >
           {items.map((item, i) => {
             const angle = i * segmentAngle;
