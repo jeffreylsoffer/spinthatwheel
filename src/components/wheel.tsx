@@ -30,7 +30,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
 
       {/* Perspective container */}
       <div
-        className="w-full h-full overflow-hidden"
+        className="absolute w-3/5 right-0 h-full overflow-hidden"
         style={{ perspective: '1200px' }}
       >
         {/* The spinning wheel element */}
@@ -49,7 +49,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
             return (
               <div
                 key={item.id}
-                className="absolute w-4/5 h-36 left-1/2 -translate-x-1/2 top-1/2 -mt-16 flex items-center justify-center p-6 border-t-2 border-b-2 border-white/10 rounded-lg"
+                className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg"
                 style={{
                   transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                   backgroundColor: item.color,
@@ -58,7 +58,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
                 }}
               >
                 <span 
-                  className="w-full text-center font-headline text-5xl font-bold text-black tracking-wider"
+                  className="absolute inset-0 flex items-center justify-center font-headline text-5xl font-bold text-black tracking-wider"
                   style={{
                     textShadow: '0 0 5px rgba(255, 255, 255, 0.7)',
                   }}
@@ -66,7 +66,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
                   {item.label.toUpperCase()}
                 </span>
                 {/* Pegs for the ticker to "hit" */}
-                <div className="absolute right-6 flex flex-col justify-around h-full py-2">
+                <div className="absolute right-6 top-0 flex flex-col justify-around h-full py-2">
                    <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
                    <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
                    <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
@@ -79,7 +79,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
 
       {/* Flexible Ticker */}
       <div 
-        className="absolute right-4 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
+        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
       >
         <svg viewBox="0 0 100 100">
             <polygon points="0,50 100,0 100,100" fill="#dc2626" />
