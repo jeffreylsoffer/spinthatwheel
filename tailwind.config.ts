@@ -11,7 +11,7 @@ export default {
     extend: {
       fontFamily: {
         body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"League Gothic"', 'serif'],
+        headline: ['"Playfair Display"', 'serif'],
         digital: ['"Orbitron"', 'sans-serif'],
         code: ['monospace'],
       },
