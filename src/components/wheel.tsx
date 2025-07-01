@@ -49,7 +49,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
             return (
               <div
                 key={item.id}
-                className="absolute w-4/5 h-36 left-1/2 -translate-x-1/2 top-1/2 -mt-16 flex items-center justify-between p-6 border-t-2 border-b-2 border-white/10 rounded-lg"
+                className="absolute w-4/5 h-36 left-1/2 -translate-x-1/2 top-1/2 -mt-16 flex items-center justify-center p-6 border-t-2 border-b-2 border-white/10 rounded-lg"
                 style={{
                   transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                   backgroundColor: item.color,
@@ -58,7 +58,7 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
                 }}
               >
                 <span 
-                  className="font-headline text-5xl font-bold text-black tracking-wider"
+                  className="w-full text-center font-headline text-5xl font-bold text-black tracking-wider"
                   style={{
                     textShadow: '0 0 5px rgba(255, 255, 255, 0.7)',
                   }}
@@ -66,10 +66,10 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
                   {item.label.toUpperCase()}
                 </span>
                 {/* Pegs for the ticker to "hit" */}
-                <div className="flex flex-col justify-around h-full py-2">
-                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
-                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
-                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
+                <div className="absolute right-6 flex flex-col justify-around h-full py-2">
+                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
+                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
+                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
                 </div>
               </div>
             );
