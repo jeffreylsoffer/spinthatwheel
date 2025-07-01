@@ -11,9 +11,9 @@ const TOTAL_SEGMENTS = 20;
 
 // Color palette for wheel segments
 const COLORS = {
-  PROMPT: 'hsl(210, 80%, 85%)',
-  RULE: 'hsl(170, 70%, 80%)',
-  MODIFIER: 'hsl(30, 90%, 85%)',
+  PROMPT: '#3b82f6', // Blue
+  RULE: '#facc15', // Yellow
+  MODIFIER: '#a3e635', // Green
 };
 
 // Creates the initial set of rules for the game session

@@ -59,7 +59,7 @@ const CardDeckWheel = () => {
   };
 
   const handleSpinClick = () => {
-    if (isSpinning || availableItems.length === 0) return;
+    if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
     const targetItem = availableItems[Math.floor(Math.random() * availableItems.length)];
     const targetIndex = wheelItems.findIndex(item => item.id === targetItem.id);
@@ -67,11 +67,22 @@ const CardDeckWheel = () => {
     if (targetIndex === -1) return;
 
     const segmentAngle = 360 / wheelItems.length;
-    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-    const targetRotation = 360 * 5 - (targetIndex * segmentAngle) - randomOffset;
 
+    // The rotation needs to land with the targetIndex at the 'front' (0 degrees in the wheel's rotation).
+    // The wheel component will apply `rotateX(-rotation)`. The cards are at `rotateX(index * segmentAngle)`.
+    // So to get card `targetIndex` to 0, the wheel's rotation needs to be `targetIndex * segmentAngle`.
+    const targetAngle = targetIndex * segmentAngle;
+
+    // To make it spin, we add several full revolutions.
+    // We need to figure out how many revolutions it has already done to keep it spinning forward.
+    const currentRevolutions = Math.floor(rotation / 360);
+    const newRotation = (currentRevolutions + 5) * 360 + targetAngle;
+    
+    // Add a random offset so it doesn't land perfectly every time.
+    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
+    
     setIsSpinning(true);
-    setRotation(prev => prev + targetRotation);
+    setRotation(newRotation + randomOffset);
 
     setTimeout(() => {
       setResult(targetItem);

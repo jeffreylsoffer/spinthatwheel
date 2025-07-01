@@ -2,7 +2,7 @@
 
 import type { WheelItem } from '@/lib/types';
 import { cn } from '@/lib/utils';
-import { Triangle } from 'lucide-react';
+import React from 'react';
 
 interface WheelProps {
   items: WheelItem[];
@@ -12,59 +12,72 @@ interface WheelProps {
 
 const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
   const segmentCount = items.length;
+  if (segmentCount === 0) return null; // Avoid division by zero
+  
   const segmentAngle = 360 / segmentCount;
+  // Adjust radius based on segment count to avoid overlap and maintain a good size
+  const segmentHeight = 128; // h-32
+  const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
 
-  const conicGradient = items.map((item, i) => {
-    const startAngle = i * segmentAngle;
-    const endAngle = (i + 1) * segmentAngle;
-    return `${item.color} ${startAngle}deg ${endAngle}deg`;
-  }).join(', ');
 
   return (
-    <div className="relative w-72 h-72 sm:w-96 sm:h-96 md:w-[500px] md:h-[500px] flex items-center justify-center">
-      <div 
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-[calc(50%+20px)] z-10 text-primary"
-        style={{ filter: 'drop-shadow(0 2px 2px rgba(0,0,0,0.5))' }}
-      >
-        <Triangle className="w-10 h-10 -rotate-90" fill="currentColor" strokeWidth={0} />
-      </div>
-
+    <div className="relative w-full h-96 flex items-center justify-center overflow-hidden">
+      {/* Perspective container */}
       <div
-        className={cn(
-          "relative w-full h-full rounded-full border-8 border-primary-foreground shadow-2xl transition-transform duration-[7s]",
-          isSpinning ? "ease-[cubic-bezier(0.1,0,0.2,1)]" : ""
-        )}
-        style={{ transform: `rotate(${rotation}deg)` }}
+        className="w-full h-full"
+        style={{ perspective: '1000px' }}
       >
+        {/* The spinning wheel element */}
         <div
-          className="w-full h-full rounded-full"
-          style={{ background: `conic-gradient(${conicGradient})` }}
-        />
-        {items.map((item, i) => {
-          const angle = i * segmentAngle + segmentAngle / 2;
-          return (
-            <div
-              key={item.id}
-              className="absolute w-full h-full"
-              style={{ transform: `rotate(${angle}deg)` }}
-            >
-              <div 
-                className="absolute w-full h-1/2 top-0 left-0 flex items-start justify-center pt-4"
+          className={cn(
+            "relative w-full h-full transition-transform duration-[7000ms]",
+            isSpinning ? "ease-[cubic-bezier(0.22,1,0.36,1)]" : ""
+          )}
+          style={{
+            transformStyle: 'preserve-3d',
+            transform: `translateZ(${-radius}px) rotateX(${-rotation}deg)`,
+          }}
+        >
+          {items.map((item, i) => {
+            const angle = i * segmentAngle;
+            return (
+              <div
+                key={item.id}
+                className="absolute w-4/5 h-32 left-1/2 -translate-x-1/2 top-1/2 -mt-16 flex items-center justify-between p-4 border-2 border-black rounded-lg"
+                style={{
+                  transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
+                  backgroundColor: item.color,
+                  backfaceVisibility: 'hidden', // Hide back of cards
+                }}
               >
                 <span 
-                  className="block text-sm font-bold text-foreground/70 -rotate-90 select-none truncate"
+                  className="text-2xl font-bold text-white"
                   style={{
-                    maxWidth: '80px',
+                    textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000',
                   }}
                 >
-                  {item.label}
+                  {item.label.toUpperCase()}
                 </span>
+                <div className="flex flex-col gap-y-3">
+                  <div className="w-2 h-2 bg-black rounded-full" />
+                  <div className="w-2 h-2 bg-black rounded-full" />
+                  <div className="w-2 h-2 bg-black rounded-full" />
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
       </div>
-      <div className="absolute w-16 h-16 bg-primary-foreground rounded-full border-4 border-primary shadow-inner" />
+
+      {/* Ticker */}
+      <div 
+        className="absolute w-0 h-0 border-t-[15px] border-t-transparent border-b-[15px] border-b-transparent border-l-[30px] border-l-black right-0 z-20"
+        style={{ transform: 'translateX(25%)' }}
+      ></div>
+
+      {/* Fade overlays */}
+      <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
+      <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
     </div>
   );
 };
