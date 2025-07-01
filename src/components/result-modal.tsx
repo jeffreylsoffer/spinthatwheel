@@ -53,7 +53,7 @@ const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
             <h2 
               style={{ color: textColor }}
               className={cn(
-                "text-4xl lg:text-5xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                "text-5xl lg:text-6xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                 showDetails ? "opacity-0" : "opacity-100"
               )}
             >
@@ -64,7 +64,7 @@ const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
             <h2 
               style={{ color: textColor }}
               className={cn(
-                "text-3xl lg:text-4xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                "text-4xl lg:text-5xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                 showDetails ? "opacity-100 delay-300" : "opacity-0"
               )}
             >
