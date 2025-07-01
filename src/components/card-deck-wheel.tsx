@@ -31,7 +31,7 @@ const CardDeckWheel = () => {
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
 
   const isMobile = useIsMobile();
-  const segmentHeight = isMobile ? 120 : 192;
+  const segmentHeight = isMobile ? 100 : 192;
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck();
