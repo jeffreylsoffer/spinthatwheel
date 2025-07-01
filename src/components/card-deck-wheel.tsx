@@ -228,7 +228,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         </Button>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-[240px] lg:h-96">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-[240px] lg:h-auto">
         <div 
           className="relative w-full max-w-[14rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}

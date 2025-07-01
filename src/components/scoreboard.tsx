@@ -4,11 +4,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
 import { SevenSegmentDisplay } from "./seven-segment-display";
-
-interface Player {
-  id: number;
-  score: number;
-}
+import type { Player } from "@/app/page";
 
 interface ScoreboardProps {
   players: Player[];
