@@ -22,9 +22,10 @@ const CardDeckWheel = () => {
   const [winningItem, setWinningItem] = useState<WheelItem | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
+  const [spinDuration, setSpinDuration] = useState(0);
 
   const { toast } = useToast();
-  const dragStartRef = useRef<{ y: number | null }>({ y: null });
+  const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
 
 
   const initializeGame = useCallback(() => {
@@ -59,7 +60,7 @@ const CardDeckWheel = () => {
     });
   };
 
-  const handleSpinClick = () => {
+  const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
     const targetItem = availableItems[Math.floor(Math.random() * availableItems.length)];
@@ -72,7 +73,20 @@ const CardDeckWheel = () => {
     const targetAngle = targetIndex * segmentAngle;
     
     const currentRevolutions = Math.floor(rotation / 360);
-    const newRevolutions = 15 + Math.round(Math.random() * 5);
+    
+    // Velocity-based spin dynamics
+    const baseRevolutions = 4; // Min revolutions for a gentle flick
+    const velocityMultiplier = 5; // How much velocity translates to revolutions
+    const additionalRevolutions = Math.abs(velocity) * velocityMultiplier;
+    
+    const totalRevolutions = baseRevolutions + additionalRevolutions;
+    
+    // Cap total revolutions to keep it sane, but also ensure a minimum.
+    const newRevolutions = Math.round(Math.min(30, Math.max(4, totalRevolutions)));
+    
+    // Duration is based on a base time plus an amount per revolution.
+    const duration = 4000 + newRevolutions * 300;
+    setSpinDuration(duration);
     
     let newRotation = (currentRevolutions + newRevolutions) * 360 + targetAngle;
     
@@ -113,24 +127,32 @@ const CardDeckWheel = () => {
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isSpinning || availableItems.length === 0) return;
-    dragStartRef.current.y = e.clientY;
+    dragStartRef.current = { y: e.clientY, time: Date.now() };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    if (isSpinning || dragStartRef.current.y === null) return;
+    if (isSpinning || dragStartRef.current.y === null || dragStartRef.current.time === null) return;
     
-    const dragDistance = Math.abs(e.clientY - dragStartRef.current.y);
-    if (dragDistance > 20) {
-      handleSpinClick();
+    const dragEndY = e.clientY;
+    const dragEndTime = Date.now();
+    
+    const dragDistance = dragStartRef.current.y - dragEndY;
+    const dragDuration = dragEndTime - dragStartRef.current.time;
+
+    // A flick is a short, fast drag.
+    if (dragDuration < 500 && Math.abs(dragDistance) > 30) {
+      const velocity = dragDistance / dragDuration; // pixels per millisecond
+      handleSpinClick(velocity);
     }
-    dragStartRef.current.y = null;
+    
+    dragStartRef.current = { y: null, time: null };
   };
 
   const handlePointerCancel = (e: React.PointerEvent<HTMLDivElement>) => {
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
-    dragStartRef.current.y = null;
+    dragStartRef.current = { y: null, time: null };
   };
 
   return (
@@ -148,7 +170,7 @@ const CardDeckWheel = () => {
         onPointerUp={handlePointerUp}
         onPointerCancel={handlePointerCancel}
       >
-        <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} />
+        <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
       </div>
 
       <div className="flex flex-col sm:flex-row gap-4 items-center mt-4">

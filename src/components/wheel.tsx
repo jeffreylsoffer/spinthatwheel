@@ -9,9 +9,10 @@ interface WheelProps {
   rotation: number;
   isSpinning: boolean;
   onSpinEnd?: () => void;
+  spinDuration: number;
 }
 
-const Wheel = ({ items, rotation, isSpinning, onSpinEnd }: WheelProps) => {
+const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelProps) => {
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
@@ -43,12 +44,13 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd }: WheelProps) => {
         {/* The spinning wheel element */}
         <div
           className={cn(
-            "relative w-full h-full transition-transform duration-[12000ms]",
+            "relative w-full h-full transition-transform",
             isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
           )}
           style={{
             transformStyle: 'preserve-3d',
             transform: `translateZ(${-radius}px) rotateX(${-rotation}deg)`,
+            transitionDuration: `${spinDuration}ms`,
           }}
           onTransitionEnd={handleTransitionEnd}
         >
@@ -57,7 +59,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd }: WheelProps) => {
             return (
               <div
                 key={item.id}
-                className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg"
+                className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center justify-center"
                 style={{
                   transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                   backgroundColor: item.color,
