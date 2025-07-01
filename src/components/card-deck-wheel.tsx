@@ -66,7 +66,17 @@ const CardDeckWheel = () => {
   const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
-    const targetItem = availableItems[Math.floor(Math.random() * availableItems.length)];
+    // Prevent landing on END cards after spin 5
+    let selectableItems = availableItems;
+    if (spinCount < 5) {
+      selectableItems = availableItems.filter(i => i.type !== 'END');
+    }
+    if (selectableItems.length === 0) {
+      selectableItems = availableItems;
+    }
+
+
+    const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
     setWinningItem(targetItem);
     const targetIndex = wheelItems.findIndex(item => item.id === targetItem.id);
 
@@ -130,18 +140,7 @@ const CardDeckWheel = () => {
 
   const statusCounts = useMemo(() => {
     const totalCount = (type: WheelItemType) => {
-      switch (type) {
-        case 'PROMPT':
-          return Math.floor(TOTAL_SEGMENTS * RATIOS.PROMPTS);
-        case 'RULE':
-          return Math.floor(TOTAL_SEGMENTS * RATIOS.RULES);
-        case 'MODIFIER':
-          const numPrompts = Math.floor(TOTAL_SEGMENTS * RATIOS.PROMPTS);
-          const numRules = Math.floor(TOTAL_SEGMENTS * RATIOS.RULES);
-          return TOTAL_SEGMENTS - numPrompts - numRules;
-        default:
-          return 0;
-      }
+        return populateWheel(sessionRules).filter(item => item.type === type).length;
     };
     const availableCount = (type: WheelItemType) => availableItems.filter(item => item.type === type).length;
 
@@ -150,7 +149,7 @@ const CardDeckWheel = () => {
       rules: { total: totalCount('RULE'), available: availableCount('RULE') },
       modifiers: { total: totalCount('MODIFIER'), available: availableCount('MODIFIER') },
     }
-  }, [availableItems]);
+  }, [availableItems, sessionRules]);
 
 
   const handleReset = () => {
@@ -199,25 +198,7 @@ const CardDeckWheel = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center h-[400px]">
-        <div 
-          className="w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerCancel}
-        >
-          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
-        </div>
-      </div>
-
-      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-md mx-auto lg:max-w-none lg:mx-0">
-        <div className="text-center">
-          <h1 className="font-headline text-5xl md:text-7xl text-primary-foreground" style={{textShadow: '2px 2px 4px hsl(var(--primary))'}}>
-            Card Deck Wheel
-          </h1>
-          <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
-        </div>
+      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-md mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1">
         <Button 
           variant="outline"
           size="lg"
@@ -249,6 +230,18 @@ const CardDeckWheel = () => {
             </Button>
           </CardContent>
         </Card>
+      </div>
+
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2">
+        <div 
+          className="w-full max-w-lg h-96 mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+        >
+          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
+        </div>
       </div>
 
       <ResultModal 
