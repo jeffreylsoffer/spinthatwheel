@@ -27,13 +27,13 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
 
   return (
     <div 
-      className="relative w-full h-96 flex items-center justify-center"
+      className="relative w-full h-96"
       style={{ perspective: '1200px' }}
     >
       {/* The spinning wheel element */}
       <div
         className={cn(
-          "relative w-full h-full transition-transform",
+          "absolute w-full h-full transition-transform",
           isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
         )}
         style={{
