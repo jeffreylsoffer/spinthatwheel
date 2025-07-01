@@ -16,7 +16,6 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  const segmentAngle = 360 / segmentCount;
   const radius = Math.round((144 / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
@@ -27,7 +26,8 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
 
   return (
     <div 
-      className="relative w-full h-96"
+      className="relative w-full h-full"
+      style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
     >
       {/* The spinning wheel element */}
       <div
@@ -37,17 +37,18 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
         )}
         style={{
           transformStyle: 'preserve-3d',
-          transform: `perspective(1200px) translateZ(${-radius}px) rotateX(${rotation}deg)`,
+          transform: `translateZ(${-radius}px) rotateX(${rotation}deg)`,
           transitionDuration: `${spinDuration}ms`,
         }}
         onTransitionEnd={handleTransitionEnd}
       >
         {items.map((item, i) => {
+          const segmentAngle = 360 / segmentCount;
           const angle = i * segmentAngle;
           return (
             <div
               key={item.id}
-              className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center"
+              className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: item.color,
@@ -74,18 +75,41 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
         })}
       </div>
 
-      {/* Flexible Ticker */}
+      {/* Flexible 3D Ticker */}
       <div 
-        className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
-        style={{transform: 'translateX(50%)'}}
+        className="absolute top-1/2 -translate-y-1/2 z-20"
+        style={{
+          right: -20,
+          width: 160,
+          height: 60,
+          transformStyle: 'preserve-3d',
+          transform: 'rotateY(-25deg) translateX(30px)'
+        }}
       >
-        <svg viewBox="0 0 100 100">
-            <polygon points="0,50 100,0 100,100" fill="#dc2626" />
-            <polygon points="0,50 100,0 100,20" fill="#ef4444" />
-            <polygon points="0,50 100,100 100,80" fill="#b91c1c" />
-        </svg>
+        <div
+            className={cn(isSpinning && 'ticker-vibrating')}
+            style={{
+                width: '100%',
+                height: '100%',
+                transformStyle: 'preserve-3d',
+            }}
+        >
+          <div
+              className="absolute w-full h-full bg-red-600"
+              style={{
+                  transform: 'translateZ(4px)',
+                  clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)'
+              }}
+          />
+          <div
+              className="absolute w-full h-full bg-red-800"
+              style={{
+                  transform: 'translateZ(-4px)',
+                  clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)'
+              }}
+          />
+        </div>
       </div>
-
     </div>
   );
 };
