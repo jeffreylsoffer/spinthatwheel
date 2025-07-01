@@ -3,11 +3,7 @@
 import {
   Dialog,
   DialogContent,
-  DialogHeader,
-  DialogTitle,
-  DialogDescription,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
 import type { WheelItem } from "@/lib/types";
 
 interface ResultModalProps {
@@ -19,23 +15,26 @@ interface ResultModalProps {
 const ResultModal = ({ isOpen, onOpenChange, result }: ResultModalProps) => {
   if (!result) return null;
 
+  const cardText = result.type === 'PROMPT' 
+    ? (result.data as any).text 
+    : result.data.name;
+
+  const textColor = result.type === 'END' ? 'white' : 'black';
+
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader className="text-left">
-          <Badge 
-            variant="secondary"
-            className="w-fit mb-2"
+      <DialogContent className="bg-transparent border-none shadow-none sm:max-w-md p-0">
+        <div 
+          style={{ backgroundColor: result.color.labelBg }}
+          className="p-8 rounded-2xl border-[10px] border-gray-200"
+        >
+          <h2 
+            style={{ color: textColor }}
+            className="text-4xl lg:text-5xl font-headline uppercase text-center break-words"
           >
-            {result.type}
-          </Badge>
-          <DialogTitle className="font-headline text-3xl">
-            {result.type === 'PROMPT' ? 'New Prompt!' : result.data.name}
-          </DialogTitle>
-          <DialogDescription className="pt-4 text-base">
-            {result.type === 'PROMPT' ? (result.data as any).text : (result.data as any).description}
-          </DialogDescription>
-        </DialogHeader>
+            {cardText}
+          </h2>
+        </div>
       </DialogContent>
     </Dialog>
   );
