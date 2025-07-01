@@ -63,7 +63,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
               }}
             >
               <div 
-                className="w-[70%] h-[70%] rounded-2xl flex items-center justify-center shadow-lg px-4"
+                className="w-[80%] aspect-video rounded-2xl flex items-center justify-center shadow-lg px-4"
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
@@ -71,7 +71,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
                 }}
               >
                 <span 
-                  className="font-headline text-5xl font-bold tracking-wider"
+                  className="font-headline text-3xl font-bold tracking-wider"
                   style={{
                     textShadow: isEndCard ? 'none' : '1px 1px 3px rgba(0, 0, 0, 0.2)',
                   }}
