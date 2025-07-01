@@ -48,14 +48,15 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
               className="absolute w-full h-full"
               style={{ transform: `rotate(${angle}deg)` }}
             >
-              <div className="absolute top-0 left-1/2 -translate-x-1/2 w-1/2 h-1/2 origin-bottom-left flex items-start justify-center pt-4">
-                 <span 
-                   className="text-sm font-bold text-foreground/70 -rotate-90 select-none truncate" 
-                   style={{
-                     transform: 'rotate(-90deg) translateX(-10px) translateY(10px)',
-                     maxWidth: '80px',
-                    }}
-                  >
+              <div 
+                className="absolute w-full h-1/2 top-0 left-0 flex items-start justify-center pt-4"
+              >
+                <span 
+                  className="block text-sm font-bold text-foreground/70 -rotate-90 select-none truncate"
+                  style={{
+                    maxWidth: '80px',
+                  }}
+                >
                   {item.label}
                 </span>
               </div>
