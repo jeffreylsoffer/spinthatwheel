@@ -16,7 +16,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  const radius = Math.round((320 / 2) / Math.tan(Math.PI / segmentCount));
+  const radius = Math.round((224 / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName === 'transform' && isSpinning) {
@@ -50,19 +50,18 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           const r = parseInt(segmentColor.slice(1, 3), 16);
           const g = parseInt(segmentColor.slice(3, 5), 16);
           const b = parseInt(segmentColor.slice(5, 7), 16);
-          const borderColor = `rgb(${r * 0.7}, ${g * 0.7}, ${b * 0.7})`;
+          const borderColor = item.type === 'END' ? 'rgb(0,0,0)' : `rgb(${r * 0.7}, ${g * 0.7}, ${b * 0.7})`;
           const highlightColor = `rgba(255, 255, 255, 0.2)`;
 
           return (
             <div
               key={item.id}
-              className="absolute w-full h-80 flex items-center justify-center"
+              className="absolute w-full h-56 flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: item.color.segment,
                 backfaceVisibility: 'hidden',
-                borderTop: `8px solid ${borderColor}`,
-                borderBottom: `8px solid ${borderColor}`,
+                border: `8px solid ${borderColor}`,
                 boxShadow: `inset 0 2px 2px ${highlightColor}, inset 0 -2px 2px rgba(0,0,0,0.2)`
               }}
             >

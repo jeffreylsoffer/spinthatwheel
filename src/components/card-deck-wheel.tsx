@@ -124,14 +124,13 @@ const CardDeckWheel = () => {
         const newItems = [...prevItems];
         const index = newItems.findIndex(item => item.id === result.id);
         if (index !== -1) {
-          const originalItem = newItems[index];
           newItems[index] = {
             id: `used-${result.id}`,
             type: 'END',
             label: 'END',
             data: { name: 'END', description: 'This slot has been used.' },
             color: {
-              segment: originalItem.color.segment, // preserve original segment color
+              segment: CARD_STYLES.END.labelBg, // Use the END card color for the whole segment
               ...CARD_STYLES.END
             }
           };
