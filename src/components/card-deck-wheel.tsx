@@ -27,7 +27,7 @@ const CardDeckWheel = () => {
 
 
   const initializeGame = useCallback(() => {
-    const rules = createSessiondeck();
+    const rules = createSessionDeck();
     const items = populateWheel(rules);
     setSessionRules(rules);
     setWheelItems(items);
