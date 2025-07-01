@@ -16,8 +16,8 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
-  // h-40 is 160px. This calculates the radius to keep the 3D wheel segments connected.
-  const radius = Math.round((160 / 2) / Math.tan(Math.PI / segmentCount));
+  // h-56 is 224px. This calculates the radius to keep the 3D wheel segments connected.
+  const radius = Math.round((224 / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName === 'transform' && isSpinning) {
@@ -52,7 +52,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           return (
             <div
               key={item.id}
-              className="absolute w-full h-40 flex items-center justify-center"
+              className="absolute w-full h-56 flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: item.color.segment,
@@ -63,7 +63,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
               }}
             >
               <div 
-                className="w-[80%] aspect-video rounded-2xl flex items-center justify-center shadow-lg px-4"
+                className="w-[70%] aspect-video rounded-2xl flex items-center justify-center shadow-lg px-4"
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
