@@ -12,20 +12,26 @@ interface WheelProps {
 
 const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
   const segmentCount = items.length;
-  if (segmentCount === 0) return null; // Avoid division by zero
+  if (segmentCount === 0) return null;
   
   const segmentAngle = 360 / segmentCount;
-  // Adjust radius based on segment count to avoid overlap and maintain a good size
-  const segmentHeight = 128; // h-32
+  const segmentHeight = 140; // h-36
   const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
 
-
   return (
-    <div className="relative w-full h-96 flex items-center justify-center overflow-hidden">
+    <div className="relative w-full h-96 flex items-center justify-center">
+      {/* Casing and Lighting Effects */}
+      <div className="absolute inset-0 bg-gradient-to-br from-gray-800 to-gray-900 rounded-3xl shadow-2xl shadow-black/50 border-4 border-gray-700 overflow-hidden">
+         {/* Inner shadow to give depth */}
+        <div className="absolute inset-2 rounded-2xl shadow-[inset_0_0_30px_rgba(0,0,0,0.8)]" />
+        {/* Spotlight effect */}
+        <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-96 h-96 bg-primary/20 rounded-full blur-3xl" />
+      </div>
+
       {/* Perspective container */}
       <div
         className="w-full h-full"
-        style={{ perspective: '1000px' }}
+        style={{ perspective: '1200px' }}
       >
         {/* The spinning wheel element */}
         <div
@@ -43,25 +49,27 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
             return (
               <div
                 key={item.id}
-                className="absolute w-4/5 h-32 left-1/2 -translate-x-1/2 top-1/2 -mt-16 flex items-center justify-between p-4 border-2 border-black rounded-lg"
+                className="absolute w-4/5 h-36 left-1/2 -translate-x-1/2 top-1/2 -mt-16 flex items-center justify-between p-6 border-t-2 border-b-2 border-white/10 rounded-lg"
                 style={{
                   transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                   backgroundColor: item.color,
-                  backfaceVisibility: 'hidden', // Hide back of cards
+                  backfaceVisibility: 'hidden',
+                  boxShadow: 'inset 0 0 15px rgba(0,0,0,0.5)',
                 }}
               >
                 <span 
-                  className="text-2xl font-bold text-white"
+                  className="font-headline text-5xl font-bold text-white tracking-wider"
                   style={{
-                    textShadow: '2px 2px 0 #000, -2px -2px 0 #000, 2px -2px 0 #000, -2px 2px 0 #000',
+                    textShadow: '0px 0px 10px rgba(0, 0, 0, 0.8), 2px 2px 2px rgba(0,0,0,0.7)',
                   }}
                 >
                   {item.label.toUpperCase()}
                 </span>
-                <div className="flex flex-col gap-y-3">
-                  <div className="w-2 h-2 bg-black rounded-full" />
-                  <div className="w-2 h-2 bg-black rounded-full" />
-                  <div className="w-2 h-2 bg-black rounded-full" />
+                {/* Pegs on the side of the cards */}
+                <div className="flex flex-col justify-around h-full py-2">
+                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
+                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
+                   <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'translateX(20px) rotate(15deg)'}}/>
                 </div>
               </div>
             );
@@ -69,15 +77,18 @@ const Wheel = ({ items, rotation, isSpinning }: WheelProps) => {
         </div>
       </div>
 
-      {/* Ticker */}
+      {/* Flexible Ticker */}
       <div 
-        className="absolute w-0 h-0 border-t-[15px] border-t-transparent border-b-[15px] border-b-transparent border-l-[30px] border-l-black right-0 z-20"
-        style={{ transform: 'translateX(25%)' }}
-      ></div>
+        className="absolute right-0 z-20 w-16 h-16 drop-shadow-2xl"
+        style={{ transform: `translateX(30%)` }}
+      >
+        <svg viewBox="0 0 100 100">
+            <polygon points="0,50 100,0 100,100" fill="#dc2626" />
+            <polygon points="0,50 100,0 100,20" fill="#ef4444" />
+            <polygon points="0,50 100,100 100,80" fill="#b91c1c" />
+        </svg>
+      </div>
 
-      {/* Fade overlays */}
-      <div className="absolute top-0 left-0 w-full h-1/3 bg-gradient-to-b from-background to-transparent z-10 pointer-events-none" />
-      <div className="absolute bottom-0 left-0 w-full h-1/3 bg-gradient-to-t from-background to-transparent z-10 pointer-events-none" />
     </div>
   );
 };
