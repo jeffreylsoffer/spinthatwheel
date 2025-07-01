@@ -31,13 +31,15 @@ interface CmsFormProps {
     rules: number;
     modifiers: number;
   };
+  initialShowRuleDescriptions: boolean;
 }
 
-export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
+export default function CmsForm({ initialData, initialRatios, initialShowRuleDescriptions }: CmsFormProps) {
   const [rules, setRules] = useState(initialData.ruleGroups);
   const [prompts, setPrompts] = useState(initialData.prompts);
   const [modifiers, setModifiers] = useState(initialData.modifiers);
   const [ratios, setRatios] = useState(initialRatios);
+  const [showRuleDescriptions, setShowRuleDescriptions] = useState(initialShowRuleDescriptions);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
@@ -171,6 +173,7 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
       localStorage.setItem('cms_prompts', JSON.stringify(prompts));
       localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
       localStorage.setItem('cms_ratios', JSON.stringify(ratios));
+      localStorage.setItem('cms_show_rule_descriptions', JSON.stringify(showRuleDescriptions));
 
       toast({
         title: "Changes Saved!",
@@ -254,6 +257,25 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
         <CardFooter className={cn("text-sm font-medium", totalRatio !== 100 && "text-destructive")}>
           Total: {totalRatio}% {totalRatio !== 100 && "(Must be 100%)"}
         </CardFooter>
+      </Card>
+      
+      <Card>
+        <CardHeader>
+          <CardTitle>Game Display Settings</CardTitle>
+          <CardDescription>Adjust how information is displayed during the game.</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="flex items-center space-x-2">
+            <Checkbox
+              id="show-descriptions"
+              checked={showRuleDescriptions}
+              onCheckedChange={(checked) => setShowRuleDescriptions(!!checked)}
+            />
+            <Label htmlFor="show-descriptions" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Show rule descriptions on result cards.
+            </Label>
+          </div>
+        </CardContent>
       </Card>
 
       <Accordion type="single" collapsible className="w-full" defaultValue="item-1">

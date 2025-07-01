@@ -34,6 +34,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [spinDuration, setSpinDuration] = useState(0);
   const [spinCount, setSpinCount] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
+  const [showRuleDescriptions, setShowRuleDescriptions] = useState(false);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -60,6 +61,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedRatios = localStorage.getItem('cms_ratios');
+    const savedShowRuleDescriptions = localStorage.getItem('cms_show_rule_descriptions');
 
     setGameData({
       rules: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
@@ -74,6 +76,10 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         PROMPTS: parsedRatios.prompts / 100,
         MODIFIERS: parsedRatios.modifiers / 100,
       });
+    }
+
+    if (savedShowRuleDescriptions) {
+      setShowRuleDescriptions(JSON.parse(savedShowRuleDescriptions));
     }
   }, []);
 
@@ -323,6 +329,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         isOpen={isResultModalOpen} 
         onOpenChange={handleModalOpenChange} 
         result={result} 
+        showRuleDescriptions={showRuleDescriptions}
         onOpenCheatSheet={() => {
           setIsResultModalOpen(false);
           setIsCheatSheetModalOpen(true);

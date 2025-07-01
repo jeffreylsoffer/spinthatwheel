@@ -32,6 +32,7 @@ export default function AdminPage() {
     rules: defaultRatios.RULES * 100,
     modifiers: defaultRatios.MODIFIERS * 100,
   });
+  const [initialShowRuleDescriptions, setInitialShowRuleDescriptions] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -39,6 +40,7 @@ export default function AdminPage() {
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedRatios = localStorage.getItem('cms_ratios');
+    const savedShowRuleDescriptions = localStorage.getItem('cms_show_rule_descriptions');
 
     setInitialData({
         ruleGroups: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
@@ -49,6 +51,10 @@ export default function AdminPage() {
     if (savedRatios) {
         setInitialRatios(JSON.parse(savedRatios));
     }
+    
+    if (savedShowRuleDescriptions) {
+        setInitialShowRuleDescriptions(JSON.parse(savedShowRuleDescriptions));
+    }
 
     setIsLoading(false);
   }, []);
@@ -58,6 +64,7 @@ export default function AdminPage() {
     localStorage.removeItem('cms_prompts');
     localStorage.removeItem('cms_modifiers');
     localStorage.removeItem('cms_ratios');
+    localStorage.removeItem('cms_show_rule_descriptions');
     window.location.reload();
   };
 
@@ -118,6 +125,7 @@ export default function AdminPage() {
       <CmsForm 
         initialData={initialData} 
         initialRatios={initialRatios} 
+        initialShowRuleDescriptions={initialShowRuleDescriptions}
       />
     </main>
   );
