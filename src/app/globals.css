@@ -8,8 +8,8 @@ body {
 
 @layer base {
   :root {
-    --background: 196 93% 94%;
-    --foreground: 210 10% 23%;
+    --background: 354 70% 25%;
+    --foreground: 0 0% 95%;
     --card: 196 93% 98%;
     --card-foreground: 210 10% 23%;
     --popover: 196 93% 98%;
@@ -18,14 +18,14 @@ body {
     --primary-foreground: 210 40% 98%;
     --secondary: 197 78% 80%;
     --secondary-foreground: 210 10% 23%;
-    --muted: 197 78% 90%;
-    --muted-foreground: 210 10% 45%;
+    --muted: 354 30% 35%;
+    --muted-foreground: 0 0% 95%;
     --accent: 180 100% 50%;
     --accent-foreground: 180 100% 20%;
     --destructive: 0 84.2% 60.2%;
     --destructive-foreground: 0 0% 98%;
-    --border: 197 78% 85%;
-    --input: 197 78% 90%;
+    --border: 354 70% 35%;
+    --input: 354 70% 35%;
     --ring: 197 78% 52%;
     --radius: 0.8rem;
     --chart-1: 12 76% 61%;
@@ -35,7 +35,7 @@ body {
     --chart-5: 27 87% 67%;
   }
   .dark {
-    --background: 210 15% 10%;
+    --background: 354 70% 10%;
     --foreground: 0 0% 98%;
     --card: 210 15% 12%;
     --card-foreground: 0 0% 98%;
@@ -45,14 +45,14 @@ body {
     --primary-foreground: 210 10% 10%;
     --secondary: 197 78% 20%;
     --secondary-foreground: 0 0% 98%;
-    --muted: 197 78% 25%;
+    --muted: 354 70% 25%;
     --muted-foreground: 0 0% 63.9%;
     --accent: 180 100% 50%;
     --accent-foreground: 180 100% 20%;
     --destructive: 0 62.8% 30.6%;
     --destructive-foreground: 0 0% 98%;
-    --border: 197 78% 25%;
-    --input: 197 78% 25%;
+    --border: 354 70% 25%;
+    --input: 354 70% 25%;
     --ring: 197 78% 52%;
     --chart-1: 220 70% 50%;
     --chart-2: 160 60% 45%;
@@ -68,5 +68,6 @@ body {
   }
   body {
     @apply bg-background text-foreground;
+    background-image: radial-gradient(ellipse at top, hsla(0, 0%, 100%, 0.1) 0%, transparent 50%);
   }
 }

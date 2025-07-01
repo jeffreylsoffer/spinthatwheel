@@ -130,7 +130,7 @@ const CardDeckWheel = () => {
             label: 'END',
             data: { name: 'END', description: 'This slot has been used.' },
             color: {
-              segment: CARD_STYLES.END.labelBg, // Use the END card color for the whole segment
+              segment: '#111827', // Use the END card color for the whole segment
               ...CARD_STYLES.END
             }
           };
@@ -241,13 +241,15 @@ const CardDeckWheel = () => {
 
       <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-96">
         <div 
-          className="w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
         >
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} />
+          {/* Spotlight overlay */}
+          <div className="absolute inset-0 pointer-events-none bg-[radial-gradient(ellipse_100%_4rem_at_center,transparent_40%,rgba(0,0,0,0.8))]"></div>
         </div>
       </div>
 
