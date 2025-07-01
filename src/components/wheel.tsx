@@ -17,8 +17,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   if (segmentCount === 0) return null;
   
   const segmentAngle = 360 / segmentCount;
-  const segmentHeight = 140; // h-36
-  const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
+  const radius = Math.round((144 / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
     if (e.propertyName === 'transform' && isSpinning) {
@@ -28,7 +27,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
 
   return (
     <div 
-      className="relative w-full h-96 flex items-center justify-center overflow-hidden"
+      className="relative w-full h-96 flex items-center justify-center"
       style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
     >
       {/* Casing and Lighting Effects */}
@@ -87,7 +86,6 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
       {/* Flexible Ticker */}
       <div 
         className="absolute right-0 top-1/2 -translate-y-1/2 z-20 w-16 h-16 drop-shadow-2xl"
-        style={{ transform: 'translateX(-25%)' }}
       >
         <svg viewBox="0 0 100 100">
             <polygon points="0,50 100,0 100,100" fill="#dc2626" />
