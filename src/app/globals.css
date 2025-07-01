@@ -70,13 +70,3 @@ body {
     @apply bg-background text-foreground;
   }
 }
-
-@layer utilities {
-  @keyframes ticker-vibrate-anim {
-    from, to { transform: rotateX(0deg); }
-    50% { transform: rotateX(15deg); }
-  }
-  .ticker-vibrating {
-      animation: ticker-vibrate-anim 0.075s infinite linear;
-  }
-}

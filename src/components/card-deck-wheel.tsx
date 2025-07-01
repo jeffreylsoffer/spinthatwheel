@@ -7,7 +7,7 @@ import CheatSheetModal from './cheatsheet-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { createSessionDeck, populateWheel } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, COLORS, RATIOS, TOTAL_SEGMENTS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, WheelItemType } from '@/lib/types';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
@@ -23,10 +23,10 @@ const CardDeckWheel = () => {
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
+  const [spinCount, setSpinCount] = useState(0);
 
   const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
-
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck();
@@ -37,6 +37,7 @@ const CardDeckWheel = () => {
     setRotation(0);
     setIsSpinning(false);
     setResult(null);
+    setSpinCount(0);
   }, []);
 
   useEffect(() => {
@@ -50,7 +51,9 @@ const CardDeckWheel = () => {
       );
       const newWheelItems = populateWheel(newRules);
       setWheelItems(newWheelItems);
-      setAvailableItems(newWheelItems);
+      // Keep available items in sync with the new wheel items, excluding already used ones.
+      const usedItemIds = new Set(wheelItems.filter(item => item.type === 'END').map(item => item.id.replace('used-', '')));
+      setAvailableItems(newWheelItems.filter(item => !usedItemIds.has(item.id)));
 
       toast({
         title: "Rules Flipped!",
@@ -71,53 +74,84 @@ const CardDeckWheel = () => {
 
     const segmentAngle = 360 / wheelItems.length;
     
-    // Invert velocity because of the coordinate system
-    const direction = -Math.sign(velocity) || -1;
+    const direction = Math.sign(velocity) || 1;
     
-    // Velocity-based spin dynamics
     const baseRevolutions = 5;
-    const velocityMultiplier = 15;
-    const additionalRevolutions = Math.abs(velocity) * velocityMultiplier;
-    
-    const totalRevolutions = baseRevolutions + additionalRevolutions;
-    
-    const newRevolutions = Math.round(Math.min(50, Math.max(5, totalRevolutions)));
-    
-    const duration = 5000 + newRevolutions * 300;
+    const velocityMultiplier = Math.min(Math.abs(velocity) * 20, 30);
+    const additionalRevolutions = Math.round(baseRevolutions + velocityMultiplier);
+
+    const duration = 4000 + additionalRevolutions * 200;
     setSpinDuration(duration);
     
-    const spinAmount = newRevolutions * 360;
-    const endRotation = rotation + (spinAmount * direction);
+    const spinAmount = additionalRevolutions * 360;
+    const currentAngle = (rotation % 360 + 360) % 360;
     
-    const targetAngle = targetIndex * segmentAngle;
+    const targetSliceAngle = targetIndex * segmentAngle;
     
-    const finalRotation = Math.round(endRotation / 360) * 360 - targetAngle;
+    let desiredRotation = rotation - currentAngle; // Reset to 0 base
+    desiredRotation += (spinAmount * direction); // Add revolutions
+    desiredRotation -= targetSliceAngle; // Align to target
+    
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
 
     setIsSpinning(true);
-    setRotation(finalRotation + randomOffset);
+    setRotation(desiredRotation + randomOffset);
   };
   
   const handleSpinEnd = () => {
     if (winningItem) {
       setResult(winningItem);
       setIsResultModalOpen(true);
+
+      // Replace the landed-on item with a visual "END" card
+      setWheelItems(prevItems => {
+        const newItems = [...prevItems];
+        const index = newItems.findIndex(item => item.id === winningItem.id);
+        if (index !== -1) {
+          newItems[index] = {
+            id: `used-${winningItem.id}`,
+            type: 'END',
+            label: 'END',
+            data: { name: 'END', description: 'This slot has been used.' },
+            color: COLORS.END
+          };
+        }
+        return newItems;
+      });
+
+      // Remove the original item from the pool of selectable items
       setAvailableItems(prev => prev.filter(item => item.id !== winningItem.id));
+      
       setWinningItem(null);
+      setSpinCount(prev => prev + 1);
     }
     setIsSpinning(false);
   };
 
   const statusCounts = useMemo(() => {
-    const count = (type: WheelItemType) => wheelItems.filter(item => item.type === type).length;
+    const totalCount = (type: WheelItemType) => {
+      switch (type) {
+        case 'PROMPT':
+          return Math.floor(TOTAL_SEGMENTS * RATIOS.PROMPTS);
+        case 'RULE':
+          return Math.floor(TOTAL_SEGMENTS * RATIOS.RULES);
+        case 'MODIFIER':
+          const numPrompts = Math.floor(TOTAL_SEGMENTS * RATIOS.PROMPTS);
+          const numRules = Math.floor(TOTAL_SEGMENTS * RATIOS.RULES);
+          return TOTAL_SEGMENTS - numPrompts - numRules;
+        default:
+          return 0;
+      }
+    };
     const availableCount = (type: WheelItemType) => availableItems.filter(item => item.type === type).length;
 
     return {
-      prompts: { total: count('PROMPT'), available: availableCount('PROMPT') },
-      rules: { total: count('RULE'), available: availableCount('RULE') },
-      modifiers: { total: count('MODIFIER'), available: availableCount('MODIFIER') },
+      prompts: { total: totalCount('PROMPT'), available: availableCount('PROMPT') },
+      rules: { total: totalCount('RULE'), available: availableCount('RULE') },
+      modifiers: { total: totalCount('MODIFIER'), available: availableCount('MODIFIER') },
     }
-  }, [wheelItems, availableItems]);
+  }, [availableItems]);
+
 
   const handleReset = () => {
     initializeGame();
@@ -132,6 +166,13 @@ const CardDeckWheel = () => {
     dragStartRef.current = { y: e.clientY, time: Date.now() };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
+  
+  const handlePointerMove = (e: React.PointerEvent<HTMLDivElement>) => {
+    if (!dragStartRef.current.y) return;
+    const dragY = e.clientY;
+    const deltaY = dragStartRef.current.y - dragY;
+    // For live rotation during drag if desired in the future
+  };
 
   const handlePointerUp = (e: React.PointerEvent<HTMLDivElement>) => {
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
@@ -143,10 +184,9 @@ const CardDeckWheel = () => {
     const dragDistance = dragStartRef.current.y - dragEndY;
     const dragDuration = dragEndTime - dragStartRef.current.time;
 
-    // A flick is a short, fast drag.
-    if (dragDuration < 500 && Math.abs(dragDistance) > 30) {
-      const velocity = dragDistance / dragDuration; // pixels per millisecond
-      handleSpinClick(velocity);
+    if (dragDuration < 1000 && Math.abs(dragDistance) > 20) {
+        const velocity = dragDistance / dragDuration;
+        handleSpinClick(velocity);
     }
     
     dragStartRef.current = { y: null, time: null };
@@ -159,17 +199,11 @@ const CardDeckWheel = () => {
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
-      {/* Main content: Wheel */}
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center gap-8">
-        <div className="text-center">
-          <h1 className="font-headline text-5xl md:text-7xl text-primary-foreground" style={{textShadow: '2px 2px 4px hsl(var(--primary))'}}>
-            Card Deck Wheel
-          </h1>
-          <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
-        </div>
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center h-[400px]">
         <div 
-          className="w-full max-w-lg h-96 mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
         >
@@ -177,8 +211,13 @@ const CardDeckWheel = () => {
         </div>
       </div>
 
-      {/* Sidebar: Controls and Status */}
       <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-md mx-auto lg:max-w-none lg:mx-0">
+        <div className="text-center">
+          <h1 className="font-headline text-5xl md:text-7xl text-primary-foreground" style={{textShadow: '2px 2px 4px hsl(var(--primary))'}}>
+            Card Deck Wheel
+          </h1>
+          <p className="text-lg text-foreground/80 mt-2">Flick the wheel up or down to spin!</p>
+        </div>
         <Button 
           variant="outline"
           size="lg"

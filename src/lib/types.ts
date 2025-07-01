@@ -25,14 +25,20 @@ export interface Modifier {
   description: string;
 }
 
-export type WheelItemType = 'RULE' | 'PROMPT' | 'MODIFIER';
+export type WheelItemType = 'RULE' | 'PROMPT' | 'MODIFIER' | 'END';
+
+export interface WheelItemStyle {
+  segment: string;
+  labelBg: string;
+  labelColor: string;
+}
 
 export interface WheelItem {
   id: string; 
   type: WheelItemType;
   label: string;
-  data: Rule | Prompt | Modifier;
-  color: string;
+  data: Rule | Prompt | Modifier | { name: string, description: string };
+  color: WheelItemStyle;
 }
 
 export interface SessionRule {

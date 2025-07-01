@@ -1,20 +1,22 @@
 import { ruleGroups, prompts, modifiers } from './data';
-import type { SessionRule, WheelItem, Rule, Prompt, Modifier } from './types';
+import type { SessionRule, WheelItem, Rule, Prompt, Modifier, WheelItemStyle } from './types';
 
 // Ratios for wheel population
-const RATIOS = {
+export const RATIOS = {
   PROMPTS: 0.5,
   RULES: 0.3,
   MODIFIERS: 0.2,
 };
-const TOTAL_SEGMENTS = 20;
+export const TOTAL_SEGMENTS = 20;
 
-// Color palette for wheel segments
-const COLORS = {
-  PROMPT: '#3b82f6', // Blue
-  RULE: '#facc15', // Yellow
-  MODIFIER: '#a3e635', // Green
+// Color palette for wheel segments based on show photos
+export const COLORS: Record<'PROMPT' | 'RULE' | 'MODIFIER' | 'END', WheelItemStyle> = {
+  PROMPT:   { segment: '#FBBF24', labelBg: '#FFFFFF', labelColor: '#1F2937' },   // Yellow segment, white card
+  MODIFIER: { segment: '#14B8A6', labelBg: '#0F766E', labelColor: '#FFFFFF' },   // Teal segment, dark teal card
+  RULE:     { segment: '#D8B4FE', labelBg: '#FB923C', labelColor: '#1F2937' },   // Purple segment, orange card
+  END:      { segment: '#374151', labelBg: '#111827', labelColor: '#F9FAFB' },   // Dark gray segment, black card
 };
+
 
 // Creates the initial set of rules for the game session
 export function createSessionDeck(): SessionRule[] {
@@ -62,16 +64,18 @@ export function populateWheel(sessionRules: SessionRule[]): WheelItem[] {
 
   // Add Rules
   const availableRules = sessionRules.map(r => (r.isFlipped ? r.flipped : r.primary));
-  const shuffledRules = shuffle([...availableRules]);
-  for (let i = 0; i < numRules; i++) {
-    const rule = shuffledRules[i % shuffledRules.length];
-    wheel.push({
-      id: `rule-${i}-${rule.id}`,
-      type: 'RULE',
-      label: 'Rule',
-      data: rule,
-      color: COLORS.RULE,
-    });
+  if (availableRules.length > 0) {
+    const shuffledRules = shuffle([...availableRules]);
+    for (let i = 0; i < numRules; i++) {
+      const rule = shuffledRules[i % shuffledRules.length];
+      wheel.push({
+        id: `rule-${i}-${rule.id}`,
+        type: 'RULE',
+        label: 'Rule',
+        data: rule,
+        color: COLORS.RULE,
+      });
+    }
   }
 
   // Add Modifiers

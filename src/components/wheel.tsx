@@ -16,6 +16,7 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
+  // h-36 is 144px. This calculates the radius to keep the 3D wheel segments connected.
   const radius = Math.round((144 / 2) / Math.tan(Math.PI / segmentCount));
 
   const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
@@ -27,17 +28,18 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
   return (
     <div 
       className="relative w-full h-full"
-      style={{ perspective: '1200px', transformStyle: 'preserve-3d' }}
+      style={{ perspective: '1200px' }}
     >
-      {/* The spinning wheel element */}
       <div
         className={cn(
-          "absolute w-full h-full transition-transform",
-          isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : "" // easeOutQuint for a strong slowdown effect
+          "absolute w-full h-full",
+          // Use a custom bezier for a more satisfying spin easing
+          isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : ""
         )}
         style={{
           transformStyle: 'preserve-3d',
           transform: `translateZ(${-radius}px) rotateX(${rotation}deg)`,
+          transitionProperty: 'transform',
           transitionDuration: `${spinDuration}ms`,
         }}
         onTransitionEnd={handleTransitionEnd}
@@ -45,70 +47,41 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
         {items.map((item, i) => {
           const segmentAngle = 360 / segmentCount;
           const angle = i * segmentAngle;
+          const isEndCard = item.type === 'END';
+
           return (
             <div
               key={item.id}
-              className="absolute w-full h-36 border-t-2 border-b-2 border-white/10 rounded-lg flex items-center justify-center"
+              className="absolute w-full h-36 flex items-center justify-center"
               style={{
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
-                backgroundColor: item.color,
+                backgroundColor: item.color.segment,
                 backfaceVisibility: 'hidden',
-                boxShadow: 'inset 0 0 15px rgba(0,0,0,0.5)',
+                // Add a subtle border to separate segments
+                borderTop: '1px solid rgba(255, 255, 255, 0.1)',
+                borderBottom: '1px solid rgba(0, 0, 0, 0.1)',
               }}
             >
-              <span 
-                className="absolute inset-0 flex items-center justify-center font-headline text-5xl font-bold text-black tracking-wider"
+              <div 
+                className="w-[70%] h-[70%] rounded-2xl flex items-center justify-center shadow-lg px-4"
                 style={{
-                  textShadow: '0 0 5px rgba(255, 255, 255, 0.7)',
+                  backgroundColor: item.color.labelBg,
+                  color: item.color.labelColor,
+                  border: isEndCard ? '2px solid #000' : '2px solid rgba(255, 255, 255, 0.5)',
                 }}
               >
-                {item.label.toUpperCase()}
-              </span>
-              {/* Pegs for the ticker to "hit" */}
-              <div className="absolute right-6 top-0 flex flex-col justify-around h-full py-2">
-                 <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
-                 <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
-                 <div className="w-3 h-6 bg-gradient-to-br from-gray-400 to-gray-600 rounded-sm shadow-md" style={{transform: 'rotate(15deg)'}}/>
+                <span 
+                  className="font-headline text-5xl font-bold tracking-wider"
+                  style={{
+                    textShadow: isEndCard ? 'none' : '1px 1px 3px rgba(0, 0, 0, 0.2)',
+                  }}
+                >
+                  {item.label.toUpperCase()}
+                </span>
               </div>
             </div>
           );
         })}
-      </div>
-
-      {/* Flexible 3D Ticker */}
-      <div 
-        className="absolute top-1/2 -translate-y-1/2 z-20"
-        style={{
-          right: -20,
-          width: 160,
-          height: 60,
-          transformStyle: 'preserve-3d',
-          transform: 'rotateY(-25deg) translateX(30px)'
-        }}
-      >
-        <div
-            className={cn(isSpinning && 'ticker-vibrating')}
-            style={{
-                width: '100%',
-                height: '100%',
-                transformStyle: 'preserve-3d',
-            }}
-        >
-          <div
-              className="absolute w-full h-full bg-red-600"
-              style={{
-                  transform: 'translateZ(4px)',
-                  clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)'
-              }}
-          />
-          <div
-              className="absolute w-full h-full bg-red-800"
-              style={{
-                  transform: 'translateZ(-4px)',
-                  clipPath: 'polygon(0% 50%, 100% 0%, 100% 100%)'
-              }}
-          />
-        </div>
       </div>
     </div>
   );
