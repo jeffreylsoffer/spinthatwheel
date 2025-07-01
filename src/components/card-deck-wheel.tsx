@@ -242,6 +242,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
       <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1">
+        <Scoreboard players={players} onScoreChange={onScoreChange} />
         <Button 
           variant="outline"
           size="lg"
@@ -250,7 +251,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
           <BookOpen className="mr-2 h-5 w-5" />
           Flip Cheat Sheet
         </Button>
-        <Scoreboard players={players} onScoreChange={onScoreChange} />
         <Button variant="ghost" onClick={handleReset} className="self-center">
             <RefreshCw className="mr-2 h-4 w-4" />
             New Game
