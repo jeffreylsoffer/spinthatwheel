@@ -71,7 +71,6 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
-                  border: '8px solid #000',
                 }}
               >
                 <span 
@@ -87,16 +86,6 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration }: WheelPr
           );
         })}
       </div>
-       {/* 3D Spotlight */}
-       <div 
-        className="absolute top-0 left-1/2 -translate-x-1/2 w-[250%] h-96 pointer-events-none"
-        style={{
-          background: 'radial-gradient(ellipse at center, rgba(255, 255, 240, 0.4) 0%, transparent 50%)',
-          transform: `translateZ(${radius + 50}px) translateY(-50%) rotateX(-15deg)`,
-          filter: 'blur(20px)',
-          mixBlendMode: 'plus-lighter'
-        }}
-      ></div>
     </div>
   );
 };
