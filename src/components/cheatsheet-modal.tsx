@@ -29,7 +29,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
   
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="sm:max-w-lg">
+      <DialogContent className="sm:max-w-lg bg-card text-card-foreground">
         <DialogHeader>
           <DialogTitle className="font-headline text-3xl">Flip Cheat Sheet</DialogTitle>
           <DialogDescription>
