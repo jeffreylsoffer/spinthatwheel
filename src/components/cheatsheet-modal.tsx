@@ -24,6 +24,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
   const ruleCardStyle = {
     backgroundColor: CARD_STYLES.RULE.labelBg,
     color: CARD_STYLES.RULE.labelColor,
+    border: `14px solid black`
   };
   
   return (
@@ -53,11 +54,10 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
                   {/* Front Face */}
                   <div className="absolute w-full h-full [backface-visibility:hidden]">
                     <div 
-                      className="w-full h-full flex flex-col p-4 rounded-lg border-8 border-black"
+                      className="w-full h-full flex flex-col p-4 rounded-lg"
                       style={ruleCardStyle}
                     >
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-headline text-2xl uppercase">{rule.groupName}</h3>
+                      <div className="flex justify-end items-start">
                         <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">
                           <RefreshCw className="h-4 w-4 mr-2" />
                           Flip
@@ -72,11 +72,10 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
                   {/* Back Face */}
                   <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
                     <div 
-                      className="w-full h-full flex flex-col p-4 rounded-lg border-8 border-black"
+                      className="w-full h-full flex flex-col p-4 rounded-lg"
                       style={ruleCardStyle}
                     >
-                      <div className="flex justify-between items-start">
-                        <h3 className="font-headline text-2xl uppercase">{rule.groupName}</h3>
+                      <div className="flex justify-end items-start">
                         <Button variant="outline" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-white/50 hover:bg-white/80 border-black/50 text-black">
                           <RefreshCw className="h-4 w-4 mr-2" />
                           Flip

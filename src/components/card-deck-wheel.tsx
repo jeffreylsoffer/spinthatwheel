@@ -7,10 +7,11 @@ import CheatSheetModal from './cheatsheet-modal';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { Badge } from '@/components/ui/badge';
-import { createSessionDeck, populateWheel, CARD_STYLES, RATIOS, TOTAL_SEGMENTS } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, CARD_STYLES } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, WheelItemType, Rule } from '@/lib/types';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useToast } from "@/hooks/use-toast"
+import { useIsMobile } from '@/hooks/use-mobile';
 
 const CardDeckWheel = () => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
@@ -28,6 +29,7 @@ const CardDeckWheel = () => {
 
   const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
+  const isMobile = useIsMobile();
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck();
@@ -39,6 +41,7 @@ const CardDeckWheel = () => {
     setIsSpinning(false);
     setResult(null);
     setSpinCount(0);
+    setActiveRules([]);
   }, []);
 
   useEffect(() => {
@@ -46,19 +49,33 @@ const CardDeckWheel = () => {
   }, [initializeGame]);
 
   const handleFlipRule = (ruleId: number) => {
-    const newRules = sessionRules.map(r => 
+    const ruleToFlip = sessionRules.find(r => r.id === ruleId);
+    if (!ruleToFlip) return;
+
+    const fromRule = ruleToFlip.isFlipped ? ruleToFlip.flipped : ruleToFlip.primary;
+    const toRule = ruleToFlip.isFlipped ? ruleToFlip.primary : ruleToFlip.flipped;
+
+    const newSessionRules = sessionRules.map(r =>
       r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r
     );
-    setSessionRules(newRules);
+    setSessionRules(newSessionRules);
 
-    setActiveRules(prevActiveRules => prevActiveRules.map(ar => 
-      ar.id === ruleId ? newRules.find(nr => nr.id === ruleId)! : ar
+    setActiveRules(prevActiveRules => prevActiveRules.map(ar =>
+      ar.id === ruleId ? newSessionRules.find(nr => nr.id === ruleId)! : ar
     ));
-
-    const newWheelItems = populateWheel(newRules);
-    setWheelItems(newWheelItems);
-    const usedItemIds = new Set(wheelItems.filter(item => item.type === 'END').map(item => item.id.replace('used-', '')));
-    setAvailableItems(newWheelItems.filter(item => !usedItemIds.has(item.id)));
+    
+    const updateItem = (item: WheelItem): WheelItem => {
+      if (item.type === 'RULE' && (item.data as Rule).id === fromRule.id) {
+        // Reconstruct the item ID to match the new rule data ID
+        const oldIdParts = item.id.split('-');
+        const newId = `${oldIdParts[0]}-${oldIdParts[1]}-${toRule.id}`;
+        return { ...item, data: toRule, id: newId };
+      }
+      return item;
+    };
+    
+    setWheelItems(prevItems => prevItems.map(updateItem));
+    setAvailableItems(prevAvailable => prevAvailable.map(updateItem));
   };
 
   const handleSpinClick = (velocity: number) => {
@@ -168,7 +185,6 @@ const CardDeckWheel = () => {
 
   const handleReset = () => {
     initializeGame();
-    setActiveRules([]);
     toast({
       title: "Game Reset",
       description: "A new deck has been created and the wheel is ready to spin!",
@@ -210,6 +226,8 @@ const CardDeckWheel = () => {
     (e.currentTarget as HTMLElement).releasePointerCapture(e.pointerId);
     dragStartRef.current = { y: null, time: null };
   };
+  
+  const wheelHeight = isMobile ? 'h-64' : 'h-96';
 
   return (
     <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
@@ -247,7 +265,7 @@ const CardDeckWheel = () => {
         </Card>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-64 lg:h-96">
+      <div className={`lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 ${wheelHeight}`}>
         <div 
           className="relative w-full max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
