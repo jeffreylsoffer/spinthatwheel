@@ -113,7 +113,15 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       toast({
         variant: 'destructive',
         title: 'AI Generation Failed',
-        description: 'Could not generate new cards. Please try again.',
+        description: (
+            <div className="mt-2 w-full space-y-2">
+              <p>The AI returned an invalid response. The raw output is shown below for debugging:</p>
+              <pre className="max-h-[300px] w-full max-w-[400px] overflow-auto rounded-md bg-black/20 p-2">
+                <code className="text-sm text-white">{error instanceof Error ? error.message : String(error)}</code>
+              </pre>
+            </div>
+        ),
+        duration: 30000,
       });
     } finally {
       setIsGenerating(false);
