@@ -1,7 +1,6 @@
 
 import type { SessionRule, WheelItem, Rule, Prompt, Modifier, WheelItemStyle, RuleGroup } from './types';
 
-// New color scheme based on the reference image
 // Palette for the background segments of the wheel
 export const SEGMENT_COLORS = [
   '#FFD262', // Yellow
@@ -17,8 +16,9 @@ export const RULE_CARD_COLORS = [
 ];
 
 export const MODIFIER_CARD_COLORS = [
-  { bg: '#9B5DE5', text: '#FFFFFF' }, // Purple with white text
-  { bg: '#D0021B', text: '#FFFFFF' }, // Strong Red with white text
+  { bg: '#B19CD9', text: '#FFFFFF' }, // Lavender with white text
+  { bg: '#FF5349', text: '#FFFFFF' }, // Red-Orange with white text
+  { bg: '#4DB6AC', text: '#FFFFFF' }, // Teal with white text
 ];
 
 // Color palette for special cards
