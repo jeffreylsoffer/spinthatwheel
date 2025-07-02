@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState, useEffect } from "react";
@@ -52,7 +51,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpe
             style={{ backgroundColor: result.color.labelBg }}
             className="w-full aspect-video p-4 md:p-6 rounded-2xl border-[10px] md:border-[14px] border-black flex items-center justify-center text-center relative"
           >
-            <DialogClose className="absolute top-4 right-4 rounded-full p-1 transition-colors hover:bg-black/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
+            <DialogClose className="absolute top-4 right-4 z-10 rounded-full p-1 transition-colors hover:bg-black/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
                 <X className={cn("h-8 w-8", closeButtonColor)} />
                 <span className="sr-only">Close</span>
             </DialogClose>
