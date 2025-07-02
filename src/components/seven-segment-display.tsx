@@ -1,63 +1,18 @@
-
 "use client";
 
-import { cn } from "@/lib/utils";
-
-const SEGMENT_MAP = {
-  "0": ["a", "b", "c", "d", "e", "f"],
-  "1": ["b", "c"],
-  "2": ["a", "b", "g", "e", "d"],
-  "3": ["a", "b", "g", "c", "d"],
-  "4": ["f", "g", "b", "c"],
-  "5": ["a", "f", "g", "c", "d"],
-  "6": ["a", "f", "g", "e", "c", "d"],
-  "7": ["a", "b", "c"],
-  "8": ["a", "b", "c", "d", "e", "f", "g"],
-  "9": ["a", "b", "c", "d", "f", "g"],
-};
-
-type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
-
-const SevenSegmentDigit = ({ digit, on = true }: { digit: Digit, on?: boolean }) => {
-  const activeSegments = SEGMENT_MAP[digit] || [];
-
-  return (
-    <div className="segment-container">
-      {["a", "b", "c", "d", "e", "f", "g"].map((seg) => (
-        <div
-          key={seg}
-          className={cn(
-            "segment",
-            `segment-${seg}`,
-            on && activeSegments.includes(seg) && "on"
-          )}
-        />
-      ))}
-    </div>
-  );
-};
-
+// Reverted to a simpler, font-based implementation as requested.
 export const SevenSegmentDisplay = ({ score }: { score: number }) => {
-  const isNegative = score < 0;
-  const absScore = Math.abs(score);
-  
-  // Clamp score to two digits for display purposes
-  const clampedScore = Math.min(absScore, 99);
-
-  const scoreStr = String(clampedScore).padStart(2, "0");
-  const digit1 = scoreStr[0] as Digit;
-  const digit2 = scoreStr[1] as Digit;
-
-  // The tens digit is only "on" if the score is 10 or greater
-  const tensDigitOn = clampedScore >= 10;
+  // Clamp score to fit within the display
+  const clampedScore = Math.max(-99, Math.min(score, 99));
+  // Pad with a non-breaking space to help alignment
+  const scoreStr = String(clampedScore).padStart(3, '\u00A0'); 
 
   return (
-    <div className="flex items-center justify-center gap-1.5 p-2 bg-black/50 rounded-lg border border-white/10 h-14 w-24">
-      <div className="relative w-4 h-14 flex justify-center items-center">
-        {isNegative && <div className="bg-primary shadow-[0_0_5px_hsl(var(--primary)/0.7)] w-4 h-2 rounded-[2px]" />}
-      </div>
-      <SevenSegmentDigit digit={digit1} on={tensDigitOn} />
-      <SevenSegmentDigit digit={digit2} on={true} />
+    <div 
+      className="flex items-center justify-end p-2 bg-black/50 rounded-lg border border-white/10 h-14 w-24 font-digital-7 text-primary text-5xl" 
+      style={{ textShadow: '0 0 5px hsl(var(--primary) / 0.7)'}}
+    >
+      <span className="tracking-[.1em]">{scoreStr}</span>
     </div>
   );
 };

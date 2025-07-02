@@ -97,23 +97,3 @@ body {
     box-shadow: none;
   }
 }
-
-/* 7-Segment Display Styles */
-.segment-container {
-  @apply relative w-8 h-14;
-}
-.segment {
-  @apply absolute bg-muted/20 rounded-[2px];
-  transition: background-color 0.2s;
-}
-.segment.on {
-  @apply bg-primary;
-  box-shadow: 0 0 5px hsl(var(--primary) / 0.7);
-}
-.segment-a { @apply top-0 left-1 w-6 h-2; }
-.segment-b { @apply top-1 right-0 w-2 h-6; }
-.segment-c { @apply bottom-1 right-0 w-2 h-6; }
-.segment-d { @apply bottom-0 left-1 w-6 h-2; }
-.segment-e { @apply bottom-1 left-0 w-2 h-6; }
-.segment-f { @apply top-1 left-0 w-2 h-6; }
-.segment-g { @apply top-1/2 left-1 w-6 h-2 -translate-y-1/2; }
