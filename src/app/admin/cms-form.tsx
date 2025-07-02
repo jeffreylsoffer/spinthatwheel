@@ -112,12 +112,12 @@ export default function CmsForm({ initialData }: CmsFormProps) {
         description: `New cards with the theme "${aiPrompt}" have been generated.`,
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error('AI Generation failed', error);
       toast({
         variant: 'destructive',
         title: 'AI Generation Failed',
-        description: 'The AI was unable to generate new cards. Please try a different theme or try again later.',
+        description: "The AI was unable to generate new cards. Please try a different theme or check the console for more details."
       });
     } finally {
       setIsGenerating(false);
@@ -239,7 +239,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
               <CardFooter>
                 <Button onClick={handleGenerate} disabled={isGenerating}>
                   {isGenerating ? (
-                    <LoaderPinwheel className="mr-2 h-5 w-5 animate-spin text-teal-400" />
+                    <LoaderPinwheel className="mr-2 h-5 w-5 animate-spin" />
                   ) : (
                     <Wand2 className="mr-2 h-5 w-5" />
                   )}

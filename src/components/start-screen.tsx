@@ -30,7 +30,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <div>
           <h3 className="font-headline text-3xl text-foreground">How to Score</h3>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
-            <li><span className="font-bold text-foreground">PROMPTS:</span> Completing a PROMPT successfully earns you <span className="font-bold text-primary">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-primary">-2 points</span>.</li>
+            <li>Completing a <span className="font-bold text-foreground">PROMPT</span> successfully earns you <span className="font-bold text-foreground">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-foreground">-2 points</span>.</li>
             <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
           </ul>
         </div>
