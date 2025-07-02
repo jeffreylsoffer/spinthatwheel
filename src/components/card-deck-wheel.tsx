@@ -206,36 +206,41 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       console.error("Target item not found in wheel, cannot spin.", { targetItem, wheelItems });
       return;
     }
-
+    
     console.log('Chosen winning item:', { id: targetItem.id, type: targetItem.type, label: targetItem.label });
     console.log('Target index in wheelItems:', targetIndex);
 
     const segmentAngle = 360 / wheelItems.length;
-    
-    const direction = Math.sign(velocity) || 1;
-    
-    const baseRevolutions = 3;
-    const velocityMultiplier = Math.min(Math.abs(velocity) * 2, 4);
-    const additionalRevolutions = baseRevolutions + velocityMultiplier;
+    const targetSliceAngle = targetIndex * segmentAngle;
 
-    const duration = 5000 + additionalRevolutions * 200;
-    setSpinDuration(duration);
-    
-    const spinAmount = additionalRevolutions * 360;
+    // The final angle we want to land on, relative to a 0-degree start.
+    // A rotation of -targetSliceAngle will bring the target slice to the top.
+    const finalAngle = -targetSliceAngle;
+
+    // Get the current angle of the wheel, normalized to be between 0 and 360.
     const currentAngle = (rotation % 360 + 360) % 360;
     
-    const targetSliceAngle = targetIndex * segmentAngle;
-    let desiredRotation = rotation - currentAngle;
-    desiredRotation += (spinAmount * direction);
-    desiredRotation -= targetSliceAngle;
-    
-    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-    const finalRotation = desiredRotation + randomOffset;
+    // Add a random number of full revolutions for visual effect.
+    const revolutions = (3 + Math.random() * 3) * 360;
 
-    console.log('Calculated rotation:', finalRotation);
+    // Calculate how far we need to rotate to get from the current angle to the final angle,
+    // ensuring we always move forward.
+    const spinDistance = (finalAngle - currentAngle + 360) % 360;
+    
+    // The new rotation is the current rotation plus the full revolutions and the spin distance.
+    const newRotation = rotation + revolutions + spinDistance;
+    
+    // Add a slight random offset to make it not land perfectly every time
+    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
+    const finalRotationWithOffset = newRotation + randomOffset;
+
+    const duration = 4000 + (revolutions / 360) * 300;
+    setSpinDuration(duration);
+
+    console.log('Calculated rotation:', finalRotationWithOffset);
 
     setIsSpinning(true);
-    setRotation(finalRotation);
+    setRotation(finalRotationWithOffset);
 
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
@@ -254,7 +259,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         }
 
         const ticksPerSegment = 3;
-        const totalTicksInSpin = (360 / segmentAngle) * ticksPerSegment * (additionalRevolutions);
+        const totalTicksInSpin = (360 / segmentAngle) * ticksPerSegment * (revolutions / 360);
         const averageDelay = duration / totalTicksInSpin;
 
         playSound('tick');

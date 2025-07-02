@@ -12,12 +12,12 @@ export const SEGMENT_COLORS = [
 
 // Palettes for the cards that sit inside the segments
 export const RULE_CARD_COLORS = [
-  { bg: '#9A91B4', text: '#1F2937' }, // Darker Lavender with black text
-  { bg: '#378C9E', text: '#FFFFFF' }, // Darker Teal with white text for contrast
-  { bg: '#CCAA4F', text: '#1F2937' }, // Darker Yellow with black text
-  { bg: '#BE4F41', text: '#FFFFFF' }, // Darker Red-Orange with white text for contrast
-  { bg: '#C38256', text: '#1F2937' }, // Darker Orange with black text
-  { bg: '#D4D4D4', text: '#1F2937' }, // Light Grey with black text
+  { bg: '#9A91B4', text: '#1F2937' }, 
+  { bg: '#378C9E', text: '#1F2937' }, 
+  { bg: '#CCAA4F', text: '#1F2937' }, 
+  { bg: '#BE4F41', text: '#1F2937' }, 
+  { bg: '#C38256', text: '#1F2937' }, 
+  { bg: '#D4D4D4', text: '#1F2937' },
 ];
 
 // As requested: Lavender, Red, or Teal with white text
