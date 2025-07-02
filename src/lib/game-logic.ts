@@ -3,27 +3,27 @@ import type { SessionRule, WheelItem, Rule, Prompt, Modifier, WheelItemStyle, Ru
 
 // Palette for the background segments of the wheel
 export const SEGMENT_COLORS = [
-  '#C8BFE7', // Lavender
-  '#45B0C9', // Light Blue/Teal
-  '#FFD262', // Yellow
-  '#EE6352', // Red
-  '#F4A36B', // Orange
+  '#886d82', // Lavender
+  '#5d8f91', // Light Blue/Teal
+  '#d3bd6b', // Yellow
+  '#b6685f', // Red
+  '#d1a577', // Orange
 ];
 
 // Palettes for the cards that sit inside the segments
 export const RULE_CARD_COLORS = [
-  { bg: '#C8BFE7', text: '#1F2937' }, // Lavender
-  { bg: '#45B0C9', text: '#1F2937' }, // Light Blue/Teal
-  { bg: '#FFD262', text: '#1F2937' }, // Yellow
-  { bg: '#EE6352', text: '#1F2937' }, // Red
-  { bg: '#F4A36B', text: '#1F2937' }, // Orange
+  { bg: '#886d82', text: '#1F2937' }, // Lavender
+  { bg: '#5d8f91', text: '#1F2937' }, // Light Blue/Teal
+  { bg: '#d3bd6b', text: '#1F2937' }, // Yellow
+  { bg: '#b6685f', text: '#1F2937' }, // Red
+  { bg: '#d1a577', text: '#1F2937' }, // Orange
 ];
 
 // As requested: Lavender, Red, or Teal with white text
 export const MODIFIER_CARD_COLORS = [
-  { bg: '#C8BFE7', text: '#FFFFFF' }, // Lavender
-  { bg: '#EE6352', text: '#FFFFFF' }, // Red
-  { bg: '#45B0C9', text: '#FFFFFF' }, // Teal
+  { bg: '#886d82', text: '#FFFFFF' }, // Lavender
+  { bg: '#b6685f', text: '#FFFFFF' }, // Red
+  { bg: '#5d8f91', text: '#FFFFFF' }, // Teal
 ];
 
 // Color palette for special cards
