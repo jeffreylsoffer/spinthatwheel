@@ -48,4 +48,5 @@ export interface SessionRule {
   primary: Rule;
   flipped: Rule;
   isFlipped: boolean;
+  color?: WheelItemStyle;
 }

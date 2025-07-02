@@ -9,11 +9,11 @@ export const SEGMENT_COLORS = [
   '#EE6352', // Red-Orange
 ];
 
+export const MODIFIER_COLORS = ['#45B0C9', '#EE6352']; // Teal or Red-Orange
+
 // Color palette for cards based on their type
-export const CARD_STYLES: Record<'PROMPT' | 'RULE' | 'MODIFIER' | 'END', Omit<WheelItemStyle, 'segment'>> = {
+export const CARD_STYLES: Record<'PROMPT' | 'END', Omit<WheelItemStyle, 'segment'>> = {
   PROMPT:   { labelBg: '#FFFFFF', labelColor: '#1F2937' },   // White card
-  RULE:     { labelBg: '#FFD262', labelColor: '#1F2937' },   // Yellow card
-  MODIFIER: { labelBg: '#45B0C9', labelColor: '#1F2937' },   // Teal card
   END:      { labelBg: '#111827', labelColor: '#F9FAFB' },   // Black card
 };
 
@@ -61,15 +61,14 @@ export function populateWheel(
   }
   
   return rawWheel.map((item, index) => {
-    // This logic assumes the initial item is a RULE.
-    // If other types are added initially, this needs adjustment.
-    const cardStyle = CARD_STYLES.RULE;
-    const segmentColor = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
+    // Initial items are always rules, give them a random color
+    const ruleColor = SEGMENT_COLORS[Math.floor(Math.random() * SEGMENT_COLORS.length)];
     return {
       ...item,
       color: {
-        segment: segmentColor,
-        ...cardStyle,
+        segment: ruleColor,
+        labelBg: ruleColor,
+        labelColor: '#1F2937',
       },
     };
   });

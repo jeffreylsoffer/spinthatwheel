@@ -8,7 +8,7 @@ import CheatSheetModal from './cheatsheet-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
-import { createSessionDeck, populateWheel, CARD_STYLES, SEGMENT_COLORS } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_COLORS, SEGMENT_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen, Siren } from 'lucide-react';
@@ -50,7 +50,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<WheelItem | null>(null);
-  const [resultIndex, setResultIndex] = useState<number | null>(null);
   const [winningItem, setWinningItem] = useState<WheelItem | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
@@ -195,7 +194,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setWinningItem(targetItem);
     const targetIndex = wheelItems.findIndex(item => item.id === targetItem.id);
 
-    if (targetIndex === -1) return;
+    if (targetIndex === -1) {
+      console.error("Target item not found in wheel, cannot spin.");
+      return;
+    }
 
     const segmentAngle = 360 / wheelItems.length;
     
@@ -267,11 +269,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
     setSpinCycle(c => c + 1);
     if (winningItem) {
-      const index = wheelItems.findIndex(item => item.id === winningItem.id);
-      if (index !== -1) {
-        setResultIndex(index);
-      }
-
       playSound((winningItem.type.toLowerCase() as any) || 'end');
       setResult(winningItem);
       setIsResultModalOpen(true);
@@ -280,25 +277,25 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         const ruleData = winningItem.data as Rule;
         const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
         if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
-          setActiveRules(prev => [...prev, sessionRule]);
+           const ruleWithColor = { ...sessionRule, color: winningItem.color };
+           setActiveRules(prev => [...prev, ruleWithColor]);
         }
       }
-
       setWinningItem(null);
     }
     setIsSpinning(false);
   };
 
   const handleModalOpenChange = (open: boolean) => {
-    if (!open && result && resultIndex !== null) {
+    if (!open && result) {
       const landedItem = result;
 
       setWheelItems(currentWheelItems => {
-        const indexToUpdate = resultIndex;
+        const indexToUpdate = currentWheelItems.findIndex(item => item.id === landedItem.id);
 
-        if (!currentWheelItems[indexToUpdate] || currentWheelItems[indexToUpdate].id !== landedItem.id) {
-          console.error("Wheel item mismatch. Aborting update to prevent incorrect changes.");
-          return currentWheelItems;
+        if (indexToUpdate === -1) {
+            console.error("Landed item not found in wheel. Aborting update to prevent incorrect changes.");
+            return currentWheelItems;
         }
 
         let evolvedItem: WheelItem | null = null;
@@ -312,20 +309,22 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                     label: 'Prompt',
                     data: prompt,
                     color: {
-                        segment: SEGMENT_COLORS[indexToUpdate % SEGMENT_COLORS.length],
+                        segment: landedItem.color.segment, // Keep original segment color
                         ...CARD_STYLES.PROMPT,
                     }
                 };
             } else if (gameData.modifiers.length > 0) {
                 const modifier = shuffle([...gameData.modifiers])[0];
+                const modifierColor = MODIFIER_COLORS[Math.floor(Math.random() * MODIFIER_COLORS.length)];
                 evolvedItem = {
                     id: `modifier-evolved-${modifier.id}-${indexToUpdate}`,
                     type: 'MODIFIER',
                     label: 'Modifier',
                     data: modifier,
                     color: {
-                        segment: SEGMENT_COLORS[indexToUpdate % SEGMENT_COLORS.length],
-                        ...CARD_STYLES.MODIFIER,
+                        segment: modifierColor,
+                        labelBg: modifierColor,
+                        labelColor: '#1F2937',
                     }
                 };
             }
@@ -335,7 +334,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                 type: 'END',
                 label: 'END',
                 data: { name: 'END', description: 'This slot has been used.' },
-                color: { segment: '#111827', ...CARD_STYLES.END }
+                color: { 
+                    segment: CARD_STYLES.END.labelBg, 
+                    ...CARD_STYLES.END 
+                }
             };
         }
 
@@ -343,11 +345,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           const newWheelItems = [...currentWheelItems];
           newWheelItems[indexToUpdate] = evolvedItem;
 
-          const finalEvolvedItem = evolvedItem;
           setAvailableItems(prev => {
               const afterRemoval = prev.filter(i => i.id !== landedItem.id);
-              if (finalEvolvedItem.type !== 'END') {
-                  return [...afterRemoval, finalEvolvedItem];
+              if (evolvedItem && evolvedItem.type !== 'END') {
+                  return [...afterRemoval, evolvedItem];
               }
               return afterRemoval;
           });
@@ -358,7 +359,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         return currentWheelItems;
       });
       
-      setResultIndex(null);
+      setResult(null);
     }
     setIsResultModalOpen(open);
   };
