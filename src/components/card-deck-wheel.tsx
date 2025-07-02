@@ -191,11 +191,12 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     
     const direction = Math.sign(velocity) || 1;
     
-    const baseRevolutions = 5;
-    const velocityMultiplier = Math.min(Math.abs(velocity) * 20, 30);
+    // Tuned for a slower, more deliberate spin
+    const baseRevolutions = 4;
+    const velocityMultiplier = Math.min(Math.abs(velocity) * 5, 10);
     const additionalRevolutions = Math.round(baseRevolutions + velocityMultiplier);
 
-    const duration = 4000 + additionalRevolutions * 200;
+    const duration = 6000 + additionalRevolutions * 300;
     setSpinDuration(duration);
     
     const spinAmount = additionalRevolutions * 360;
@@ -364,9 +365,11 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     const dragDistance = dragStartRef.current.y - dragEndY;
     const dragDuration = dragEndTime - dragStartRef.current.time;
 
-    if (dragDuration < 1000 && Math.abs(dragDistance) > 20) {
+    if (dragDuration < 1000 && Math.abs(dragDistance) > 20) { // A flick gesture
         const velocity = dragDistance / dragDuration;
         handleSpinClick(velocity);
+    } else if (dragDuration < 250 && Math.abs(dragDistance) < 20) { // A click/tap gesture
+        handleSpinClick(1); // Spin with a default medium velocity
     }
     
     dragStartRef.current = { y: null, time: null };
