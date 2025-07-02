@@ -73,7 +73,7 @@ export default function AdminPage() {
   return (
     <main className="container mx-auto p-4 lg:p-8">
       <div className="flex items-center justify-between mb-8">
-        <h1 className="font-headline text-4xl lg:text-5xl">CMS - Card Content</h1>
+        <h1 className="font-headline text-4xl lg:text-5xl">Manage Cards</h1>
         <div className="flex items-center gap-2">
            <AlertDialog>
             <AlertDialogTrigger asChild>
