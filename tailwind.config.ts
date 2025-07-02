@@ -13,6 +13,7 @@ export default {
         body: ['"PT Sans"', 'sans-serif'],
         headline: ['"League Gothic"', 'sans-serif'],
         digital: ['"Orbitron"', 'sans-serif'],
+        'digital-7': ['"DSEG7Classic"', 'sans-serif'],
         code: ['monospace'],
       },
       colors: {

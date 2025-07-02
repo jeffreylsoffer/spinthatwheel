@@ -5,7 +5,6 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Plus, Minus } from "lucide-react";
 import type { Player } from "@/app/page";
-import { cn } from "@/lib/utils";
 
 interface ScoreboardProps {
   players: Player[];
@@ -37,17 +36,10 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
                   <Minus className="h-4 w-4" />
                 </Button>
                 <div 
-                  className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-destructive text-3xl sm:text-4xl font-bold tabular-nums h-10 sm:h-14 w-20 sm:w-24 border border-white/10"
+                  className="flex items-center justify-center bg-black/50 rounded-lg font-digital-7 text-destructive text-3xl sm:text-4xl font-bold tabular-nums h-10 sm:h-14 w-20 sm:w-24 border border-white/10"
                   style={{ textShadow: '0 0 5px hsl(var(--destructive) / 0.7)' }}
                 >
-                  {player.score < 0 ? (
-                    `-${Math.abs(player.score)}`
-                  ) : (
-                    <>
-                      <span className={cn(player.score < 10 && "text-muted-foreground/70")}>{String(player.score).padStart(2, '0')[0]}</span>
-                      <span>{String(player.score).padStart(2, '0')[1]}</span>
-                    </>
-                  )}
+                  {player.score < 0 ? '-' : ''}{String(Math.min(Math.abs(player.score), 99)).padStart(2, '0')}
                 </div>
                 <Button
                   variant="outline"
