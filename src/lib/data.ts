@@ -23,7 +23,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 4,
     name: "Impression",
-    primary_rule: { id: 401, name: "Doing your best Christopher walker", description: "You must do your best Christopher walker impression." },
+    primary_rule: { id: 401, name: "Doing your best Christopher Walken", description: "You must do your best Christopher Walken impression." },
     flipped_rule: { id: 402, name: "Doing your worst Robert Deniro", description: "You must do your worst Robert Deniro impression." },
   },
   {
