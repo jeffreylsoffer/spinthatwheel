@@ -296,8 +296,8 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   };
   
   return (
-    <div className="grid grid-cols-1 lg:grid-cols-5 min-h-screen items-center p-4 lg:p-8 gap-8">
-      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1">
+    <div className="grid grid-cols-1 grid-rows-[240px_1fr] lg:grid-cols-5 lg:grid-rows-1 h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
+      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-start lg:justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1 overflow-y-auto min-h-0">
         <Scoreboard players={players} onScoreChange={onScoreChange} />
         <Button 
           variant="outline"
@@ -313,7 +313,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         </Button>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-[240px] lg:h-auto">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2">
         <div 
           className="relative w-full max-w-[12rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}

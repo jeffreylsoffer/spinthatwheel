@@ -46,11 +46,11 @@ const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpe
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
-      <DialogContent className="bg-transparent border-none shadow-none p-0 data-[state=open]:animate-in data-[state=open]:zoom-in-75 w-auto">
+      <DialogContent className="bg-transparent border-none shadow-none p-0 data-[state=open]:animate-in data-[state=open]:zoom-in-75 w-[90vw] max-w-[640px]">
         <div className={cn("relative", isFlipModifier && "pb-16")}>
           <div 
             style={{ backgroundColor: result.color.labelBg }}
-            className="w-[640px] h-[360px] p-6 rounded-2xl border-[14px] border-black flex items-center justify-center text-center relative"
+            className="w-full aspect-video p-4 md:p-6 rounded-2xl border-[10px] md:border-[14px] border-black flex items-center justify-center text-center relative"
           >
             <DialogClose className="absolute top-4 right-4 rounded-full p-1 transition-colors hover:bg-black/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
                 <X className={cn("h-8 w-8", closeButtonColor)} />
@@ -61,7 +61,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpe
               <h2 
                 style={{ color: textColor }}
                 className={cn(
-                  "text-7xl lg:text-8xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
+                  "text-6xl md:text-8xl font-headline uppercase break-words transition-opacity duration-300 ease-in-out absolute",
                   showDetails ? "opacity-0" : "opacity-100"
                 )}
               >
@@ -76,7 +76,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpe
                 )}
               >
                 {result.type === 'PROMPT' && (
-                  <h2 className="text-6xl lg:text-7xl font-headline uppercase break-words">
+                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-headline uppercase break-words">
                     {(result.data as any).text}
                   </h2>
                 )}
@@ -84,24 +84,24 @@ const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpe
                   <>
                     <h2 className={cn(
                       "font-headline uppercase break-words",
-                      showDescriptionForRule ? "text-5xl lg:text-6xl" : "text-6xl lg:text-7xl"
+                      showDescriptionForRule ? "text-3xl sm:text-4xl md:text-6xl" : "text-4xl sm:text-5xl md:text-7xl"
                     )}>
                       {result.data.name}
                     </h2>
                     {showDescriptionForRule && (
-                      <p className="text-lg lg:text-xl mt-4 font-body normal-case max-w-lg mx-auto">
+                      <p className="text-sm sm:text-base md:text-xl mt-4 font-body normal-case max-w-lg mx-auto">
                         {result.data.description}
                       </p>
                     )}
                   </>
                 )}
                 {result.type === 'MODIFIER' && (
-                  <h2 className="text-6xl lg:text-7xl font-headline uppercase break-words">
+                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-headline uppercase break-words">
                     {result.data.name}
                   </h2>
                 )}
                 {result.type === 'END' && (
-                  <h2 className="text-6xl lg:text-7xl font-headline uppercase break-words">
+                  <h2 className="text-4xl sm:text-5xl md:text-7xl font-headline uppercase break-words">
                     {result.data.name}
                   </h2>
                 )}
