@@ -1,8 +1,6 @@
-# Firebase Studio
+# Spin That Wheel
 
-This is a NextJS starter in Firebase Studio.
-
-To get started, take a look at src/app/page.tsx.
+This is a companion site for playing a verison of the game from [Dropout](https://dropout.tv)'s [Game Changer episode "Rulette"](https://www.dropout.tv/videos/rulette).
 
 ## Environment Variables
 
@@ -14,13 +12,3 @@ To run this project locally, you'll need to set up your environment variables.
     ```
     GEMINI_API_KEY="YOUR_GEMINI_API_KEY_HERE"
     ```
-
-### Deploying to Vercel
-
-When you deploy to a platform like Vercel, you should not include your `.env` file in your repository. Instead, you'll need to configure the environment variables directly in your Vercel project dashboard.
-
-1.  Go to your project's settings on Vercel.
-2.  Navigate to the "Environment Variables" section.
-3.  Add a new variable with the key `GEMINI_API_KEY` and paste your API key as the value.
-
-This ensures that your key is kept secure and is not exposed in your codebase.
