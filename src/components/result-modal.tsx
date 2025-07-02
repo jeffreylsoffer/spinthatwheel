@@ -198,12 +198,12 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
           </DialogDescription>
         </DialogHeader>
         
-        <div className={cn("relative pb-20")}>
+        <div className={cn("relative pb-24 md:pb-20")}>
           <div 
             style={{ backgroundColor: landedItem.color.labelBg }}
             className="w-full aspect-video p-4 md:p-6 rounded-2xl border-[10px] md:border-[14px] border-black flex items-center justify-center text-center relative"
           >
-            <DialogClose className="absolute top-4 right-4 z-10 rounded-full p-1 transition-colors hover:bg-black/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white">
+            <DialogClose className="absolute top-4 right-4 z-10 hidden rounded-full p-1 transition-colors hover:bg-black/20 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-white md:block">
                 <X className={cn("h-8 w-8", closeButtonColor)} />
                 <span className="sr-only">Close</span>
             </DialogClose>
@@ -212,31 +212,34 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
             </div>
           </div>
           
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex items-center justify-center gap-4 w-full px-4">
+          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 flex flex-col md:flex-row items-stretch justify-center gap-2 w-full px-4 md:gap-4 max-w-sm md:max-w-md mx-auto">
             {isFlipModifier && !isPrompt && (
-              <Button onClick={onOpenCheatSheet}>
+              <Button onClick={onOpenCheatSheet} className="w-full">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Open Flip Sheet
               </Button>
             )}
             {showTimerButton && (
-              <Button size="lg" onClick={handleStartTimer} className="bg-accent text-accent-foreground hover:bg-accent/90 animate-in fade-in">
+              <Button size="lg" onClick={handleStartTimer} className="w-full bg-accent text-accent-foreground hover:bg-accent/90 animate-in fade-in">
                 <Timer className="mr-2 h-5 w-5" />
                 Start {timerSeconds}s Timer
               </Button>
             )}
             {showSuccessFailButtons && (
-              <div className="flex gap-4 animate-in fade-in">
-                <Button size="lg" variant="destructive" onClick={() => handleSetOutcome('fail')}>
+              <div className="flex gap-4 animate-in fade-in w-full">
+                <Button size="lg" variant="destructive" onClick={() => handleSetOutcome('fail')} className="flex-1">
                   <XCircle className="mr-2 h-5 w-5" />
                   Fail
                 </Button>
-                <Button size="lg" className="bg-green-600 hover:bg-green-700 text-white" onClick={() => handleSetOutcome('success')}>
+                <Button size="lg" className="flex-1 bg-green-600 hover:bg-green-700 text-white" onClick={() => handleSetOutcome('success')}>
                   <CheckCircle2 className="mr-2 h-5 w-5" />
                   Success
                 </Button>
               </div>
             )}
+            <DialogClose asChild>
+                <Button variant="outline" size="lg" className="md:hidden">Close</Button>
+            </DialogClose>
           </div>
         </div>
       </DialogContent>

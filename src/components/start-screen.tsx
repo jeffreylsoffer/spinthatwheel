@@ -76,18 +76,18 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         </div>
       </div>
 
-      <div className="flex items-center justify-center gap-4">
-        <Link href="/admin" prefetch={false}>
+      <div className="flex flex-col md:flex-row items-stretch md:items-center justify-center gap-4 w-full max-w-xs md:max-w-lg">
+        <Link href="/admin" prefetch={false} className="w-full">
           <Button 
             size="lg"
             variant="outline"
-            className="font-headline text-2xl tracking-wider"
+            className="font-headline text-2xl tracking-wider w-full"
           >
             <Settings className="mr-2 h-5 w-5" />
             Manage Cards
           </Button>
         </Link>
-        <Button size="lg" onClick={() => onStartGame(playerCount)} className="font-headline text-2xl tracking-wider">
+        <Button size="lg" onClick={() => onStartGame(playerCount)} className="font-headline text-2xl tracking-wider w-full">
           Start Game
         </Button>
       </div>
