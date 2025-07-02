@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
-import { Save, Trash2, PlusCircle, Wand2, Loader2, Info, Settings } from 'lucide-react';
+import { Save, Trash2, PlusCircle, Wand2, Loader2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
@@ -25,6 +25,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from "@/components/ui/tooltip"
+import { Slider } from '@/components/ui/slider';
 
 
 interface CmsFormProps {
@@ -232,36 +233,6 @@ export default function CmsForm({ initialData }: CmsFormProps) {
           </AccordionContent>
         </AccordionItem>
       </Accordion>
-
-      <Accordion type="single" collapsible className="w-full">
-        <AccordionItem value="game-settings">
-            <AccordionTrigger className="text-2xl font-headline hover:no-underline">
-              <div className="flex items-center gap-2">
-                <Settings className="h-6 w-6" />
-                <span>Game Settings</span>
-              </div>
-            </AccordionTrigger>
-            <AccordionContent>
-                <Card className="border-0 shadow-none">
-                    <CardContent className="pt-6">
-                        <div className="space-y-2 max-w-sm">
-                            <Label htmlFor="buzzer-countdown">Buzzer Countdown (seconds)</Label>
-                            <Input
-                                id="buzzer-countdown"
-                                type="number"
-                                value={buzzerCountdown}
-                                onChange={(e) => setBuzzerCountdown(Number(e.target.value))}
-                                min="1"
-                            />
-                            <p className="text-sm text-muted-foreground">
-                                How long the countdown timer runs when the buzzer sounds.
-                            </p>
-                        </div>
-                    </CardContent>
-                </Card>
-            </AccordionContent>
-        </AccordionItem>
-      </Accordion>
       
       <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
         <AccordionItem value="item-1">
@@ -360,7 +331,22 @@ export default function CmsForm({ initialData }: CmsFormProps) {
                       </TooltipProvider>
                     </div>
                   </CardHeader>
-                  <CardContent className={cn("space-y-6 transition-opacity", !isBuzzerRuleEnabled && "opacity-50")}>
+                  <CardContent className={cn("space-y-6 pt-6 transition-opacity", !isBuzzerRuleEnabled && "opacity-50")}>
+                    <div className="space-y-2">
+                        <div className="flex justify-between items-baseline">
+                           <Label htmlFor="buzzer-countdown">Buzzer Countdown</Label>
+                           <span className="font-medium text-accent">{buzzerCountdown} seconds</span>
+                        </div>
+                        <Slider
+                            id="buzzer-countdown"
+                            value={[buzzerCountdown]}
+                            onValueChange={(value) => setBuzzerCountdown(value[0])}
+                            min={1}
+                            max={60}
+                            step={1}
+                            disabled={!isBuzzerRuleEnabled}
+                        />
+                    </div>
                     <div className="space-y-4 p-4 border rounded-md">
                       <h4 className="font-bold text-lg">Rule</h4>
                       <div className="space-y-2">
