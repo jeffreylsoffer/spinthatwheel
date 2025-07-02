@@ -48,8 +48,8 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
               
               const flippedRuleCardStyle = {
                 backgroundColor: "black",
-                color: "#FFFFFF",
-                border: `14px solid ${rule.color?.labelBg || 'black'}`
+                color: rule.color?.labelBg || '#CCAA4F',
+                border: `14px solid black`
               };
 
               return (

@@ -81,11 +81,11 @@ export default {
           },
         },
         'wobble': {
-          '0%, 100%': { transform: 'rotate(0deg) scale(1)' },
-          '20%': { transform: 'rotate(-8deg) scale(1.1)' },
-          '40%': { transform: 'rotate(6deg) scale(1.1)' },
-          '60%': { transform: 'rotate(-4deg) scale(1.1)' },
-          '80%': { transform: 'rotate(2deg) scale(1.1)' },
+          '0%, 100%': { transform: 'translateX(50%) translateY(-50%) rotate(0deg) scale(1)' },
+          '20%': { transform: 'translateX(50%) translateY(-50%) rotate(-8deg) scale(1.1)' },
+          '40%': { transform: 'translateX(50%) translateY(-50%) rotate(6deg) scale(1.1)' },
+          '60%': { transform: 'translateX(50%) translateY(-50%) rotate(-4deg) scale(1.1)' },
+          '80%': { transform: 'translateX(50%) translateY(-50%) rotate(2deg) scale(1.1)' },
         },
       },
       animation: {
