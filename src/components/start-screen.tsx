@@ -19,30 +19,30 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         </p>
       </div>
       
-      <div className="w-full max-w-5xl grid md:grid-cols-2 gap-x-12 gap-y-8 p-6 rounded-lg bg-card/80 backdrop-blur-sm border-2 border-primary/20 shadow-2xl shadow-black/50">
+      <div className="w-full max-w-4xl grid md:grid-cols-2 gap-x-12 gap-y-8">
         <div>
-          <h3 className="font-headline text-3xl text-card-foreground">What You'll Need</h3>
-          <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-            <li><span className="font-bold text-card-foreground">Sticky Notes:</span> When a player gets a rule, write it on a sticky note and put it on their chest. A dedicated person can do this, or players can write their own.</li>
-            <li><span className="font-bold text-card-foreground">A Referee:</span> To keep score and call out players who don't follow their rules.</li>
+          <h3 className="font-headline text-3xl text-foreground">What You'll Need</h3>
+          <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
+            <li><span className="font-bold text-foreground">Sticky Notes:</span> When a player gets a rule, write it on a sticky note and put it on their chest. A dedicated person can do this, or players can write their own.</li>
+            <li><span className="font-bold text-foreground">A Referee:</span> To keep score and call out players who don't follow their rules.</li>
           </ul>
         </div>
         <div>
-          <h3 className="font-headline text-3xl text-card-foreground">How to Score</h3>
-          <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-            <li><span className="font-bold text-white">PROMPTS:</span> Completing a PROMPT successfully earns you <span className="font-bold text-card-foreground">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-card-foreground">-2 points</span>.</li>
+          <h3 className="font-headline text-3xl text-foreground">How to Score</h3>
+          <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
+            <li><span className="font-bold text-foreground">PROMPTS:</span> Completing a PROMPT successfully earns you <span className="font-bold text-primary">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-primary">-2 points</span>.</li>
             <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
           </ul>
         </div>
       </div>
       
       <div className="flex flex-col items-center gap-4">
-        <h3 className="font-headline text-3xl text-card-foreground">Players</h3>
+        <h3 className="font-headline text-3xl text-foreground">Players</h3>
         <div className="flex items-center justify-center gap-4">
           <Button variant="outline" size="icon" onClick={() => setPlayerCount(p => Math.max(1, p - 1))} aria-label="Decrease player count">
             <Minus className="h-5 w-5" />
           </Button>
-          <span className="font-bold text-5xl tabular-nums w-16 text-center text-card-foreground">{playerCount}</span>
+          <span className="font-bold text-5xl tabular-nums w-16 text-center text-foreground">{playerCount}</span>
           <Button variant="outline" size="icon" onClick={() => setPlayerCount(p => Math.min(8, p + 1))} aria-label="Increase player count">
             <Plus className="h-5 w-5" />
           </Button>
