@@ -34,7 +34,9 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHe
       <div
         className={cn(
           "absolute w-full h-full",
-          isSpinning ? "ease-[cubic-bezier(0.23,1,0.32,1)]" : ""
+          // Use a custom cubic bezier for a strong ease-out effect.
+          // This makes the wheel start fast and decelerate naturally.
+          isSpinning ? "ease-[cubic-bezier(0.25,1,0.5,1)]" : ""
         )}
         style={{
           transformStyle: 'preserve-3d',

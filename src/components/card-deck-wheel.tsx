@@ -191,23 +191,24 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     
     const direction = Math.sign(velocity) || 1;
     
-    // Tuned for a slower, more deliberate spin
-    const baseRevolutions = 4;
-    const velocityMultiplier = Math.min(Math.abs(velocity) * 5, 10);
-    const additionalRevolutions = Math.round(baseRevolutions + velocityMultiplier);
+    // Adjust physics for a more realistic feel
+    const baseRevolutions = 3;
+    // Map velocity to a reasonable number of extra revolutions
+    const velocityMultiplier = Math.min(Math.abs(velocity) * 2, 4);
+    const additionalRevolutions = baseRevolutions + velocityMultiplier;
 
-    const duration = 6000 + additionalRevolutions * 300;
+    // Duration now has a base time plus a smaller factor from revolutions
+    const duration = 5000 + additionalRevolutions * 200;
     setSpinDuration(duration);
     
     const spinAmount = additionalRevolutions * 360;
     const currentAngle = (rotation % 360 + 360) % 360;
     
-    const targetSliceAngle = targetIndex * segmentAngle;
-    
     let desiredRotation = rotation - currentAngle;
     desiredRotation += (spinAmount * direction);
     desiredRotation -= targetSliceAngle;
     
+    // Keep a small random offset so it doesn't always land dead-center
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
 
     setIsSpinning(true);
