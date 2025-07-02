@@ -12,7 +12,7 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Siren, Check, Keyboard } from 'lucide-react';
+import { RefreshCw, BookOpen, Megaphone, Check, Keyboard } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
@@ -507,7 +507,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                 onClick={handleWhistleClick}
                 className="w-full"
               >
-                <Siren className="mr-2 h-5 w-5" />
+                <Megaphone className="mr-2 h-5 w-5" />
                 WHISTLE!
               </Button>
             </div>
