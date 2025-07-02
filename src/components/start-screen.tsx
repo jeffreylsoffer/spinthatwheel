@@ -10,7 +10,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
   const [playerCount, setPlayerCount] = useState(3);
 
   return (
-    <div className="relative min-h-screen flex flex-col items-center justify-center p-8 lg:p-12 gap-8">
+    <div className="relative min-h-screen flex flex-col items-center justify-center p-12 gap-8">
       
       <div className="text-center">
         <h1 className="font-headline text-5xl lg:text-7xl tracking-wider">SPIN THAT WHEEL</h1>
