@@ -14,6 +14,7 @@ import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
+import WheelPointer from './wheel-pointer';
 
 interface CardDeckWheelProps {
   players: Player[];
@@ -348,13 +349,15 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
       {/* Right Column: Wheel */}
       <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative">
         <div 
-          className="relative w-full max-w-[12rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-[12rem] lg:max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          style={{ height: `${segmentHeight}px` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
         >
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} segmentHeight={segmentHeight} />
+          <WheelPointer />
         </div>
       </div>
 
