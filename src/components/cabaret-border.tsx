@@ -4,7 +4,7 @@ import React, { useState, useEffect } from 'react';
 
 const CabaretBorder = () => {
   // Define the desired spacing between bulbs in pixels
-  const BULB_SPACING_PX = 80;
+  const BULB_SPACING_PX = 50;
 
   const [bulbCounts, setBulbCounts] = useState({ h: 0, v: 0 });
 

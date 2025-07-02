@@ -204,6 +204,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     const spinAmount = additionalRevolutions * 360;
     const currentAngle = (rotation % 360 + 360) % 360;
     
+    const targetSliceAngle = targetIndex * segmentAngle;
     let desiredRotation = rotation - currentAngle;
     desiredRotation += (spinAmount * direction);
     desiredRotation -= targetSliceAngle;
