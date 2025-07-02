@@ -8,8 +8,8 @@ import CheatSheetModal from './cheatsheet-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
-import { createSessionDeck, populateWheel, CARD_STYLES, RATIOS as defaultRatios } from '@/lib/game-logic';
-import type { SessionRule, WheelItem, Rule, WheelItemType } from '@/lib/types';
+import { createSessionDeck, populateWheel, CARD_STYLES, SEGMENT_COLORS } from '@/lib/game-logic';
+import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
@@ -18,6 +18,18 @@ interface CardDeckWheelProps {
   players: Player[];
   onScoreChange: (playerId: number, delta: number) => void;
   onResetGame: () => void;
+}
+
+// Shuffles an array using the Fisher-Yates algorithm
+function shuffle<T>(array: T[]): T[] {
+  let currentIndex = array.length;
+  let randomIndex;
+  while (currentIndex !== 0) {
+    randomIndex = Math.floor(Math.random() * currentIndex);
+    currentIndex--;
+    [array[currentIndex], array[randomIndex]] = [array[randomIndex], array[currentIndex]];
+  }
+  return array;
 }
 
 const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelProps) => {
@@ -32,7 +44,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
-  const [spinCount, setSpinCount] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
 
   const [gameData, setGameData] = useState({
@@ -40,7 +51,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     prompts: defaultPrompts,
     modifiers: defaultModifiers,
   });
-  const [gameRatios, setGameRatios] = useState(defaultRatios);
 
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const buzzerTimerRef = useRef<NodeJS.Timeout | null>(null);
@@ -59,7 +69,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     const savedRulesJSON = localStorage.getItem('cms_rules');
     const savedPromptsJSON = localStorage.getItem('cms_prompts');
     const savedModifiersJSON = localStorage.getItem('cms_modifiers');
-    const savedRatiosJSON = localStorage.getItem('cms_ratios');
     const savedIsBuzzerEnabledJSON = localStorage.getItem('cms_is_buzzer_enabled');
 
     let ruleGroups = savedRulesJSON ? JSON.parse(savedRulesJSON) : defaultRuleGroups;
@@ -77,21 +86,11 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
       prompts: prompts,
       modifiers: modifiers,
     });
-
-    if (savedRatiosJSON) {
-      const parsedRatios = JSON.parse(savedRatiosJSON);
-      setGameRatios({
-        RULES: parsedRatios.rules / 100,
-        PROMPTS: parsedRatios.prompts / 100,
-        MODIFIERS: parsedRatios.modifiers / 100,
-      });
-    }
-
   }, []);
 
   const initializeGame = useCallback(() => {
     const rules = createSessionDeck(gameData.rules);
-    const items = populateWheel(rules, gameData.prompts, gameData.modifiers, gameRatios);
+    const items = populateWheel(rules);
     
     setSessionRules(rules);
     setWheelItems(items);
@@ -99,9 +98,8 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     setRotation(0);
     setIsSpinning(false);
     setResult(null);
-    setSpinCount(0);
     setActiveRules([]);
-  }, [gameData, gameRatios]);
+  }, [gameData]);
 
   useEffect(() => {
     initializeGame();
@@ -168,24 +166,8 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
-    let selectableItems = availableItems;
-
-    // Prevent landing on modifier if no rules are active, if possible
-    if (activeRules.length === 0) {
-      const nonModifierItems = selectableItems.filter(i => i.type !== 'MODIFIER');
-      if (nonModifierItems.length > 0) {
-        selectableItems = nonModifierItems;
-      }
-    }
-    
-    if (spinCount < 5) {
-      const nonEndItems = selectableItems.filter(i => i.type !== 'END');
-      if (nonEndItems.length > 0) {
-        selectableItems = nonEndItems;
-      }
-    }
-
-    if (selectableItems.length === 0) return; // Can't spin if no items are selectable
+    const selectableItems = availableItems;
+    if (selectableItems.length === 0) return;
 
     const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
     setWinningItem(targetItem);
@@ -221,7 +203,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   
   const handleSpinEnd = () => {
     if (winningItem) {
-      playSound(winningItem.type.toLowerCase() as any);
+      playSound((winningItem.type.toLowerCase() as any) || 'end');
       setResult(winningItem);
       setIsResultModalOpen(true);
 
@@ -234,31 +216,72 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
       }
 
       setWinningItem(null);
-      setSpinCount(prev => prev + 1);
     }
     setIsSpinning(false);
   };
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
-      setWheelItems(prevItems => {
-        const newItems = [...prevItems];
-        const index = newItems.findIndex(item => item.id === result.id);
-        if (index !== -1) {
-          newItems[index] = {
-            id: `used-${result.id}`,
-            type: 'END',
-            label: 'END',
-            data: { name: 'END', description: 'This slot has been used.' },
-            color: {
-              segment: '#111827',
-              ...CARD_STYLES.END
-            }
+      let evolvedItem: WheelItem;
+      const resultIndex = wheelItems.findIndex(item => item.id === result.id);
+
+      if (result.type === 'RULE') {
+          if (Math.random() < 0.5 && gameData.prompts.length > 0) {
+              const prompt = shuffle([...gameData.prompts])[0];
+              evolvedItem = {
+                  id: `prompt-evolved-${prompt.id}-${resultIndex}`,
+                  type: 'PROMPT',
+                  label: 'Prompt',
+                  data: prompt,
+                  color: {
+                      segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
+                      ...CARD_STYLES.PROMPT,
+                  }
+              };
+          } else if (gameData.modifiers.length > 0) {
+              const modifier = shuffle([...gameData.modifiers])[0];
+              evolvedItem = {
+                  id: `modifier-evolved-${modifier.id}-${resultIndex}`,
+                  type: 'MODIFIER',
+                  label: 'Modifier',
+                  data: modifier,
+                  color: {
+                      segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
+                      ...CARD_STYLES.MODIFIER,
+                  }
+              };
+          } else {
+              evolvedItem = {
+                  id: `used-${result.id}`,
+                  type: 'END',
+                  label: 'END',
+                  data: { name: 'END', description: 'This slot has been used.' },
+                  color: { segment: '#111827', ...CARD_STYLES.END }
+              };
+          }
+      } else { // Prompt or Modifier becomes END
+          evolvedItem = {
+              id: `used-${result.id}`,
+              type: 'END',
+              label: 'END',
+              data: { name: 'END', description: 'This slot has been used.' },
+              color: { segment: '#111827', ...CARD_STYLES.END }
           };
-        }
-        return newItems;
+      }
+
+      const newWheelItems = [...wheelItems];
+      if (resultIndex !== -1) {
+          newWheelItems[resultIndex] = evolvedItem;
+      }
+      setWheelItems(newWheelItems);
+      
+      setAvailableItems(prev => {
+          const afterRemoval = prev.filter(i => i.id !== result.id);
+          if (evolvedItem.type !== 'END') {
+              return [...afterRemoval, evolvedItem];
+          }
+          return afterRemoval;
       });
-      setAvailableItems(prev => prev.filter(item => item.id !== result.id));
     }
     setIsResultModalOpen(open);
   };
@@ -303,7 +326,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   };
   
   return (
-    <div className="grid grid-cols-1 grid-rows-[240px_1fr] lg:grid-cols-5 lg:grid-rows-1 h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
+    <div className="grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-5 lg:grid-rows-1 h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
       <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-start lg:justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1 overflow-y-auto min-h-0">
         <Scoreboard players={players} onScoreChange={onScoreChange} />
         <Button 
@@ -320,7 +343,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         </Button>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-full min-h-0">
         <div 
           className="relative w-full max-w-[12rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}

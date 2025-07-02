@@ -7,7 +7,6 @@ import { Button } from '@/components/ui/button';
 import { ChevronLeft, RefreshCcw } from 'lucide-react';
 import CmsForm from './cms-form';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
-import { RATIOS as defaultRatios } from '@/lib/game-logic';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -27,28 +26,18 @@ export default function AdminPage() {
     prompts: defaultPrompts, 
     modifiers: defaultModifiers 
   });
-  const [initialRatios, setInitialRatios] = useState({
-    prompts: defaultRatios.PROMPTS * 100,
-    rules: defaultRatios.RULES * 100,
-    modifiers: defaultRatios.MODIFIERS * 100,
-  });
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const savedRules = localStorage.getItem('cms_rules');
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
-    const savedRatios = localStorage.getItem('cms_ratios');
 
     setInitialData({
         ruleGroups: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
         prompts: savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts,
         modifiers: savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers,
     });
-
-    if (savedRatios) {
-        setInitialRatios(JSON.parse(savedRatios));
-    }
     
     setIsLoading(false);
   }, []);
@@ -118,7 +107,6 @@ export default function AdminPage() {
 
       <CmsForm 
         initialData={initialData} 
-        initialRatios={initialRatios} 
       />
     </main>
   );

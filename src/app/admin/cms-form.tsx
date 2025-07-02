@@ -18,7 +18,6 @@ import { Save, Trash2, PlusCircle, Wand2, Loader2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
-import { Slider } from '@/components/ui/slider';
 import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
@@ -34,18 +33,12 @@ interface CmsFormProps {
     prompts: Prompt[];
     modifiers: Modifier[];
   };
-  initialRatios: {
-    prompts: number;
-    rules: number;
-    modifiers: number;
-  };
 }
 
-export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
+export default function CmsForm({ initialData }: CmsFormProps) {
   const [rules, setRules] = useState(initialData.ruleGroups);
   const [prompts, setPrompts] = useState(initialData.prompts);
   const [modifiers, setModifiers] = useState(initialData.modifiers);
-  const [ratios, setRatios] = useState(initialRatios);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
@@ -83,9 +76,15 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
       
       const newRules = [...result.ruleGroups];
       if (buzzerRule) {
-        newRules.splice(buzzerRuleIndex, 0, buzzerRule);
+        // Re-insert the buzzer rule at its original position to maintain it
+        const originalBuzzerRule = rules[buzzerRuleIndex];
+        const newRulesWithBuzzer = [...result.ruleGroups];
+        newRulesWithBuzzer.push(originalBuzzerRule);
+        setRules(newRulesWithBuzzer);
+      } else {
+        setRules(result.ruleGroups);
       }
-      setRules(newRules);
+
       setPrompts(result.prompts);
       
       toast({
@@ -107,12 +106,13 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
 
 
   // --- Change Handlers ---
-  const handleRuleChange = (groupIdx: number, ruleType: 'primary' | 'flipped', field: 'name' | 'description', value: string) => {
+  const handleRuleChange = (idx: number, ruleType: 'primary' | 'flipped', field: 'name' | 'description', value: string) => {
     const newRules = [...rules];
+    const ruleToUpdate = newRules[idx];
     if (ruleType === 'primary') {
-      newRules[groupIdx].primary_rule[field] = value;
+      ruleToUpdate.primary_rule[field] = value;
     } else {
-      newRules[groupIdx].flipped_rule[field] = value;
+      ruleToUpdate.flipped_rule[field] = value;
     }
     setRules(newRules);
   };
@@ -129,18 +129,6 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
     setModifiers(newModifiers);
   };
 
-  const handleSliderChange = (value: number[]) => {
-    const [rulesVal, promptsEndVal] = value;
-    const promptsVal = promptsEndVal - rulesVal;
-    const modifiersVal = 100 - promptsEndVal;
-
-    setRatios({
-      rules: rulesVal,
-      prompts: promptsVal,
-      modifiers: modifiersVal,
-    });
-  }
-
 
   // --- Add/Delete Handlers ---
   const handleAddNewRule = () => {
@@ -151,11 +139,7 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
       primary_rule: { id: newId + 1, name: '', description: '' },
       flipped_rule: { id: newId + 2, name: '', description: '' },
     };
-    // Add before the buzzer rule if it exists
-    const insertIndex = buzzerRuleIndex !== -1 ? buzzerRuleIndex : rules.length;
-    const newRules = [...rules];
-    newRules.splice(insertIndex, 0, newRuleGroup);
-    setRules(newRules);
+    setRules([...regularRules, newRuleGroup, ...(buzzerRule ? [buzzerRule] : [])]);
   };
 
   const handleDeleteRule = (groupId: number) => {
@@ -180,26 +164,17 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
 
   // --- Save Handler ---
   const handleSaveChanges = () => {
-    const totalRatio = ratios.rules + ratios.prompts + ratios.modifiers;
-    if (totalRatio < 99 || totalRatio > 101) { // Allow for rounding errors
-      toast({
-        variant: "destructive",
-        title: "Invalid Ratios",
-        description: `The total percentage for wheel configuration must be exactly 100%. Current: ${totalRatio}%`,
-      });
-      return;
-    }
-
     try {
       localStorage.setItem('cms_rules', JSON.stringify(rules));
       localStorage.setItem('cms_prompts', JSON.stringify(prompts));
       localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
-      localStorage.setItem('cms_ratios', JSON.stringify(ratios));
       localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(isBuzzerRuleEnabled));
       
       // Clean up old local storage items
       localStorage.removeItem('cms_show_rule_descriptions');
       localStorage.removeItem('cms_include_buzzer_rule');
+      localStorage.removeItem('cms_ratios');
+
 
       toast({
         title: "Changes Saved!",
@@ -214,8 +189,6 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
       });
     }
   };
-
-  const totalRatio = ratios.rules + ratios.prompts + ratios.modifiers;
 
   return (
     <div className="space-y-8">
@@ -261,84 +234,63 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
         </AccordionItem>
       </Accordion>
       
-      <Card>
-        <CardHeader>
-          <CardTitle>Wheel Configuration</CardTitle>
-          <CardDescription>Adjust the percentage of each card type on the wheel by dragging the sliders. The total must be 100%.</CardDescription>
-        </CardHeader>
-        <CardContent className="pt-4">
-          <Slider
-            value={[ratios.rules, ratios.rules + ratios.prompts]}
-            onValueChange={handleSliderChange}
-            max={100}
-            step={1}
-            className="w-full"
-          />
-          <div className="flex justify-between mt-4 text-sm font-medium">
-            <span style={{color: 'hsl(var(--chart-1))'}}>Rules: {ratios.rules}%</span>
-            <span style={{color: 'hsl(var(--chart-2))'}}>Prompts: {ratios.prompts}%</span>
-            <span style={{color: 'hsl(var(--chart-3))'}}>Modifiers: {ratios.modifiers}%</span>
-          </div>
-        </CardContent>
-        <CardFooter className={cn("text-sm font-medium", totalRatio !== 100 && "text-destructive")}>
-          Total: {totalRatio}% {totalRatio !== 100 && "(Must be 100%)"}
-        </CardFooter>
-      </Card>
-      
       <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
         <AccordionItem value="item-1">
           <AccordionTrigger className="text-2xl font-headline">Rules ({regularRules.length})</AccordionTrigger>
           <AccordionContent className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {regularRules.map((group, groupIdx) => (
-                  <Card key={group.id} className="bg-card/50 relative group">
-                    <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteRule(group.id)}>
-                      <Trash2 className="h-5 w-5" />
-                    </Button>
-                    <CardContent className="space-y-6 pt-6">
-                      <div className="space-y-4 p-4 border rounded-md">
-                        <h4 className="font-bold text-lg">Rule</h4>
-                        <div className="space-y-2">
-                          <Label htmlFor={`rule-${group.id}-primary-name`}>Name</Label>
-                          <Input
-                            id={`rule-${group.id}-primary-name`}
-                            value={group.primary_rule.name}
-                            onChange={(e) => handleRuleChange(regularRules.indexOf(group), 'primary', 'name', e.target.value)}
-                          />
+              {regularRules.map((group, groupIdx) => {
+                  const originalIndex = rules.findIndex(r => r.id === group.id);
+                  return (
+                    <Card key={group.id} className="bg-card/50 relative group">
+                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteRule(group.id)}>
+                        <Trash2 className="h-5 w-5" />
+                      </Button>
+                      <CardContent className="space-y-6 pt-6">
+                        <div className="space-y-4 p-4 border rounded-md">
+                          <h4 className="font-bold text-lg">Rule</h4>
+                          <div className="space-y-2">
+                            <Label htmlFor={`rule-${group.id}-primary-name`}>Name</Label>
+                            <Input
+                              id={`rule-${group.id}-primary-name`}
+                              value={group.primary_rule.name}
+                              onChange={(e) => handleRuleChange(originalIndex, 'primary', 'name', e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`rule-${group.id}-primary-desc`}>Description</Label>
+                            <Textarea
+                              id={`rule-${group.id}-primary-desc`}
+                              value={group.primary_rule.description}
+                              onChange={(e) => handleRuleChange(originalIndex, 'primary', 'description', e.target.value)}
+                              rows={2}
+                            />
+                          </div>
                         </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`rule-${group.id}-primary-desc`}>Description</Label>
-                          <Textarea
-                            id={`rule-${group.id}-primary-desc`}
-                            value={group.primary_rule.description}
-                            onChange={(e) => handleRuleChange(regularRules.indexOf(group), 'primary', 'description', e.target.value)}
-                            rows={2}
-                          />
+                        <div className="space-y-4 p-4 border rounded-md bg-black/20">
+                          <h4 className="font-bold text-lg">Flipped Rule</h4>
+                          <div className="space-y-2">
+                            <Label htmlFor={`rule-${group.id}-flipped-name`}>Name</Label>
+                            <Input
+                              id={`rule-${group.id}-flipped-name`}
+                              value={group.flipped_rule.name}
+                              onChange={(e) => handleRuleChange(originalIndex, 'flipped', 'name', e.target.value)}
+                            />
+                          </div>
+                          <div className="space-y-2">
+                            <Label htmlFor={`rule-${group.id}-flipped-desc`}>Description</Label>
+                            <Textarea
+                              id={`rule-${group.id}-flipped-desc`}
+                              value={group.flipped_rule.description}
+                              onChange={(e) => handleRuleChange(originalIndex, 'flipped', 'description', e.target.value)}
+                              rows={2}
+                            />
+                          </div>
                         </div>
-                      </div>
-                      <div className="space-y-4 p-4 border rounded-md bg-black/20">
-                        <h4 className="font-bold text-lg">Flipped Rule</h4>
-                        <div className="space-y-2">
-                          <Label htmlFor={`rule-${group.id}-flipped-name`}>Name</Label>
-                          <Input
-                            id={`rule-${group.id}-flipped-name`}
-                            value={group.flipped_rule.name}
-                            onChange={(e) => handleRuleChange(regularRules.indexOf(group), 'flipped', 'name', e.target.value)}
-                          />
-                        </div>
-                        <div className="space-y-2">
-                          <Label htmlFor={`rule-${group.id}-flipped-desc`}>Description</Label>
-                          <Textarea
-                            id={`rule-${group.id}-flipped-desc`}
-                            value={group.flipped_rule.description}
-                            onChange={(e) => handleRuleChange(regularRules.indexOf(group), 'flipped', 'description', e.target.value)}
-                            rows={2}
-                          />
-                        </div>
-                      </div>
-                    </CardContent>
-                  </Card>
-                )
+                      </CardContent>
+                    </Card>
+                  )
+                }
               )}
               <Button onClick={handleAddNewRule} variant="outline" className="min-h-[200px] flex flex-col items-center justify-center border-dashed h-full">
                 <PlusCircle className="h-8 w-8 text-muted-foreground" />
@@ -347,9 +299,11 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
             </div>
           </AccordionContent>
         </AccordionItem>
+      </Accordion>
 
-        {buzzerRule && buzzerRuleIndex !== -1 && (
-          <AccordionItem value="item-4">
+      {buzzerRule && buzzerRuleIndex !== -1 && (
+        <Accordion type="single" collapsible className="w-full" defaultValue="item-buzzer">
+          <AccordionItem value="item-buzzer">
             <AccordionTrigger className="text-2xl font-headline text-accent">Special "Buzzer" Rule</AccordionTrigger>
             <AccordionContent className="pt-4">
                <Card className={cn("bg-card/50 border-2 border-accent shadow-accent/20 shadow-lg")}>
@@ -369,7 +323,7 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
                             <Info className="h-5 w-5 text-muted-foreground" />
                           </TooltipTrigger>
                           <TooltipContent>
-                            <p className="max-w-xs">When enabled, a buzzer will sound randomly during the game. The player who has this rule active must perform the action on the card.</p>
+                            <p className="max-w-xs">When the buzzer sounds randomly in between rounds, whoever has this rule must do the action.</p>
                           </TooltipContent>
                         </Tooltip>
                       </TooltipProvider>
@@ -424,8 +378,10 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
                 </Card>
             </AccordionContent>
           </AccordionItem>
-        )}
+        </Accordion>
+      )}
 
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-2">
         <AccordionItem value="item-2">
           <AccordionTrigger className="text-2xl font-headline">Prompts ({prompts.length})</AccordionTrigger>
           <AccordionContent className="pt-4">
@@ -453,7 +409,9 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
             </div>
           </AccordionContent>
         </AccordionItem>
+      </Accordion>
 
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-3">
         <AccordionItem value="item-3">
           <AccordionTrigger className="text-2xl font-headline">Modifiers ({modifiers.length})</AccordionTrigger>
           <AccordionContent className="pt-4">
@@ -491,7 +449,6 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
             </div>
           </AccordionContent>
         </AccordionItem>
-
       </Accordion>
 
       <div className="flex justify-end pt-8">
