@@ -58,8 +58,7 @@ export default function AdminPage() {
     localStorage.removeItem('cms_prompts');
     localStorage.removeItem('cms_modifiers');
     localStorage.removeItem('cms_ratios');
-    localStorage.removeItem('cms_show_rule_descriptions');
-    localStorage.removeItem('cms_include_buzzer_rule');
+    localStorage.removeItem('cms_is_buzzer_enabled');
     window.location.reload();
   };
 

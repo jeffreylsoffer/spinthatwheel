@@ -9,14 +9,14 @@
  */
 
 import { ai } from '@/ai/genkit';
-import { z } from 'genkit';
+import { z } from 'zod';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
 
 // Zod Schemas matching lib/types.ts
 const RuleSchema = z.object({
   id: z.number(),
-  name: z.string().describe('A short, catchy name for the rule (2-3 words).'),
-  description: z.string().describe('A brief (1-sentence) description of what the player must do.'),
+  name: z.string().describe('A short, actionable phrase that summarizes the rule (e.g., "Speak like a pirate", "No laughing").'),
+  description: z.string().describe('A brief (1-sentence) description that elaborates on the name.'),
   special: z.enum(['BUZZER']).optional().describe('A special flag for rules with unique game mechanics.'),
 });
 
@@ -61,9 +61,10 @@ Your task is to generate a new set of Rules and Prompts based on a user-provided
 You must follow these instructions carefully:
 1.  **Maintain Structure:** Use the provided existing cards as a template for the structure and quantity of new cards. The number of new rule groups and prompts should be the same as the number of existing ones.
 2.  **Thematic Opposites:** Flipped rules MUST be the thematic opposite of their primary rule. This is a core game mechanic. For example, if a rule is "Speak loudly", the flipped rule could be "Whisper".
-3.  **Be Practical & Achievable:** The generated rules and prompts must be actions or speech patterns that a person can reasonably perform during a conversation. The fun comes from combining rules, not from the difficulty of a single task. Avoid obscure trivia or complex physical challenges.
+3.  **Be Practical & Achievable:** The generated rules and prompts must be actions or speech patterns that a person can reasonably perform during a conversation. The fun comes from combining rules, not from the difficulty of a single task. Avoid obscure trivia or complex physical challenges. Prompts should be things most people can answer.
 4.  **Inject Theme:** Creatively infuse the "{{theme}}" into the 'name' and 'description' of each Rule and the 'text' of each Prompt. Be clever and funny.
 5.  **Keep IDs:** Do NOT change the 'id' fields. Preserve the original IDs from the existing cards.
+6.  **Naming Convention:** The 'name' of a rule should be a short, direct command (e.g., "Speak like a pirate", "No laughing"). The 'description' should elaborate on it.
 
 Here are the existing cards for reference:
 - Rules: {{{json existingRules}}}

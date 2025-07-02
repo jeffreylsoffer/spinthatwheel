@@ -56,19 +56,30 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   };
 
   useEffect(() => {
-    const savedRules = localStorage.getItem('cms_rules');
-    const savedPrompts = localStorage.getItem('cms_prompts');
-    const savedModifiers = localStorage.getItem('cms_modifiers');
-    const savedRatios = localStorage.getItem('cms_ratios');
+    const savedRulesJSON = localStorage.getItem('cms_rules');
+    const savedPromptsJSON = localStorage.getItem('cms_prompts');
+    const savedModifiersJSON = localStorage.getItem('cms_modifiers');
+    const savedRatiosJSON = localStorage.getItem('cms_ratios');
+    const savedIsBuzzerEnabledJSON = localStorage.getItem('cms_is_buzzer_enabled');
+
+    let ruleGroups = savedRulesJSON ? JSON.parse(savedRulesJSON) : defaultRuleGroups;
+    const prompts = savedPromptsJSON ? JSON.parse(savedPromptsJSON) : defaultPrompts;
+    const modifiers = savedModifiersJSON ? JSON.parse(savedModifiersJSON) : defaultModifiers;
+    
+    const isBuzzerEnabled = savedIsBuzzerEnabledJSON ? JSON.parse(savedIsBuzzerEnabledJSON) : true;
+    
+    if (!isBuzzerEnabled) {
+      ruleGroups = ruleGroups.filter((rg: any) => rg.primary_rule.special !== 'BUZZER');
+    }
 
     setGameData({
-      rules: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
-      prompts: savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts,
-      modifiers: savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers,
+      rules: ruleGroups,
+      prompts: prompts,
+      modifiers: modifiers,
     });
 
-    if (savedRatios) {
-      const parsedRatios = JSON.parse(savedRatios);
+    if (savedRatiosJSON) {
+      const parsedRatios = JSON.parse(savedRatiosJSON);
       setGameRatios({
         RULES: parsedRatios.rules / 100,
         PROMPTS: parsedRatios.prompts / 100,
