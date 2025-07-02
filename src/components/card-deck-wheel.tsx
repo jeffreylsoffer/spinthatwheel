@@ -50,6 +50,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<WheelItem | null>(null);
+  const [resultIndex, setResultIndex] = useState<number | null>(null);
   const [winningItem, setWinningItem] = useState<WheelItem | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
@@ -200,13 +201,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     
     const direction = Math.sign(velocity) || 1;
     
-    // Adjust physics for a more realistic feel
     const baseRevolutions = 3;
-    // Map velocity to a reasonable number of extra revolutions
     const velocityMultiplier = Math.min(Math.abs(velocity) * 2, 4);
     const additionalRevolutions = baseRevolutions + velocityMultiplier;
 
-    // Duration now has a base time plus a smaller factor from revolutions
     const duration = 5000 + additionalRevolutions * 200;
     setSpinDuration(duration);
     
@@ -218,35 +216,34 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     desiredRotation += (spinAmount * direction);
     desiredRotation -= targetSliceAngle;
     
-    // Keep a small random offset so it doesn't always land dead-center
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
 
     setIsSpinning(true);
     setRotation(desiredRotation + randomOffset);
 
-    // --- Start Ticking Sound ---
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
     }
     
-    // This function will play ticks that get slower over time, mimicking the wheel.
     const scheduleTicks = () => {
       let elapsed = 0;
-      const minDelay = 20; // Fastest ticks
-      const maxDelay = 250; // Slowest ticks at the end
+      const minDelay = 20;
+      const maxDelay = 250; 
 
       function tick() {
-        // Stop if the spin is over
         if (elapsed >= duration) {
           clearTimeout(tickTimeoutRef.current!);
           tickTimeoutRef.current = null;
           return;
         }
 
+        // Increase tick frequency to account for more pegs
+        const ticksPerSegment = 3;
+        const totalTicksInSpin = (360 / segmentAngle) * ticksPerSegment * (additionalRevolutions);
+        const averageDelay = duration / totalTicksInSpin;
+
         playSound('tick');
         
-        // Use an easing function to calculate the delay for the next tick.
-        // This makes the ticks slow down as the wheel does.
         const progress = elapsed / duration;
         const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
         const currentDelay = minDelay + (maxDelay - minDelay) * easeOutQuart(progress);
@@ -263,14 +260,18 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
   
   const handleSpinEnd = () => {
-    // It's good practice to ensure the timer is cleared here too.
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
       tickTimeoutRef.current = null;
     }
 
-    setSpinCycle(c => c + 1); // Trigger pointer animation
+    setSpinCycle(c => c + 1);
     if (winningItem) {
+      const index = wheelItems.findIndex(item => item.id === winningItem.id);
+      if (index !== -1) {
+        setResultIndex(index);
+      }
+
       playSound((winningItem.type.toLowerCase() as any) || 'end');
       setResult(winningItem);
       setIsResultModalOpen(true);
@@ -289,45 +290,41 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
 
   const handleModalOpenChange = (open: boolean) => {
-    if (!open && result) {
-      // Because we are using result in the updater function, let's copy it to a local const
-      // to avoid any stale closure issues with the `result` state variable itself.
+    if (!open && result && resultIndex !== null) {
       const landedItem = result;
 
-      // Use a functional update to ensure we're modifying the latest state
       setWheelItems(currentWheelItems => {
-        const resultIndex = currentWheelItems.findIndex(item => item.id === landedItem.id);
+        const indexToUpdate = resultIndex;
 
-        // If the item isn't found for some reason, just return the state as-is.
-        if (resultIndex === -1) {
+        if (!currentWheelItems[indexToUpdate] || currentWheelItems[indexToUpdate].id !== landedItem.id) {
+          console.error("Wheel item mismatch. Aborting update to prevent incorrect changes.");
           return currentWheelItems;
         }
 
         let evolvedItem: WheelItem | null = null;
 
-        // The logic to decide what the item evolves into
         if (landedItem.type === 'RULE') {
             if (Math.random() < 0.5 && gameData.prompts.length > 0) {
                 const prompt = shuffle([...gameData.prompts])[0];
                 evolvedItem = {
-                    id: `prompt-evolved-${prompt.id}-${resultIndex}`,
+                    id: `prompt-evolved-${prompt.id}-${indexToUpdate}`,
                     type: 'PROMPT',
                     label: 'Prompt',
                     data: prompt,
                     color: {
-                        segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
+                        segment: SEGMENT_COLORS[indexToUpdate % SEGMENT_COLORS.length],
                         ...CARD_STYLES.PROMPT,
                     }
                 };
             } else if (gameData.modifiers.length > 0) {
                 const modifier = shuffle([...gameData.modifiers])[0];
                 evolvedItem = {
-                    id: `modifier-evolved-${modifier.id}-${resultIndex}`,
+                    id: `modifier-evolved-${modifier.id}-${indexToUpdate}`,
                     type: 'MODIFIER',
                     label: 'Modifier',
                     data: modifier,
                     color: {
-                        segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
+                        segment: SEGMENT_COLORS[indexToUpdate % SEGMENT_COLORS.length],
                         ...CARD_STYLES.MODIFIER,
                     }
                 };
@@ -342,13 +339,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             };
         }
 
-        // If an evolution happened, create the new array
         if (evolvedItem) {
           const newWheelItems = [...currentWheelItems];
-          newWheelItems[resultIndex] = evolvedItem;
+          newWheelItems[indexToUpdate] = evolvedItem;
 
-          // We also need to update the list of available items for the next spin
-          const finalEvolvedItem = evolvedItem; // close over the non-nullable version
+          const finalEvolvedItem = evolvedItem;
           setAvailableItems(prev => {
               const afterRemoval = prev.filter(i => i.id !== landedItem.id);
               if (finalEvolvedItem.type !== 'END') {
@@ -360,9 +355,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           return newWheelItems;
         }
 
-        // If no evolution, return the original array
         return currentWheelItems;
       });
+      
+      setResultIndex(null);
     }
     setIsResultModalOpen(open);
   };
