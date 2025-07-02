@@ -24,7 +24,7 @@ const RuleGroupSchema = z.object({
   id: z.number(),
   name: z.string().describe("The category of the rule, like 'Voice' or 'Manner'."),
   primary_rule: RuleSchema,
-  flipped_rule: RuleSchema.describe('The alternate version of the primary rule.'),
+  flipped_rule: RuleSchema,
 });
 
 const PromptSchema = z.object({
@@ -56,21 +56,29 @@ const generationPrompt = ai.definePrompt({
   input: { schema: GenerateCardsInputSchema },
   output: { schema: GenerateCardsOutputSchema },
   prompt: `You are a creative and witty game designer for a party game called "SPIN THAT WHEEL".
-Your task is to generate a new set of Rules and Prompts based on a user-provided theme: "{{theme}}". The Modifiers are evergreen and should not be changed.
+Your task is to generate a new set of Rules and Prompts based on a user-provided theme: "{{theme}}".
 
-You must follow these instructions carefully:
-1.  **Maintain Structure:** Use the provided existing cards as a template for the structure and quantity of new cards. The number of new rule groups and prompts should be the same as the number of existing ones.
-2.  **Thematic Opposites:** Flipped rules MUST be the thematic opposite of their primary rule. This is a core game mechanic. For example, if a rule is "Speak loudly", the flipped rule could be "Whisper".
-3.  **Be Practical & Achievable:** The generated rules and prompts must be actions or speech patterns that a person can reasonably perform during a conversation. The fun comes from combining rules, not from the difficulty of a single task. Avoid obscure trivia or complex physical challenges. Prompts should be things most people can answer.
-4.  **Inject Theme:** Creatively infuse the "{{theme}}" into the 'name' and 'description' of each Rule and the 'text' of each Prompt. Be clever and funny.
-5.  **Keep IDs:** Do NOT change the 'id' fields. Preserve the original IDs from the existing cards.
-6.  **Naming Convention:** The 'name' of a rule should be a short, direct command (e.g., "Speak like a pirate", "No laughing"). The 'description' should elaborate on it.
+You will be given existing rule groups and prompts as a template. Your goal is to create new content that matches the quantity and structure of the examples provided, but with the new theme applied.
 
-Here are the existing cards for reference:
-- Rules: {{{json existingRules}}}
-- Prompts: {{{json existingPrompts}}}
+**CRITICAL INSTRUCTIONS:**
+1.  **Generate BOTH Rules and Prompts:** Your output JSON MUST contain both a \`ruleGroups\` array and a \`prompts\` array. Do not omit either.
+2.  **Match Quantities:** The number of new rule groups you generate MUST be exactly the same as the number of items in the \`existingRules\` example. The number of new prompts MUST match the number in the \`existingPrompts\` example.
+3.  **Thematic Opposites:** For each rule group, the \`flipped_rule\` MUST be the thematic opposite of the \`primary_rule\`. This is a core game mechanic.
+4.  **Inject Theme:** Creatively infuse the "{{theme}}" into the 'name' and 'description' of each Rule and the 'text' of each Prompt.
+5.  **Preserve IDs:** Do NOT change the 'id' fields. Use the original IDs from the provided examples.
+6.  **Be Practical:** Rules and prompts should be actions or speech patterns that a person can reasonably perform during a conversation.
 
-Now, generate a new set of themed Rules and Prompts. Your response MUST be a valid JSON object matching the output schema.
+Here are the existing cards to use as a template. Use their structure, quantity, and IDs for your new themed content.
+
+**Existing Content Examples:**
+\`\`\`json
+{
+  "existingRules": {{{json existingRules}}},
+  "existingPrompts": {{{json existingPrompts}}}
+}
+\`\`\`
+
+Now, generate the new themed content. Your response MUST be a valid JSON object matching the output schema, containing both \`ruleGroups\` and \`prompts\` keys.
 `,
 });
 
@@ -84,6 +92,10 @@ const generateCardsFlow = ai.defineFlow(
     const { output } = await generationPrompt(input);
     if (!output) {
       throw new Error('AI failed to generate card data.');
+    }
+    if (!output.ruleGroups || output.ruleGroups.length === 0) {
+      console.error("AI returned no rule groups. Full output:", output);
+      throw new Error('AI failed to generate any rule groups. It may have only returned prompts.');
     }
     return output;
   }
