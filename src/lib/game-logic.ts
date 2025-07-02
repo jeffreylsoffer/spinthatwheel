@@ -3,32 +3,33 @@ import type { SessionRule, WheelItem, Rule, Prompt, Modifier, WheelItemStyle, Ru
 
 // Palette for the background segments of the wheel
 export const SEGMENT_COLORS = [
-  '#FFD262', // Yellow
-  '#45B0C9', // Light Blue/Teal
-  '#C8BFE7', // Lavender
-  '#EE6352', // Red
-  '#F4A36B', // Orange
+  '#9A91B4', // Darker Lavender
+  '#378C9E', // Darker Teal
+  '#CCAA4F', // Darker Yellow
+  '#BE4F41', // Darker Red-Orange
+  '#C38256', // Darker Orange
 ];
 
 // Palettes for the cards that sit inside the segments
 export const RULE_CARD_COLORS = [
-  { bg: '#FFD262', text: '#1F2937' }, // Yellow with dark text
-  { bg: '#45B0C9', text: '#FFFFFF' }, // Teal with white text
-  { bg: '#C8BFE7', text: '#1F2937' }, // Lavender with dark text
-  { bg: '#EE6352', text: '#FFFFFF' }, // Red with white text
-  { bg: '#F4A36B', text: '#1F2937' }, // Orange with dark text
+  { bg: '#9A91B4', text: '#1F2937' }, // Darker Lavender with black text
+  { bg: '#378C9E', text: '#FFFFFF' }, // Darker Teal with white text for contrast
+  { bg: '#CCAA4F', text: '#1F2937' }, // Darker Yellow with black text
+  { bg: '#BE4F41', text: '#FFFFFF' }, // Darker Red-Orange with white text for contrast
+  { bg: '#C38256', text: '#1F2937' }, // Darker Orange with black text
+  { bg: '#D4D4D4', text: '#1F2937' }, // Light Grey with black text
 ];
 
 // As requested: Lavender, Red, or Teal with white text
 export const MODIFIER_CARD_COLORS = [
-  { bg: '#C8BFE7', text: '#FFFFFF' }, // Lavender
-  { bg: '#EE6352', text: '#FFFFFF' }, // Red
-  { bg: '#45B0C9', text: '#FFFFFF' }, // Teal
+  { bg: '#9A91B4', text: '#FFFFFF' }, // Darker Lavender
+  { bg: '#BE4F41', text: '#FFFFFF' }, // Darker Red-Orange
+  { bg: '#378C9E', text: '#FFFFFF' }, // Darker Teal
 ];
 
 // Color palette for special cards
 export const CARD_STYLES: Record<'PROMPT' | 'END', Omit<WheelItemStyle, 'segment'>> = {
-  PROMPT:   { labelBg: '#F8F8F8', labelColor: '#1F2937' },   // White card
+  PROMPT:   { labelBg: '#D4D4D4', labelColor: '#1F2937' },   // Darker White/Light Grey card
   END:      { labelBg: '#111827', labelColor: '#F9FAFB' },   // Black card
 };
 
