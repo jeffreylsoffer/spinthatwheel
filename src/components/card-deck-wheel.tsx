@@ -94,7 +94,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     
     setSessionRules(rules);
     setWheelItems(items);
-    setAvailableItems(items);
+    setAvailableItems(items.filter(i => i.type !== 'END')); // Can't land on END
     setRotation(0);
     setIsSpinning(false);
     setResult(null);
@@ -166,7 +166,11 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
-    const selectableItems = availableItems;
+    // Prevent landing on a modifier if no rules are active yet
+    const selectableItems = activeRules.length === 0 
+      ? availableItems.filter(item => item.type !== 'MODIFIER')
+      : availableItems;
+      
     if (selectableItems.length === 0) return;
 
     const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
@@ -319,7 +323,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   
   return (
     <div className="grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-5 lg:grid-rows-1 h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
-      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-start lg:justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 order-2 lg:order-1 overflow-y-auto min-h-0">
+      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-start lg:justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 overflow-y-auto min-h-0">
         <Scoreboard players={players} onScoreChange={onScoreChange} />
         <Button 
           variant="outline"
@@ -335,7 +339,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         </Button>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center order-1 lg:order-2 h-full min-h-0">
+      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center h-full min-h-0">
         <div 
           className="relative w-full max-w-[12rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
