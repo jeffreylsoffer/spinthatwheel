@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -15,7 +16,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-5xl lg:text-6xl tracking-wider text-card-foreground">SPIN THAT WHEEL</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            A game of chaotic improvisation.
+            Based on <a href="https://www.dropout.tv" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Dropout's Game Changer</a> episode <a href="https://www.dropout.tv/videos/rulette" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">"Rulette"</a>.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 items-center">
