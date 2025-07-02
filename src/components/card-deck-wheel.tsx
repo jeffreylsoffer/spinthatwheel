@@ -64,11 +64,11 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
 
   const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer' | 'tick') => {
     // This function plays a sound effect.
-    // It expects to find the corresponding .mp3 file in the `public/sounds/` directory.
-    // For example, calling playSound('rule') will attempt to play `/sounds/rule.mp3`.
+    // It expects to find the corresponding .mp3 file in the `public/audio/` directory.
+    // For example, calling playSound('rule') will attempt to play `/audio/rule.mp3`.
     // Ensure your audio files (e.g., `rule.mp3`, `prompt.mp3`, `buzzer.mp3`, etc.) are in that folder.
-    const audio = new Audio(`/sounds/${sound}.mp3`);
-    audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3. Make sure the file exists in public/sounds/.`, e));
+    const audio = new Audio(`/audio/${sound}.mp3`);
+    audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3. Make sure the file exists in public/audio/.`, e));
   };
 
   useEffect(() => {
