@@ -47,7 +47,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
   const [activeRules, setActiveRules] = useState<SessionRule[]>([]);
   const [wheelItems, setWheelItems] = useState<WheelItem[]>([]);
-  const [availableItems, setAvailableItems] = useState<WheelItem[]>([]);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<{ landed: WheelItem; evolution: WheelItem | null } | null>(null);
@@ -119,11 +118,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     initializeGame();
   }, [initializeGame]);
   
-  // This effect ensures `availableItems` is always in sync with `wheelItems`
-  useEffect(() => {
-    setAvailableItems(wheelItems.filter(item => item.type !== 'END'));
-  }, [wheelItems]);
-  
   useEffect(() => {
     const hasBuzzerRule = activeRules.some(sessionRule => {
         const currentRule = sessionRule.isFlipped ? sessionRule.flipped : sessionRule.primary;
@@ -183,101 +177,51 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setWheelItems(prevItems => prevItems.map(updateItem));
   };
 
-  const handleSpinClick = (velocity: number) => {
-    if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
+  const handleSpinClick = () => {
+    if (isSpinning || wheelItems.length === 0) return;
 
     console.log('--- SPIN START ---');
-
-    const selectableItems = activeRules.length === 0 
-      ? availableItems.filter(item => item.type !== 'MODIFIER')
-      : availableItems;
-      
-    if (selectableItems.length === 0) {
-      console.warn("No selectable items available to spin to.");
-      return;
-    }
-
-    console.log(`Selectable items: ${selectableItems.length}/${availableItems.length}`);
-
-    const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
-    const targetIndex = wheelItems.findIndex(item => item.id === targetItem.id);
-
-    if (targetIndex === -1) {
-      console.error("Target item not found in wheel, cannot spin.", { targetItem, wheelItems });
-      return;
-    }
+    setIsSpinning(true);
     
-    console.log('Chosen winning item:', { id: targetItem.id, type: targetItem.type, label: targetItem.label });
-    
-    // --- NEW, ROBUST ROTATION CALCULATION ---
-    console.log('--- SPIN CALCULATION ---');
-    const segmentAngle = 360 / wheelItems.length;
-
-    // The final angle on the wheel we want the pointer to be on.
-    const targetAngle = -(targetIndex * segmentAngle);
-
-    // Figure out the current number of revolutions the wheel has already completed.
-    // We use Math.ceil because rotation is negative. e.g., ceil(-730 / 360) = ceil(-2.02) = -2
-    const currentRevolutionCount = Math.ceil(rotation / 360);
-
-    // Add a random number of new revolutions to spin.
-    const newRevolutions = 5 + Math.random() * 3;
-    
-    // Add a small random offset so it doesn't land perfectly on the line every time.
-    const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-
-    // The new rotation is calculated fresh, not incrementally.
-    // This avoids cascading floating point errors.
-    const newRotation = ((currentRevolutionCount - newRevolutions) * 360) + targetAngle + randomOffset;
-
-    console.log(`Target Index: ${targetIndex}, Target Angle: ${targetAngle.toFixed(2)}`);
-    console.log(`Final Rotation: ${newRotation.toFixed(2)}`);
-
+    const currentRotation = rotation;
+    const revolutions = 5 + Math.random() * 5; // 5 to 10 revolutions
+    const randomExtraAngle = Math.random() * 360;
+    const newRotation = currentRotation - (revolutions * 360) - randomExtraAngle;
 
     const duration = 5000 + Math.random() * 2000;
     setSpinDuration(duration);
-
-    setIsSpinning(true);
     setRotation(newRotation);
 
-    if (tickTimeoutRef.current) {
-      clearTimeout(tickTimeoutRef.current);
-    }
-    
+    // Start sound effects
+    if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
     const scheduleTicks = () => {
       let elapsed = 0;
       const minDelay = 20;
       const maxDelay = 250; 
-
       function tick() {
         if (elapsed >= duration) {
           clearTimeout(tickTimeoutRef.current!);
           tickTimeoutRef.current = null;
           return;
         }
-        
         playSound('tick');
-        
         const progress = elapsed / duration;
         const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
         const currentDelay = minDelay + (maxDelay - minDelay) * easeOutQuart(progress);
-        
         elapsed += currentDelay;
-        
         tickTimeoutRef.current = setTimeout(tick, currentDelay);
       }
-      
       tick();
     };
-
     scheduleTicks();
 
+    // Determine result AFTER the spin animation
     setTimeout(() => {
-        handleSpinEnd(targetItem);
+        handleSpinEnd(newRotation);
     }, duration);
   };
   
-  const handleSpinEnd = (itemThatWon: WheelItem) => {
+  const handleSpinEnd = (finalRotation: number) => {
     console.log('--- SPIN END ---');
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
@@ -286,12 +230,38 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
     setSpinCycle(c => c + 1);
     setIsSpinning(false);
+
+    // --- NEW: DETERMINE WINNER FROM FINAL ANGLE ---
+    const segmentAngle = 360 / wheelItems.length;
+    // Normalize angle to a positive value between 0 and 360
+    const normalizedAngle = ((-finalRotation) % 360 + 360) % 360;
+    // Adjust for the pointer being at the "top" and find the index
+    const effectiveAngle = (normalizedAngle + (segmentAngle / 2)) % 360;
+    let winningIndex = Math.floor(effectiveAngle / segmentAngle);
+
+    let itemThatWon = wheelItems[winningIndex];
+
+    // --- Failsafe: Nudge if landed on an invalid spot ---
+    const isFirstSpin = activeRules.length === 0;
+    const isInvalidLanding = itemThatWon.type === 'END' || (isFirstSpin && itemThatWon.type === 'MODIFIER');
+    
+    if (isInvalidLanding) {
+        let newIndex = winningIndex;
+        for (let i = 1; i < wheelItems.length; i++) {
+            newIndex = (winningIndex + i) % wheelItems.length;
+            const potentialWinner = wheelItems[newIndex];
+            const isPotentialWinnerInvalid = potentialWinner.type === 'END' || (isFirstSpin && potentialWinner.type === 'MODIFIER');
+            if (!isPotentialWinnerInvalid) {
+                itemThatWon = potentialWinner;
+                break;
+            }
+        }
+    }
     
     console.log('Landed on:', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
     playSound((itemThatWon.type.toLowerCase() as any) || 'end');
 
     // --- PRE-DETERMINE EVOLUTION ---
-    // This happens here, before the modal opens, to avoid race conditions.
     let evolution: WheelItem | null = null;
     if (itemThatWon.type === 'RULE') {
       const rand = Math.random();
@@ -333,25 +303,23 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
 
   const handleModalOpenChange = (open: boolean) => {
-    // This now only controls the visibility of the modal.
-    // The logic to update the wheel is handled separately to prevent bugs.
     if (!open) {
-      // If we have a result ready, process it.
-      if (result && result.evolution) {
-        setWheelItems(currentWheelItems => {
-          const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
-          if (indexToUpdate === -1) {
-            console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
-            return currentWheelItems;
-          }
-          const newWheelItems = [...currentWheelItems];
-          newWheelItems[indexToUpdate] = result.evolution!;
-          return newWheelItems;
-        });
+      if (result) {
+        if (result.evolution) {
+          setWheelItems(currentWheelItems => {
+            const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
+            if (indexToUpdate === -1) {
+              console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
+              return currentWheelItems;
+            }
+            const newWheelItems = [...currentWheelItems];
+            newWheelItems[indexToUpdate] = result.evolution!;
+            return newWheelItems;
+          });
+        }
+        // Crucially, clear the result *after* processing it to prevent StrictMode double-calls.
+        setResult(null);
       }
-      // Crucially, clear the result *after* processing it.
-      // This prevents StrictMode from running the logic twice with stale data.
-      setResult(null);
     }
     setIsResultModalOpen(open);
   };
@@ -371,7 +339,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   }
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
-    if (isSpinning || availableItems.length === 0) return;
+    if (isSpinning) return;
     dragStartRef.current = { y: e.clientY, time: Date.now() };
     (e.currentTarget as HTMLElement).setPointerCapture(e.pointerId);
   };
@@ -393,10 +361,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const dragDuration = dragEndTime - dragStartRef.current.time;
 
     if (dragDuration < 1000 && Math.abs(dragDistance) > 20) { // A flick gesture
-        const velocity = dragDistance / dragDuration;
-        handleSpinClick(velocity);
+        handleSpinClick();
     } else if (dragDuration < 250 && Math.abs(dragDistance) < 20) { // A click/tap gesture
-        handleSpinClick(1); // Spin with a default medium velocity
+        handleSpinClick(); 
     }
     
     dragStartRef.current = { y: null, time: null };
@@ -486,3 +453,5 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
+
+    
