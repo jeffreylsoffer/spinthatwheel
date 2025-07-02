@@ -1,4 +1,3 @@
-
 "use client";
 
 const WheelPointer = () => {
@@ -10,7 +9,7 @@ const WheelPointer = () => {
         xmlns="http://www.w3.org/2000/svg"
         className="text-primary"
       >
-        <polygon points="0,50 75,0 75,100" />
+        <polygon points="100,50 25,0 25,100" />
       </svg>
     </div>
   );
