@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
-import { Save, Trash2, PlusCircle, Wand2, Loader2, Info } from 'lucide-react';
+import { Save, Trash2, PlusCircle, Wand2, Info, LoaderPinwheel } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
@@ -239,7 +239,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
               <CardFooter>
                 <Button onClick={handleGenerate} disabled={isGenerating}>
                   {isGenerating ? (
-                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                    <LoaderPinwheel className="mr-2 h-5 w-5 animate-spin text-teal-400" />
                   ) : (
                     <Wand2 className="mr-2 h-5 w-5" />
                   )}
