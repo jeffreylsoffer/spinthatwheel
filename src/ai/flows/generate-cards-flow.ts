@@ -55,6 +55,26 @@ const generationPrompt = ai.definePrompt({
   name: 'generateCardsPrompt',
   input: { schema: GenerateCardsInputSchema },
   output: { schema: GenerateCardsOutputSchema },
+  config: {
+    safetySettings: [
+      {
+        category: 'HARM_CATEGORY_HATE_SPEECH',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_DANGEROUS_CONTENT',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_HARASSMENT',
+        threshold: 'BLOCK_NONE',
+      },
+      {
+        category: 'HARM_CATEGORY_SEXUALLY_EXPLICIT',
+        threshold: 'BLOCK_NONE',
+      },
+    ],
+  },
   prompt: `You are a creative and witty game designer for a party game called "SPIN THAT WHEEL".
 Your task is to generate a new set of Rules and Prompts based on a user-provided theme: "{{theme}}".
 
