@@ -260,30 +260,45 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const segmentAngle = 360 / wheelItems.length;
     const normalizedAngle = ((-finalRotation) % 360 + 360) % 360;
     const effectiveAngle = (normalizedAngle + (segmentAngle / 2)) % 360;
-    let winningIndex = Math.floor(effectiveAngle / segmentAngle);
+    const winningIndex = Math.floor(effectiveAngle / segmentAngle);
 
     let itemThatWon = wheelItems[winningIndex];
     
-    // Handle game over condition immediately
+    const isFirstSpin = activeRules.length === 0;
+    const hasActiveCards = wheelItems.some(item => item.type !== 'END');
+
+    // --- Prevent invalid landings ---
+    // If we land on an invalid slot (END too early, or MODIFIER on first spin),
+    // find the next valid slot clockwise.
+    const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
+    const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
+
+    if (isInvalidEnd || isInvalidModifier) {
+      // Find the next available valid slot
+      for (let i = 1; i < wheelItems.length; i++) {
+        const nextIndex = (winningIndex + i) % wheelItems.length;
+        const potentialWinner = wheelItems[nextIndex];
+        
+        // A slot is valid if it's not an END card.
+        // Additionally, on the first spin, it also can't be a MODIFIER card.
+        const isPotentialWinnerValid = 
+          potentialWinner.type !== 'END' && 
+          (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
+
+        if (isPotentialWinnerValid) {
+          itemThatWon = potentialWinner; // Re-assign the winner!
+          break; // Stop searching once we find a valid slot
+        }
+      }
+    }
+    
+    // Now that we have our final, valid winner, process the result.
+    
+    // Handle game over condition
     if (itemThatWon.type === 'END') {
         playSound('end');
         setIsGameOver(true);
         return; // Stop processing
-    }
-
-    const isFirstSpin = activeRules.length === 0;
-
-    // Handle invalid modifier on first spin
-    if (isFirstSpin && itemThatWon.type === 'MODIFIER') {
-        // Find the next non-modifier, non-end slot
-        for (let i = 1; i < wheelItems.length; i++) {
-            let newIndex = (winningIndex + i) % wheelItems.length;
-            const potentialWinner = wheelItems[newIndex];
-            if (potentialWinner.type !== 'MODIFIER' && potentialWinner.type !== 'END') {
-                itemThatWon = potentialWinner;
-                break;
-            }
-        }
     }
     
     playSound((itemThatWon.type.toLowerCase() as any) || 'end');
@@ -640,3 +655,5 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
+
+    
