@@ -1,3 +1,4 @@
+
 "use client";
 
 import { cn } from "@/lib/utils";
@@ -17,7 +18,7 @@ const SEGMENT_MAP = {
 
 type Digit = "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7" | "8" | "9";
 
-const SevenSegmentDigit = ({ digit }: { digit: Digit }) => {
+const SevenSegmentDigit = ({ digit, on = true }: { digit: Digit, on?: boolean }) => {
   const activeSegments = SEGMENT_MAP[digit] || [];
 
   return (
@@ -28,7 +29,7 @@ const SevenSegmentDigit = ({ digit }: { digit: Digit }) => {
           className={cn(
             "segment",
             `segment-${seg}`,
-            activeSegments.includes(seg) && "on"
+            on && activeSegments.includes(seg) && "on"
           )}
         />
       ))}
@@ -47,13 +48,16 @@ export const SevenSegmentDisplay = ({ score }: { score: number }) => {
   const digit1 = scoreStr[0] as Digit;
   const digit2 = scoreStr[1] as Digit;
 
+  // The tens digit is only "on" if the score is 10 or greater
+  const tensDigitOn = clampedScore >= 10;
+
   return (
-    <div className="flex items-center justify-center gap-1.5 p-2 bg-black/50 rounded-lg border border-white/10">
+    <div className="flex items-center justify-center gap-1.5 p-2 bg-black/50 rounded-lg border border-white/10 h-14 w-24">
       <div className="relative w-4 h-14 flex justify-center items-center">
         {isNegative && <div className="bg-primary shadow-[0_0_5px_hsl(var(--primary)/0.7)] w-4 h-2 rounded-[2px]" />}
       </div>
-      <SevenSegmentDigit digit={digit1} />
-      <SevenSegmentDigit digit={digit2} />
+      <SevenSegmentDigit digit={digit1} on={tensDigitOn} />
+      <SevenSegmentDigit digit={digit2} on={true} />
     </div>
   );
 };
