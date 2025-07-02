@@ -11,11 +11,13 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Siren } from 'lucide-react';
+import { RefreshCw, BookOpen, Siren, Check } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
-import BuzzerModal from './buzzer-modal';
+import { useToast } from '@/hooks/use-toast';
+import { BuzzerToast } from './buzzer-toast';
+import { ToastAction } from "@/components/ui/toast";
 import {
   AlertDialog,
   AlertDialogAction,
@@ -57,7 +59,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [spinDuration, setSpinDuration] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
   const [spinCycle, setSpinCycle] = useState(0);
-  const [isBuzzerModalOpen, setIsBuzzerModalOpen] = useState(false);
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
 
   const [gameData, setGameData] = useState({
@@ -66,9 +67,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     modifiers: defaultModifiers,
   });
 
+  const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
-  const buzzerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const resultProcessed = useRef(false);
   
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
@@ -131,28 +133,65 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setIsBuzzerRuleActive(hasBuzzerRule);
   }, [activeRules]);
   
+  // This effect handles processing the result after the modal closes.
+  // It also now handles triggering the buzzer toast.
   useEffect(() => {
-    if (isBuzzerRuleActive) {
-      const setRandomBuzzer = () => {
-        if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
-        const randomTime = (Math.random() * 45 + 15) * 1000; // 15-60 seconds
-        buzzerTimerRef.current = setTimeout(() => {
-          playSound('buzzer');
-          setIsBuzzerModalOpen(true);
-          setRandomBuzzer();
-        }, randomTime);
-      };
-      setRandomBuzzer();
-    } else {
-      if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+    if (result && !isResultModalOpen && !resultProcessed.current) {
+        console.log('--- MODAL CLOSE & PROCESSING ---');
+        resultProcessed.current = true; // Mark as processed
+        console.log('Result item being processed:', {id: result.landed.id, type: result.landed.type, label: result.landed.label});
+
+        if (result.evolution) {
+            console.log('Wheel items BEFORE update:', wheelItems.map(i => i.id));
+            setWheelItems(currentWheelItems => {
+                const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
+                if (indexToUpdate === -1) {
+                    console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
+                    return currentWheelItems;
+                }
+                console.log('Found item to update at index:', indexToUpdate);
+                const newWheelItems = [...currentWheelItems];
+                newWheelItems[indexToUpdate] = result.evolution;
+                console.log('Wheel items AFTER update:', newWheelItems.map(i => i.id));
+                return newWheelItems;
+            });
+        }
+
+        if (result.landed.type === 'RULE') {
+            const ruleData = result.landed.data as Rule;
+            const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
+            if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
+                const ruleWithColor = { ...sessionRule, color: result.landed.color };
+                setActiveRules(prev => [...prev, ruleWithColor]);
+            }
+        }
+        
+        // --- NEW BUZZER LOGIC ---
+        // After a turn, there is a chance for the buzzer to go off.
+        const buzzerRule = activeRules.find(r => (r.isFlipped ? r.flipped : r.primary).special === 'BUZZER');
+        if (buzzerRule && Math.random() < 0.33) {
+            const delay = Math.random() * 2000 + 2000; // 2-4 second delay
+            setTimeout(() => {
+                playSound('buzzer');
+                const ruleData = buzzerRule.isFlipped ? buzzerRule.flipped : buzzerRule.primary;
+                toast({
+                    duration: buzzerCountdown * 1000 + 500,
+                    className: "w-full max-w-md p-0 border-accent shadow-lg shadow-accent/20 bg-card",
+                    description: <BuzzerToast rule={ruleData} countdownSeconds={buzzerCountdown} />,
+                    action: (
+                        <ToastAction altText="Acknowledge" className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border-0">
+                           <Check className="h-6 w-6" />
+                        </ToastAction>
+                    ),
+                });
+            }, delay);
+        }
+
+        // IMPORTANT: Clear the result so this effect doesn't run again with the same data
+        setResult(null);
     }
-    
-    // Cleanup for both buzzer and spinning tick sounds on component unmount
-    return () => {
-      if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
-      if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
-    };
-  }, [isBuzzerRuleActive]);
+  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, wheelItems]);
+
 
 
   const handleFlipRule = (ruleId: number) => {
@@ -187,12 +226,17 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     if (isSpinning || wheelItems.length === 0) return;
 
     console.log('--- SPIN START ---');
+    resultProcessed.current = false; // Reset processed flag for the next result
     setIsSpinning(true);
-    
-    const revolutions = 5 + Math.random() * 5; // 5 to 10 revolutions
-    const randomExtraAngle = Math.random() * 360;
-    const newRotation = rotation - (revolutions * 360) - randomExtraAngle;
 
+    const segmentAngle = 360 / wheelItems.length;
+
+    // --- NEW: Spin randomly and determine winner from the result ---
+    const currentAngle = rotation % 360;
+    const revolutions = (5 + Math.random() * 5) * 360;
+    const randomExtraAngle = Math.random() * 360;
+    
+    const newRotation = rotation - revolutions - randomExtraAngle;
     const duration = 5000 + Math.random() * 2000;
     setSpinDuration(duration);
     setRotation(newRotation);
@@ -220,7 +264,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     };
     scheduleTicks();
 
-    // Determine result AFTER the spin animation
     setTimeout(() => {
         handleSpinEnd(newRotation);
     }, duration);
@@ -236,17 +279,13 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setSpinCycle(c => c + 1);
     setIsSpinning(false);
 
-    // --- NEW: DETERMINE WINNER FROM FINAL ANGLE ---
     const segmentAngle = 360 / wheelItems.length;
-    // Normalize angle to a positive value between 0 and 360
     const normalizedAngle = ((-finalRotation) % 360 + 360) % 360;
-    // Adjust for the pointer being at the "top" and find the index
     const effectiveAngle = (normalizedAngle + (segmentAngle / 2)) % 360;
     let winningIndex = Math.floor(effectiveAngle / segmentAngle);
 
     let itemThatWon = wheelItems[winningIndex];
 
-    // --- Failsafe: Nudge if landed on an invalid spot ---
     const isFirstSpin = activeRules.length === 0;
     const isInvalidLanding = itemThatWon.type === 'END' || (isFirstSpin && itemThatWon.type === 'MODIFIER');
     
@@ -266,7 +305,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     console.log('Landed on:', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
     playSound((itemThatWon.type.toLowerCase() as any) || 'end');
 
-    // --- PRE-DETERMINE EVOLUTION ---
     let evolution: WheelItem | null = null;
     if (itemThatWon.type === 'RULE') {
       const rand = Math.random();
@@ -296,36 +334,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     
     setResult({ landed: itemThatWon, evolution });
     setIsResultModalOpen(true);
-
-    if (itemThatWon.type === 'RULE') {
-      const ruleData = itemThatWon.data as Rule;
-      const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
-      if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
-         const ruleWithColor = { ...sessionRule, color: itemThatWon.color };
-         setActiveRules(prev => [...prev, ruleWithColor]);
-      }
-    }
   };
-
-  const handleModalOpenChange = (open: boolean) => {
-    if (!open && result) {
-      if (result.evolution) {
-        setWheelItems(currentWheelItems => {
-          const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
-          if (indexToUpdate === -1) {
-            console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
-            return currentWheelItems;
-          }
-          const newWheelItems = [...currentWheelItems];
-          newWheelItems[indexToUpdate] = result.evolution!;
-          return newWheelItems;
-        });
-      }
-      setResult(null); // Clear result after processing to prevent re-triggering.
-    }
-    setIsResultModalOpen(open);
-  };
-
 
   const handleReset = () => {
     if (tickTimeoutRef.current) {
@@ -427,10 +436,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
       <ResultModal 
         isOpen={isResultModalOpen} 
-        onOpenChange={handleModalOpenChange} 
+        onOpenChange={setIsResultModalOpen} 
         result={result} 
         onOpenCheatSheet={() => {
-          // This needs to be a two-step state change to work correctly
           setIsResultModalOpen(false);
           setTimeout(() => setIsCheatSheetModalOpen(true), 150);
         }}
@@ -440,11 +448,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         onOpenChange={setIsCheatSheetModalOpen}
         rules={activeRules}
         onFlipRule={handleFlipRule}
-      />
-      <BuzzerModal
-        isOpen={isBuzzerModalOpen}
-        onOpenChange={setIsBuzzerModalOpen}
-        countdownSeconds={buzzerCountdown}
       />
        <AlertDialog open={isRefereeModalOpen} onOpenChange={setIsRefereeModalOpen}>
         <AlertDialogContent>
@@ -460,5 +463,3 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
-
-    
