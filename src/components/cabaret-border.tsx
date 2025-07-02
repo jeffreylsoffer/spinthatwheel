@@ -12,7 +12,7 @@ const CabaretBorder = () => {
     if (!container) return;
     
     const calculateBulbs = () => {
-      // Use the container's own dimensions. Since it's positioned with `inset-2`,
+      // Use the container's own dimensions. Since it's positioned with `inset-4`,
       // its size will correctly reflect the available space inside the body border.
       const hCount = Math.floor(container.clientWidth / BULB_SPACING_PX);
       const vCount = Math.floor(container.clientHeight / BULB_SPACING_PX);
@@ -45,7 +45,7 @@ const CabaretBorder = () => {
   if (hBulbs === 0 || vBulbs === 0) {
     // Render the container div so the ref is always available for measurement.
     return (
-      <div ref={containerRef} className="absolute inset-2 z-[-1] pointer-events-none" />
+      <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none" />
     );
   }
   
@@ -73,7 +73,7 @@ const CabaretBorder = () => {
     bulbs.push(<div key={`l-${i}`} className="bulb" style={{ top: `${(i + 0.5) * bulbSpacingV}%`, left: '0%', animationDelay: `${(index++ / totalBulbs) * animDuration}s` }} />);
   }
 
-  return <div ref={containerRef} className="absolute inset-2 z-[-1] pointer-events-none">{bulbs}</div>;
+  return <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none">{bulbs}</div>;
 };
 
 export default CabaretBorder;

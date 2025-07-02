@@ -518,10 +518,25 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
   
   return (
-    <div className="flex flex-col-reverse lg:flex-row h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
+    <div className="flex flex-col lg:flex-row h-screen overflow-hidden lg:p-8 lg:gap-8">
       
-      {/* Left Column: Scoreboard & Controls */}
-      <div className="lg:w-2/5 flex flex-col gap-6 justify-center overflow-y-auto">
+      {/* Wheel Column */}
+      <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
+        <div 
+          className="relative w-full max-w-[12rem] lg:max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          style={{ height: `${segmentHeight}px` }}
+          onPointerDown={handlePointerDown}
+          onPointerMove={handlePointerMove}
+          onPointerUp={handlePointerUp}
+          onPointerCancel={handlePointerCancel}
+        >
+          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} spinDuration={spinDuration} segmentHeight={segmentHeight} />
+          <WheelPointer />
+        </div>
+      </div>
+
+      {/* Scoreboard & Controls Column */}
+      <div className="lg:w-2/5 flex flex-col gap-4 justify-start lg:justify-center overflow-y-auto relative z-10 bg-background lg:bg-transparent mt-[-6rem] lg:mt-0 pt-8 px-4 pb-4 lg:p-0 rounded-t-2xl lg:rounded-none border-t border-border lg:border-none">
         <div className="max-w-sm mx-auto w-full flex flex-col gap-4">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
@@ -572,21 +587,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                   </Tooltip>
               </TooltipProvider>
             </div>
-        </div>
-      </div>
-
-      {/* Right Column: Wheel */}
-      <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative">
-        <div 
-          className="relative w-full max-w-[12rem] lg:max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
-          style={{ height: `${segmentHeight}px` }}
-          onPointerDown={handlePointerDown}
-          onPointerMove={handlePointerMove}
-          onPointerUp={handlePointerUp}
-          onPointerCancel={handlePointerCancel}
-        >
-          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} spinDuration={spinDuration} segmentHeight={segmentHeight} />
-          <WheelPointer />
         </div>
       </div>
 
