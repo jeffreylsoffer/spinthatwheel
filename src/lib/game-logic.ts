@@ -1,17 +1,27 @@
 
 import type { SessionRule, WheelItem, Rule, Prompt, Modifier, WheelItemStyle, RuleGroup } from './types';
 
-// New color scheme for segments
+// New color scheme based on the reference image
+// Palette for the background segments of the wheel
 export const SEGMENT_COLORS = [
-  '#C8BFE7', // Lavender
-  '#45B0C9', // Teal
   '#FFD262', // Yellow
+  '#87EAF2', // Light Teal
+  '#C8BFE7', // Lavender
   '#EE6352', // Red-Orange
 ];
 
-export const MODIFIER_COLORS = ['#45B0C9', '#EE6352']; // Teal or Red-Orange
+// Palettes for the cards that sit inside the segments
+export const RULE_CARD_COLORS = [
+  { bg: '#F5A623', text: '#1F2937' }, // Orange with dark text
+  { bg: '#6CD4FF', text: '#1F2937' }, // Light Blue with dark text
+];
 
-// Color palette for cards based on their type
+export const MODIFIER_CARD_COLORS = [
+  { bg: '#9B5DE5', text: '#FFFFFF' }, // Purple with white text
+  { bg: '#D0021B', text: '#FFFFFF' }, // Strong Red with white text
+];
+
+// Color palette for special cards
 export const CARD_STYLES: Record<'PROMPT' | 'END', Omit<WheelItemStyle, 'segment'>> = {
   PROMPT:   { labelBg: '#FFFFFF', labelColor: '#1F2937' },   // White card
   END:      { labelBg: '#111827', labelColor: '#F9FAFB' },   // Black card
@@ -51,24 +61,24 @@ export function populateWheel(
   const availableRules = sessionRules.map(r => r.primary);
   const shuffledRules = shuffle([...availableRules]);
 
-  for (const rule of shuffledRules) {
-    rawWheel.push({
+  // Create cycling arrays of colors to ensure variety
+  const shuffledSegmentColors = shuffle([...SEGMENT_COLORS]);
+  const shuffledRuleCardColors = shuffle([...RULE_CARD_COLORS]);
+  
+  return shuffledRules.map((rule, index) => {
+    // Cycle through the shuffled color palettes
+    const segmentColor = shuffledSegmentColors[index % shuffledSegmentColors.length];
+    const cardStyle = shuffledRuleCardColors[index % shuffledRuleCardColors.length];
+    
+    return {
       id: `rule-initial-${rule.id}`, // Unique ID for initial state
       type: 'RULE',
       label: 'Rule',
       data: rule,
-    });
-  }
-  
-  return rawWheel.map((item, index) => {
-    // Initial items are always rules, give them a random color
-    const ruleColor = SEGMENT_COLORS[Math.floor(Math.random() * SEGMENT_COLORS.length)];
-    return {
-      ...item,
       color: {
-        segment: ruleColor,
-        labelBg: ruleColor,
-        labelColor: '#1F2937',
+        segment: segmentColor,
+        labelBg: cardStyle.bg,
+        labelColor: cardStyle.text,
       },
     };
   });

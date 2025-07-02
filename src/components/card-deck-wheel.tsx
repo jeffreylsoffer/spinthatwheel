@@ -8,7 +8,7 @@ import CheatSheetModal from './cheatsheet-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
-import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_COLORS } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen, Siren } from 'lucide-react';
@@ -307,7 +307,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             if (Math.random() < 0.5 && gameData.prompts.length > 0) {
                 const prompt = shuffle([...gameData.prompts])[0];
                 evolvedItem = {
-                    id: `prompt-evolved-${prompt.id}-${indexToUpdate}`,
+                    id: `prompt-evolved-${prompt.id}-${landedItem.id}`,
                     type: 'PROMPT',
                     label: 'Prompt',
                     data: prompt,
@@ -318,16 +318,16 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                 };
             } else if (gameData.modifiers.length > 0) {
                 const modifier = shuffle([...gameData.modifiers])[0];
-                const modifierColor = MODIFIER_COLORS[Math.floor(Math.random() * MODIFIER_COLORS.length)];
+                const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
                 evolvedItem = {
-                    id: `modifier-evolved-${modifier.id}-${indexToUpdate}`,
+                    id: `modifier-evolved-${modifier.id}-${landedItem.id}`,
                     type: 'MODIFIER',
                     label: 'Modifier',
                     data: modifier,
                     color: {
-                        segment: modifierColor,
-                        labelBg: modifierColor,
-                        labelColor: '#1F2937',
+                        segment: landedItem.color.segment, // Keep segment color
+                        labelBg: modifierStyle.bg,
+                        labelColor: modifierStyle.text,
                     }
                 };
             }
@@ -485,5 +485,3 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
-
-    
