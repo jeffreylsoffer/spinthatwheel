@@ -96,8 +96,9 @@ export const defaultBuzzerCountdown = 20;
 
 export const modifiers: Modifier[] = [
   { id: 501, type: 'LEFT', name: "Left", description: "Take one of your active rules and pass it to the person on your left." },
-  { id: 502, type: 'RIGHT', name: "Right", description: "Take one of your active rules and pass it to the person on your right." },
   { id: 503, type: 'FLIP', name: "Flip", description: "Choose one of your active rules to flip to its alternate version." },
   { id: 504, type: 'CLONE', name: "Clone", description: "Clone one of your rules and give the copy to another player." },
   { id: 505, type: 'SWAP', name: "Swap", description: "Swap any rule with another player's rule." },
+  { id: 506, type: 'FLIP', name: "Flip", description: "Choose one of your active rules to flip to its alternate version." },
+  { id: 507, type: 'FLIP', name: "Flip", description: "Choose one of your active rules to flip to its alternate version." },
 ];

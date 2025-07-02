@@ -577,6 +577,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         onOpenChange={setIsGameOver}
         players={players}
         onPlayAgain={handleReset}
+        onKeepPlaying={() => setIsGameOver(false)}
       />
       <AlertDialog open={isResetConfirmOpen} onOpenChange={setIsResetConfirmOpen}>
         <AlertDialogContent>

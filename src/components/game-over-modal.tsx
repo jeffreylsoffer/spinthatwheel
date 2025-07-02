@@ -17,9 +17,10 @@ interface GameOverModalProps {
   onOpenChange: (open: boolean) => void;
   players: Player[];
   onPlayAgain: () => void;
+  onKeepPlaying: () => void;
 }
 
-const GameOverModal = ({ isOpen, onOpenChange, players, onPlayAgain }: GameOverModalProps) => {
+const GameOverModal = ({ isOpen, onOpenChange, players, onPlayAgain, onKeepPlaying }: GameOverModalProps) => {
   const getWinners = () => {
     if (players.length === 0) return [];
     const maxScore = Math.max(...players.map(p => p.score));
@@ -53,7 +54,10 @@ const GameOverModal = ({ isOpen, onOpenChange, players, onPlayAgain }: GameOverM
               </div>
           ))}
         </div>
-        <div className="flex justify-center pt-4">
+        <div className="flex justify-center pt-4 gap-4">
+          <Button onClick={onKeepPlaying} size="lg" variant="outline">
+            ...Keep Playing
+          </Button>
           <Button onClick={onPlayAgain} size="lg">
             <RefreshCw className="mr-2 h-5 w-5" />
             Play Again
