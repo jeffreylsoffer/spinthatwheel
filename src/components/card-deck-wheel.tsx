@@ -290,58 +290,79 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
-      let evolvedItem: WheelItem | null = null;
-      const resultIndex = wheelItems.findIndex(item => item.id === result.id);
+      // Because we are using result in the updater function, let's copy it to a local const
+      // to avoid any stale closure issues with the `result` state variable itself.
+      const landedItem = result;
 
-      if (result.type === 'RULE') {
-          if (Math.random() < 0.5 && gameData.prompts.length > 0) {
-              const prompt = shuffle([...gameData.prompts])[0];
-              evolvedItem = {
-                  id: `prompt-evolved-${prompt.id}-${resultIndex}`,
-                  type: 'PROMPT',
-                  label: 'Prompt',
-                  data: prompt,
-                  color: {
-                      segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
-                      ...CARD_STYLES.PROMPT,
-                  }
-              };
-          } else if (gameData.modifiers.length > 0) {
-              const modifier = shuffle([...gameData.modifiers])[0];
-              evolvedItem = {
-                  id: `modifier-evolved-${modifier.id}-${resultIndex}`,
-                  type: 'MODIFIER',
-                  label: 'Modifier',
-                  data: modifier,
-                  color: {
-                      segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
-                      ...CARD_STYLES.MODIFIER,
-                  }
-              };
-          }
-      } else if (result.type === 'PROMPT' || result.type === 'MODIFIER') {
-           evolvedItem = {
-              id: `used-${result.id}`,
-              type: 'END',
-              label: 'END',
-              data: { name: 'END', description: 'This slot has been used.' },
-              color: { segment: '#111827', ...CARD_STYLES.END }
-          };
-      }
-      
-      if (evolvedItem && resultIndex !== -1) {
-        const newWheelItems = [...wheelItems];
-        newWheelItems[resultIndex] = evolvedItem;
-        setWheelItems(newWheelItems);
-        
-        setAvailableItems(prev => {
-            const afterRemoval = prev.filter(i => i.id !== result.id);
-            if (evolvedItem!.type !== 'END') {
-                return [...afterRemoval, evolvedItem!];
+      // Use a functional update to ensure we're modifying the latest state
+      setWheelItems(currentWheelItems => {
+        const resultIndex = currentWheelItems.findIndex(item => item.id === landedItem.id);
+
+        // If the item isn't found for some reason, just return the state as-is.
+        if (resultIndex === -1) {
+          return currentWheelItems;
+        }
+
+        let evolvedItem: WheelItem | null = null;
+
+        // The logic to decide what the item evolves into
+        if (landedItem.type === 'RULE') {
+            if (Math.random() < 0.5 && gameData.prompts.length > 0) {
+                const prompt = shuffle([...gameData.prompts])[0];
+                evolvedItem = {
+                    id: `prompt-evolved-${prompt.id}-${resultIndex}`,
+                    type: 'PROMPT',
+                    label: 'Prompt',
+                    data: prompt,
+                    color: {
+                        segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
+                        ...CARD_STYLES.PROMPT,
+                    }
+                };
+            } else if (gameData.modifiers.length > 0) {
+                const modifier = shuffle([...gameData.modifiers])[0];
+                evolvedItem = {
+                    id: `modifier-evolved-${modifier.id}-${resultIndex}`,
+                    type: 'MODIFIER',
+                    label: 'Modifier',
+                    data: modifier,
+                    color: {
+                        segment: SEGMENT_COLORS[resultIndex % SEGMENT_COLORS.length],
+                        ...CARD_STYLES.MODIFIER,
+                    }
+                };
             }
-            return afterRemoval;
-        });
-      }
+        } else if (landedItem.type === 'PROMPT' || landedItem.type === 'MODIFIER') {
+            evolvedItem = {
+                id: `used-${landedItem.id}`,
+                type: 'END',
+                label: 'END',
+                data: { name: 'END', description: 'This slot has been used.' },
+                color: { segment: '#111827', ...CARD_STYLES.END }
+            };
+        }
+
+        // If an evolution happened, create the new array
+        if (evolvedItem) {
+          const newWheelItems = [...currentWheelItems];
+          newWheelItems[resultIndex] = evolvedItem;
+
+          // We also need to update the list of available items for the next spin
+          const finalEvolvedItem = evolvedItem; // close over the non-nullable version
+          setAvailableItems(prev => {
+              const afterRemoval = prev.filter(i => i.id !== landedItem.id);
+              if (finalEvolvedItem.type !== 'END') {
+                  return [...afterRemoval, finalEvolvedItem];
+              }
+              return afterRemoval;
+          });
+
+          return newWheelItems;
+        }
+
+        // If no evolution, return the original array
+        return currentWheelItems;
+      });
     }
     setIsResultModalOpen(open);
   };
