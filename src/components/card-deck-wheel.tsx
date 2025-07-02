@@ -57,13 +57,15 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
 
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const buzzerTimerRef = useRef<NodeJS.Timeout | null>(null);
+  const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
 
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
-  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer') => {
+  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer' | 'tick') => {
     // This will try to play sounds from public/sounds.
     // The actual audio files need to be added to that directory.
+    // For the 'tick' sound, a short, sharp click sound (e.g., tick.mp3) is expected.
     const audio = new Audio(`/sounds/${sound}.mp3`);
     audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3`, e));
   };
@@ -127,13 +129,15 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         }, randomTime);
       };
       setRandomBuzzer();
-      
-      return () => {
-        if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
-      };
     } else {
       if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
     }
+    
+    // Cleanup for both buzzer and spinning tick sounds on component unmount
+    return () => {
+      if (buzzerTimerRef.current) clearTimeout(buzzerTimerRef.current);
+      if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
+    };
   }, [isBuzzerRuleActive]);
 
 
@@ -206,9 +210,52 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
 
     setIsSpinning(true);
     setRotation(desiredRotation + randomOffset);
+
+    // --- Start Ticking Sound ---
+    if (tickTimeoutRef.current) {
+      clearTimeout(tickTimeoutRef.current);
+    }
+    
+    // This function will play ticks that get slower over time, mimicking the wheel.
+    const scheduleTicks = () => {
+      let elapsed = 0;
+      const minDelay = 60; // Fastest ticks
+      const maxDelay = 500; // Slowest ticks at the end
+
+      function tick() {
+        // Stop if the spin is over
+        if (elapsed >= duration) {
+          clearTimeout(tickTimeoutRef.current!);
+          tickTimeoutRef.current = null;
+          return;
+        }
+
+        playSound('tick');
+        
+        // Use an easing function to calculate the delay for the next tick.
+        // This makes the ticks slow down as the wheel does.
+        const progress = elapsed / duration;
+        const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
+        const currentDelay = minDelay + (maxDelay - minDelay) * easeOutQuart(progress);
+        
+        elapsed += currentDelay;
+        
+        tickTimeoutRef.current = setTimeout(tick, currentDelay);
+      }
+      
+      tick();
+    };
+
+    scheduleTicks();
   };
   
   const handleSpinEnd = () => {
+    // It's good practice to ensure the timer is cleared here too.
+    if (tickTimeoutRef.current) {
+      clearTimeout(tickTimeoutRef.current);
+      tickTimeoutRef.current = null;
+    }
+
     setSpinCycle(c => c + 1); // Trigger pointer animation
     if (winningItem) {
       playSound((winningItem.type.toLowerCase() as any) || 'end');
@@ -287,6 +334,10 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   };
 
   const handleReset = () => {
+    if (tickTimeoutRef.current) {
+        clearTimeout(tickTimeoutRef.current);
+        tickTimeoutRef.current = null;
+    }
     onResetGame();
   }
 
