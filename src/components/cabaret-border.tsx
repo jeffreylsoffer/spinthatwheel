@@ -10,8 +10,10 @@ const CabaretBorder = () => {
 
   useEffect(() => {
     const calculateBulbs = () => {
-      const hCount = Math.floor(window.innerWidth / BULB_SPACING_PX);
-      const vCount = Math.floor(window.innerHeight / BULB_SPACING_PX);
+      // Inset the area by a small amount to prevent scrollbars
+      const inset = 16; // 1rem
+      const hCount = Math.floor((window.innerWidth - inset * 2) / BULB_SPACING_PX);
+      const vCount = Math.floor((window.innerHeight - inset * 2) / BULB_SPACING_PX);
       setBulbCounts({ h: hCount, v: vCount });
     };
 
@@ -58,7 +60,7 @@ const CabaretBorder = () => {
     bulbs.push(<div key={`l-${i}`} className="bulb" style={{ top: `${(i + 0.5) * bulbSpacingV}%`, left: '0%', animationDelay: `${(index++ / totalBulbs) * animDuration}s` }} />);
   }
 
-  return <div className="absolute inset-0 z-[-1] pointer-events-none">{bulbs}</div>;
+  return <div className="absolute inset-2 z-[-1] pointer-events-none">{bulbs}</div>;
 };
 
 export default CabaretBorder;

@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState } from 'react';
@@ -6,6 +7,7 @@ import StartScreen from '@/components/start-screen';
 
 export interface Player {
   id: number;
+  name: string;
   score: number;
 }
 
@@ -16,6 +18,7 @@ export default function Home() {
   const handleStartGame = (playerCount: number) => {
     const newPlayers = Array.from({ length: playerCount }, (_, i) => ({
       id: i + 1,
+      name: `Player ${i + 1}`,
       score: 0,
     }));
     setPlayers(newPlayers);
@@ -30,6 +33,14 @@ export default function Home() {
     );
   };
   
+  const handleNameChange = (playerId: number, newName: string) => {
+    setPlayers(currentPlayers =>
+      currentPlayers.map(p =>
+        p.id === playerId ? { ...p, name: newName } : p
+      )
+    );
+  };
+
   const handleResetGame = () => {
     setGameState('start');
     setPlayers([]);
@@ -44,6 +55,7 @@ export default function Home() {
       <CardDeckWheel 
         players={players} 
         onScoreChange={handleScoreChange}
+        onNameChange={handleNameChange}
         onResetGame={handleResetGame}
       />
     </main>

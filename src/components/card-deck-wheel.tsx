@@ -11,14 +11,22 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, SEGMENT_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen } from 'lucide-react';
+import { RefreshCw, BookOpen, Siren } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from "@/components/ui/alert-dialog";
 
 interface CardDeckWheelProps {
   players: Player[];
   onScoreChange: (playerId: number, delta: number) => void;
+  onNameChange: (playerId: number, newName: string) => void;
   onResetGame: () => void;
 }
 
@@ -34,7 +42,7 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
-const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelProps) => {
+const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: CardDeckWheelProps) => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
   const [activeRules, setActiveRules] = useState<SessionRule[]>([]);
   const [wheelItems, setWheelItems] = useState<WheelItem[]>([]);
@@ -45,6 +53,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [winningItem, setWinningItem] = useState<WheelItem | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
+  const [isRefereeModalOpen, setIsRefereeModalOpen] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
   const [spinCycle, setSpinCycle] = useState(0);
@@ -62,11 +71,11 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
-  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer' | 'tick') => {
+  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer' | 'tick' | 'whistle') => {
     // This function plays a sound effect.
     // It expects to find the corresponding .mp3 file in the `public/audio/` directory.
     // For example, calling playSound('rule') will attempt to play `/audio/rule.mp3`.
-    // Ensure your audio files (e.g., `rule.mp3`, `prompt.mp3`, `buzzer.mp3`, etc.) are in that folder.
+    // Ensure your audio files (e.g., `rule.mp3`, `prompt.mp3`, `whistle.mp3`, etc.) are in that folder.
     const audio = new Audio(`/audio/${sound}.mp3`);
     audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3. Make sure the file exists in public/audio/.`, e));
   };
@@ -345,6 +354,11 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     onResetGame();
   }
 
+  const handleWhistleClick = () => {
+    playSound('whistle');
+    setIsRefereeModalOpen(true);
+  }
+
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isSpinning || availableItems.length === 0) return;
     dragStartRef.current = { y: e.clientY, time: Date.now() };
@@ -387,17 +401,28 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
       
       {/* Left Column: Scoreboard & Controls */}
       <div className="lg:w-2/5 flex flex-col gap-6 justify-center overflow-y-auto">
-        <div className="max-w-sm mx-auto w-full flex flex-col gap-6">
-            <Scoreboard players={players} onScoreChange={onScoreChange} />
-            <Button 
-              variant="outline"
-              size="lg"
-              onClick={() => setIsCheatSheetModalOpen(true)}
-              className="w-full"
-            >
-              <BookOpen className="mr-2 h-5 w-5" />
-              Flip Cheat Sheet
-            </Button>
+        <div className="max-w-sm mx-auto w-full flex flex-col gap-4">
+            <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
+             <div className="grid grid-cols-2 gap-4">
+               <Button 
+                variant="outline"
+                size="lg"
+                onClick={() => setIsCheatSheetModalOpen(true)}
+                className="w-full"
+              >
+                <BookOpen className="mr-2 h-5 w-5" />
+                Flip Sheet
+              </Button>
+              <Button 
+                variant="destructive"
+                size="lg"
+                onClick={handleWhistleClick}
+                className="w-full"
+              >
+                <Siren className="mr-2 h-5 w-5" />
+                WHISTLE!
+              </Button>
+            </div>
             <Button variant="ghost" onClick={handleReset} className="self-center">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 New Game
@@ -435,6 +460,14 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         rules={activeRules}
         onFlipRule={handleFlipRule}
       />
+       <AlertDialog open={isRefereeModalOpen} onOpenChange={setIsRefereeModalOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle className="text-center text-5xl font-headline tracking-widest">REFEREE'S CALL</AlertDialogTitle>
+          </AlertDialogHeader>
+          <AlertDialogAction onClick={() => setIsRefereeModalOpen(false)}>Close</AlertDialogAction>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   );
 };
