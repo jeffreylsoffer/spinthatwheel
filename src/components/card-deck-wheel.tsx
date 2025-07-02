@@ -233,8 +233,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     );
     setSessionRules(newSessionRules);
 
+    // Correctly map over active rules to just toggle the flip state, preserving color
     setActiveRules(prevActiveRules => prevActiveRules.map(ar =>
-      ar.id === ruleId ? newSessionRules.find(nr => nr.id === ruleId)! : ar
+      ar.id === ruleId ? { ...ar, isFlipped: !ar.isFlipped } : ar
     ));
     
     const updateItem = (item: WheelItem): WheelItem => {
@@ -255,117 +256,106 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       tickTimeoutRef.current = null;
     }
 
-    setIsSpinning(false);
-
     const segmentAngle = 360 / wheelItems.length;
     const normalizedAngle = ((-finalRotation) % 360 + 360) % 360;
     const effectiveAngle = (normalizedAngle + (segmentAngle / 2)) % 360;
     const winningIndex = Math.floor(effectiveAngle / segmentAngle);
 
     let itemThatWon = wheelItems[winningIndex];
+    let actualWinningIndex = winningIndex;
     
     const isFirstSpin = activeRules.length === 0;
     const hasActiveCards = wheelItems.some(item => item.type !== 'END');
 
     // --- Prevent invalid landings ---
-    // If we land on an invalid slot (END too early, or MODIFIER on first spin),
-    // find the next valid slot clockwise.
     const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
     const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
 
     if (isInvalidEnd || isInvalidModifier) {
-      // Find the next available valid slot
       for (let i = 1; i < wheelItems.length; i++) {
         const nextIndex = (winningIndex + i) % wheelItems.length;
         const potentialWinner = wheelItems[nextIndex];
-        
-        // A slot is valid if it's not an END card.
-        // Additionally, on the first spin, it also can't be a MODIFIER card.
-        const isPotentialWinnerValid = 
-          potentialWinner.type !== 'END' && 
-          (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
-
+        const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
         if (isPotentialWinnerValid) {
-          itemThatWon = potentialWinner; // Re-assign the winner!
-          break; // Stop searching once we find a valid slot
+          itemThatWon = potentialWinner;
+          actualWinningIndex = nextIndex;
+          break;
         }
       }
     }
     
-    // Now that we have our final, valid winner, process the result.
-    
-    // Handle game over condition
-    if (itemThatWon.type === 'END') {
-        playSound('end');
-        setIsGameOver(true);
-        return; // Stop processing
-    }
-    
-    playSound((itemThatWon.type.toLowerCase() as any) || 'end');
-
-    let evolution: WheelItem | null = null;
-    if (itemThatWon.type === 'RULE') {
-      let evolutionCard: Prompt | Modifier | undefined;
-
-      // Pop a card from the shuffled evolution deck
-      if (evolutionDeck.length > 0) {
-        evolutionCard = evolutionDeck[0];
-        setEvolutionDeck(prevDeck => prevDeck.slice(1));
-      } else {
-        // If the deck is empty, default to a Flip modifier.
-        evolutionCard = gameData.modifiers.find(m => m.type === 'FLIP');
+    const processResult = (landedItem: WheelItem) => {
+      setIsSpinning(false);
+      
+      if (landedItem.type === 'END') {
+          playSound('end');
+          setIsGameOver(true);
+          return;
       }
+      
+      playSound((landedItem.type.toLowerCase() as any) || 'end');
 
-      if (evolutionCard) {
-        // Check if the card is a Prompt (has a 'text' property)
-        if ('text' in evolutionCard) {
-          const prompt = evolutionCard as Prompt;
+      let evolution: WheelItem | null = null;
+      if (landedItem.type === 'RULE') {
+        let evolutionCard: Prompt | Modifier | undefined;
+        if (evolutionDeck.length > 0) {
+          evolutionCard = evolutionDeck[0];
+          setEvolutionDeck(prevDeck => prevDeck.slice(1));
+        } else {
+          evolutionCard = gameData.modifiers.find(m => m.type === 'FLIP');
+        }
+
+        if (evolutionCard) {
+          if ('text' in evolutionCard) {
+            const prompt = evolutionCard as Prompt;
+            evolution = {
+              id: `prompt-evolved-${prompt.id}-${landedItem.id}`, type: 'PROMPT', label: 'Prompt', data: prompt,
+              color: { segment: landedItem.color.segment, ...CARD_STYLES.PROMPT },
+            };
+          } else {
+            const modifier = evolutionCard as Modifier;
+            const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
+            evolution = {
+              id: `modifier-evolved-${modifier.id}-${landedItem.id}`, type: 'MODIFIER', label: 'Modifier', data: modifier,
+              color: { segment: landedItem.color.segment, labelBg: modifierStyle.bg, labelColor: modifierStyle.text },
+            };
+          }
+        } else {
           evolution = {
-            id: `prompt-evolved-${prompt.id}-${itemThatWon.id}`,
-            type: 'PROMPT',
-            label: 'Prompt',
-            data: prompt,
-            color: { segment: itemThatWon.color.segment, ...CARD_STYLES.PROMPT },
-          };
-        } else { // Otherwise, it's a Modifier
-          const modifier = evolutionCard as Modifier;
-          const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
-          evolution = {
-            id: `modifier-evolved-${modifier.id}-${itemThatWon.id}`,
-            type: 'MODIFIER',
-            label: 'Modifier',
-            data: modifier,
-            color: {
-              segment: itemThatWon.color.segment,
-              labelBg: modifierStyle.bg,
-              labelColor: modifierStyle.text,
-            },
+            id: `used-${landedItem.id}`, type: 'END', label: 'END', data: { name: 'END', description: 'This slot has been used.' },
+            color: { segment: CARD_STYLES.END.labelBg, ...CARD_STYLES.END }
           };
         }
-      } else {
-        // Fallback: If no Flip modifier is defined, evolve to END.
+      } else if (landedItem.type === 'PROMPT' || landedItem.type === 'MODIFIER') {
         evolution = {
-          id: `used-${itemThatWon.id}`, type: 'END', label: 'END',
-          data: { name: 'END', description: 'This slot has been used.' },
-          color: { segment: CARD_STYLES.END.labelBg, ...CARD_STYLES.END }
+            id: `used-${landedItem.id}`, type: 'END', label: 'END', data: { name: 'END', description: 'This slot has been used.' },
+            color: { segment: CARD_STYLES.END.labelBg, ...CARD_STYLES.END }
         };
       }
-    } else if (itemThatWon.type === 'PROMPT' || itemThatWon.type === 'MODIFIER') {
-      evolution = {
-          id: `used-${itemThatWon.id}`, type: 'END', label: 'END',
-          data: { name: 'END', description: 'This slot has been used.' },
-          color: { segment: CARD_STYLES.END.labelBg, ...CARD_STYLES.END }
-      };
-    }
+      
+      setResult({ landed: landedItem, evolution });
+      setIsResultModalOpen(true);
+    };
     
-    setResult({ landed: itemThatWon, evolution });
-    setIsResultModalOpen(true);
+    if (actualWinningIndex !== winningIndex) {
+        // Correct the wheel's final position visually
+        const rotationDifference = (actualWinningIndex - winningIndex) * segmentAngle;
+        const correctedRotation = finalRotation - rotationDifference;
+        const nudgeDuration = 800;
+
+        setSpinDuration(nudgeDuration); 
+        setRotation(correctedRotation);
+
+        setTimeout(() => processResult(itemThatWon), nudgeDuration);
+    } else {
+        processResult(itemThatWon);
+    }
   }, [wheelItems, activeRules.length, gameData, evolutionDeck]);
 
   const handleSpinClick = useCallback(() => {
     if (isSpinning || wheelItems.length === 0) return;
 
-    resultProcessed.current = false; // Reset processed flag for the next result
+    resultProcessed.current = false;
     setIsSpinning(true);
 
     const revolutions = (5 + Math.random() * 5) * 360;
@@ -376,7 +366,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setSpinDuration(duration);
     setRotation(newRotation);
 
-    // Start sound effects
     if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
     const scheduleTicks = () => {
       let elapsed = 0;
@@ -422,7 +411,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
-        // Do not trigger shortcuts if a modal is open
         if (isResultModalOpen || isCheatSheetModalOpen || isRefereeModalOpen || isGameOver || isResetConfirmOpen) {
              if (event.key.toLowerCase() === 'escape') {
                 setIsResultModalOpen(false);
@@ -434,13 +422,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             return;
         }
 
-        // Do not trigger shortcuts if user is typing in an input field
         const target = event.target as HTMLElement;
         if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
             return;
         }
         
-        // Player score shortcuts (1-8)
         let digit: number | null = null;
         if (event.code.startsWith('Digit')) {
             digit = parseInt(event.code.substring(5));
@@ -458,7 +444,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         
         const key = event.key.toLowerCase();
         
-        // Other game shortcuts
         switch (key) {
             case ' ':
                 event.preventDefault();
@@ -655,5 +640,3 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
-
-    

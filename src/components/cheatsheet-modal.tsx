@@ -23,12 +23,6 @@ interface CheatSheetModalProps {
 
 const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheetModalProps) => {
 
-  const flippedRuleCardStyle = {
-    backgroundColor: "black",
-    color: "#FFFFFF",
-    border: `14px solid black`
-  };
-
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="sm:max-w-lg bg-card text-card-foreground">
@@ -47,9 +41,15 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
           ) : (
             rules.map((rule) => {
               const ruleCardStyle = {
-                backgroundColor: rule.color?.labelBg || '#CCAA4F', // Default to yellow if color somehow missing
+                backgroundColor: rule.color?.labelBg || '#CCAA4F',
                 color: rule.color?.labelColor || '#1F2937',
                 border: `14px solid black`
+              };
+              
+              const flippedRuleCardStyle = {
+                backgroundColor: "black",
+                color: "#FFFFFF",
+                border: `14px solid ${rule.color?.labelBg || 'black'}`
               };
 
               return (
