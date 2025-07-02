@@ -12,7 +12,7 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Siren, Check } from 'lucide-react';
+import { RefreshCw, BookOpen, Siren, Check, Keyboard } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
@@ -20,12 +20,20 @@ import { useToast } from '@/hooks/use-toast';
 import { BuzzerToast } from './buzzer-toast';
 import { ToastAction } from "@/components/ui/toast";
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip";
+import {
   AlertDialog,
   AlertDialogAction,
+  AlertDialogCancel,
   AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
   AlertDialogHeader,
   AlertDialogTitle,
-  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 
 interface CardDeckWheelProps {
@@ -60,6 +68,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [isGameOver, setIsGameOver] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
+  const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -235,49 +244,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setWheelItems(prevItems => prevItems.map(updateItem));
   };
 
-  const handleSpinClick = () => {
-    if (isSpinning || wheelItems.length === 0) return;
-
-    resultProcessed.current = false; // Reset processed flag for the next result
-    setIsSpinning(true);
-
-    const revolutions = (5 + Math.random() * 5) * 360;
-    const randomExtraAngle = Math.random() * 360;
-    
-    const newRotation = rotation - revolutions - randomExtraAngle;
-    const duration = 5000 + Math.random() * 2000;
-    setSpinDuration(duration);
-    setRotation(newRotation);
-
-    // Start sound effects
-    if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
-    const scheduleTicks = () => {
-      let elapsed = 0;
-      const minDelay = 20;
-      const maxDelay = 250; 
-      function tick() {
-        if (elapsed >= duration) {
-          clearTimeout(tickTimeoutRef.current!);
-          tickTimeoutRef.current = null;
-          return;
-        }
-        playSound('tick');
-        const progress = elapsed / duration;
-        const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
-        const currentDelay = minDelay + (maxDelay - minDelay) * easeOutQuart(progress);
-        elapsed += currentDelay;
-        tickTimeoutRef.current = setTimeout(tick, currentDelay);
-      }
-      tick();
-    };
-    scheduleTicks();
-
-    setTimeout(() => {
-        handleSpinEnd(newRotation);
-    }, duration);
-  };
-  
-  const handleSpinEnd = (finalRotation: number) => {
+  const handleSpinEnd = useCallback((finalRotation: number) => {
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
       tickTimeoutRef.current = null;
@@ -345,21 +312,126 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     
     setResult({ landed: itemThatWon, evolution });
     setIsResultModalOpen(true);
-  };
+  }, [wheelItems, activeRules.length, gameData.prompts, gameData.modifiers]);
 
-  const handleReset = () => {
+  const handleSpinClick = useCallback(() => {
+    if (isSpinning || wheelItems.length === 0) return;
+
+    resultProcessed.current = false; // Reset processed flag for the next result
+    setIsSpinning(true);
+
+    const revolutions = (5 + Math.random() * 5) * 360;
+    const randomExtraAngle = Math.random() * 360;
+    
+    const newRotation = rotation - revolutions - randomExtraAngle;
+    const duration = 5000 + Math.random() * 2000;
+    setSpinDuration(duration);
+    setRotation(newRotation);
+
+    // Start sound effects
+    if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
+    const scheduleTicks = () => {
+      let elapsed = 0;
+      const minDelay = 20;
+      const maxDelay = 250; 
+      function tick() {
+        if (elapsed >= duration) {
+          clearTimeout(tickTimeoutRef.current!);
+          tickTimeoutRef.current = null;
+          return;
+        }
+        playSound('tick');
+        const progress = elapsed / duration;
+        const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
+        const currentDelay = minDelay + (maxDelay - minDelay) * easeOutQuart(progress);
+        elapsed += currentDelay;
+        tickTimeoutRef.current = setTimeout(tick, currentDelay);
+      }
+      tick();
+    };
+    scheduleTicks();
+
+    setTimeout(() => {
+        handleSpinEnd(newRotation);
+    }, duration);
+  }, [isSpinning, wheelItems.length, rotation, handleSpinEnd]);
+  
+  const handleReset = useCallback(() => {
     if (tickTimeoutRef.current) {
         clearTimeout(tickTimeoutRef.current);
         tickTimeoutRef.current = null;
     }
     stopBuzzer();
     onResetGame();
-  }
+    setIsResetConfirmOpen(false);
+  }, [onResetGame, stopBuzzer]);
 
-  const handleWhistleClick = () => {
+  const handleWhistleClick = useCallback(() => {
     playSound('whistle');
     setIsRefereeModalOpen(true);
-  }
+  }, []);
+
+  // Keyboard Shortcuts
+  useEffect(() => {
+    const handleKeyDown = (event: KeyboardEvent) => {
+        // Do not trigger shortcuts if a modal is open
+        if (isResultModalOpen || isCheatSheetModalOpen || isRefereeModalOpen || isGameOver || isResetConfirmOpen) {
+            return;
+        }
+
+        // Do not trigger shortcuts if user is typing in an input field
+        const target = event.target as HTMLElement;
+        if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA') {
+            return;
+        }
+        
+        const key = event.key.toLowerCase();
+        
+        // Player score shortcuts (1-8)
+        const playerIndex = parseInt(key) - 1;
+        if (!isNaN(playerIndex) && playerIndex >= 0 && playerIndex < players.length) {
+            event.preventDefault();
+            onScoreChange(players[playerIndex].id, 1);
+            return;
+        }
+
+        // Other game shortcuts
+        switch (key) {
+            case ' ':
+                event.preventDefault();
+                handleSpinClick();
+                break;
+            case 'w':
+                event.preventDefault();
+                handleWhistleClick();
+                break;
+            case 'c':
+                event.preventDefault();
+                setIsCheatSheetModalOpen(true);
+                break;
+            case 'r':
+                event.preventDefault();
+                setIsResetConfirmOpen(true);
+                break;
+        }
+    };
+
+    document.addEventListener('keydown', handleKeyDown);
+
+    return () => {
+        document.removeEventListener('keydown', handleKeyDown);
+    };
+  }, [
+      players, 
+      onScoreChange, 
+      handleSpinClick, 
+      handleWhistleClick,
+      isResultModalOpen, 
+      isCheatSheetModalOpen, 
+      isRefereeModalOpen, 
+      isGameOver,
+      isResetConfirmOpen
+  ]);
 
   const handlePointerDown = (e: React.PointerEvent<HTMLDivElement>) => {
     if (isSpinning) return;
@@ -424,10 +496,33 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                 WHISTLE!
               </Button>
             </div>
-            <Button variant="ghost" onClick={handleReset} className="self-center">
-                <RefreshCw className="mr-2 h-4 w-4" />
-                New Game
-            </Button>
+            <div className="flex items-center justify-center gap-2">
+              <Button variant="ghost" onClick={() => setIsResetConfirmOpen(true)} className="self-center">
+                  <RefreshCw className="mr-2 h-4 w-4" />
+                  New Game
+              </Button>
+              <TooltipProvider>
+                  <Tooltip>
+                      <TooltipTrigger asChild>
+                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                              <Keyboard className="h-5 w-5" />
+                              <span className="sr-only">Show Keyboard Shortcuts</span>
+                          </Button>
+                      </TooltipTrigger>
+                      <TooltipContent align="center" className="p-4 w-64">
+                          <h4 className="font-bold mb-2 text-center">Keyboard Shortcuts</h4>
+                          <ul className="space-y-1 text-sm">
+                              <li className="flex justify-between"><span>+1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">1-8</span></li>
+                              <li className="flex justify-between"><span>Spin Wheel</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Space</span></li>
+                              <li className="flex justify-between"><span>Flip Sheet</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">C</span></li>
+                              <li className="flex justify-between"><span>Referee Whistle</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">W</span></li>
+                              <li className="flex justify-between"><span>New Game</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">R</span></li>
+                              <li className="flex justify-between"><span>Close Window</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Esc</span></li>
+                          </ul>
+                      </TooltipContent>
+                  </Tooltip>
+              </TooltipProvider>
+            </div>
         </div>
       </div>
 
@@ -467,6 +562,20 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         players={players}
         onPlayAgain={handleReset}
       />
+      <AlertDialog open={isResetConfirmOpen} onOpenChange={setIsResetConfirmOpen}>
+        <AlertDialogContent>
+            <AlertDialogHeader>
+                <AlertDialogTitle>Start a new game?</AlertDialogTitle>
+                <AlertDialogDescription>
+                    This will end the current game and reset all scores. This cannot be undone.
+                </AlertDialogDescription>
+            </AlertDialogHeader>
+            <AlertDialogFooter>
+                <AlertDialogCancel>Cancel</AlertDialogCancel>
+                <AlertDialogAction onClick={handleReset}>Yes, New Game</AlertDialogAction>
+            </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
        <AlertDialog open={isRefereeModalOpen} onOpenChange={setIsRefereeModalOpen}>
         <AlertDialogContent>
           <AlertDialogHeader>
