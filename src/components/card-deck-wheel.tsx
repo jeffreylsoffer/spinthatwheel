@@ -392,17 +392,24 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             return;
         }
         
-        const key = event.key.toLowerCase();
-        
         // Player score shortcuts (1-8)
-        const playerIndex = parseInt(event.key) - 1;
-        if (!isNaN(playerIndex) && playerIndex >= 0 && playerIndex < players.length) {
+        let digit: number | null = null;
+        if (event.code.startsWith('Digit')) {
+            digit = parseInt(event.code.substring(5));
+        } else if (event.code.startsWith('Numpad')) {
+            digit = parseInt(event.code.substring(6));
+        }
+
+        if (digit !== null && !isNaN(digit) && digit > 0 && digit <= players.length) {
+            const playerIndex = digit - 1;
             event.preventDefault();
             const delta = event.shiftKey ? -1 : 1;
             onScoreChange(players[playerIndex].id, delta);
             return;
         }
-
+        
+        const key = event.key.toLowerCase();
+        
         // Other game shortcuts
         switch (key) {
             case ' ':
