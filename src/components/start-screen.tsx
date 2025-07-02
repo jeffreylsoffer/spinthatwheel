@@ -4,7 +4,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, Minus } from 'lucide-react';
+import { Settings, Plus, Minus, PlayCircle } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogTrigger,
+} from "@/components/ui/dialog";
 
 export default function StartScreen({ onStartGame }: { onStartGame: (playerCount: number) => void }) {
   const [playerCount, setPlayerCount] = useState(3);
@@ -17,6 +22,28 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <p className="text-lg text-muted-foreground mt-2">
           Based on <a href="https://www.dropout.tv" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Dropout's</a> <i>Game Changer</i> episode <a href="https://www.dropout.tv/videos/rulette" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">"Rulette"</a>.
         </p>
+        <div className="mt-2">
+            <Dialog>
+                <DialogTrigger asChild>
+                    <Button variant="outline" size="sm">
+                        <PlayCircle className="mr-2 h-4 w-4" />
+                        Watch a Clip
+                    </Button>
+                </DialogTrigger>
+                <DialogContent className="sm:max-w-sm p-0 border-0 bg-transparent shadow-none">
+                    <div className="aspect-[9/16] w-full">
+                        <iframe 
+                            className="w-full h-full rounded-lg"
+                            src="https://www.youtube.com/embed/qwjJWTDqBPM" 
+                            title="YouTube video player" 
+                            frameBorder="0" 
+                            allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture; web-share" 
+                            allowFullScreen
+                        ></iframe>
+                    </div>
+                </DialogContent>
+            </Dialog>
+        </div>
       </div>
       
       <div className="w-full max-w-4xl grid md:grid-cols-2 gap-x-12 gap-y-8">
@@ -30,7 +57,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <div>
           <h3 className="font-headline text-3xl text-foreground">How to Score</h3>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
-            <li>Completing a <span className="font-bold text-foreground">PROMPT</span> successfully earns you <span className="font-bold text-foreground">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-foreground">-2 points</span>.</li>
+            <li>Completing a <span className="font-bold text-white">PROMPT</span> successfully earns you <span className="font-bold text-white">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-white">-2 points</span>.</li>
             <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
           </ul>
         </div>
