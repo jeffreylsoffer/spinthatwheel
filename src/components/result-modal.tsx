@@ -6,6 +6,7 @@ import {
   Dialog,
   DialogContent,
   DialogDescription,
+  DialogHeader,
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
@@ -41,18 +42,20 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
   const isFlipModifier = result.type === 'MODIFIER' && (result.data as Modifier).type === 'FLIP';
   
   const textColor = result.type === 'PROMPT' || result.type === 'RULE' ? 'black' : 'white';
-  const closeButtonColor = result.color.labelBg === '#FFFFFF' || result.color.labelBg === '#FFD262' ? 'text-black' : 'text-white';
+  const closeButtonColor = result.color.labelBg === '#FFFFFF' || result.color.labelBg === '#FFD262' || result.color.labelBg === '#D4D4D4' ? 'text-black' : 'text-white';
   
   const showDescriptionForRule = result.type === 'RULE' && result.data.description;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="bg-transparent border-none shadow-none p-0 data-[state=open]:animate-in data-[state=open]:zoom-in-75 w-[90vw] max-w-[640px]">
-        {/* Visually hidden Title and Description for screen readers, preventing console warnings */}
-        <DialogTitle className="sr-only">{`${result.label}: ${result.data.name}`}</DialogTitle>
-        <DialogDescription className="sr-only">
-          {result.data.description || 'Result from the wheel spin.'}
-        </DialogDescription>
+        <DialogHeader>
+            {/* Visually hidden Title and Description for screen readers, preventing console warnings */}
+            <DialogTitle className="sr-only">{`${result.label}: ${result.data.name}`}</DialogTitle>
+            <DialogDescription className="sr-only">
+              {result.data.description || 'Result from the wheel spin.'}
+            </DialogDescription>
+        </DialogHeader>
         
         <div className={cn("relative", isFlipModifier && "pb-16")}>
           <div 
