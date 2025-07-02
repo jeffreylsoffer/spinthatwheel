@@ -1,39 +1,52 @@
 
 "use client";
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 
 const CabaretBorder = () => {
-  // Define the desired spacing between bulbs in pixels
   const BULB_SPACING_PX = 30;
-
   const [bulbCounts, setBulbCounts] = useState({ h: 0, v: 0 });
+  const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
+    const container = containerRef.current;
+    if (!container) return;
+    
     const calculateBulbs = () => {
-      // Inset the area by a small amount to prevent scrollbars
-      const inset = 16; // 1rem
-      const hCount = Math.floor((window.innerWidth - inset * 2) / BULB_SPACING_PX);
-      const vCount = Math.floor((window.innerHeight - inset * 2) / BULB_SPACING_PX);
-      setBulbCounts({ h: hCount, v: vCount });
+      // Use the container's own dimensions. Since it's positioned with `inset-2`,
+      // its size will correctly reflect the available space inside the body border.
+      const hCount = Math.floor(container.clientWidth / BULB_SPACING_PX);
+      const vCount = Math.floor(container.clientHeight / BULB_SPACING_PX);
+
+      // Only update state if the counts have actually changed to prevent infinite loops
+      setBulbCounts(prevCounts => {
+        if (prevCounts.h !== hCount || prevCounts.v !== vCount) {
+          return { h: hCount, v: vCount };
+        }
+        return prevCounts;
+      });
     };
 
-    // Calculate on initial mount
+    // Use ResizeObserver to detect size changes of the body. This is more reliable
+    // for content-driven height changes than the window's resize event.
+    const resizeObserver = new ResizeObserver(calculateBulbs);
+    resizeObserver.observe(document.body);
+
+    // Initial calculation
     calculateBulbs();
 
-    // Recalculate on window resize
-    window.addEventListener('resize', calculateBulbs);
-
-    // Cleanup listener on component unmount
     return () => {
-      window.removeEventListener('resize', calculateBulbs);
+      resizeObserver.disconnect();
     };
-  }, []); // Empty dependency array ensures this effect runs only once on the client side
+  }, []); // Empty dependency array ensures this effect runs once on mount.
 
   const bulbs: React.ReactNode[] = [];
   const { h: hBulbs, v: vBulbs } = bulbCounts;
 
   if (hBulbs === 0 || vBulbs === 0) {
-    return null; // Don't render anything until counts are calculated
+    // Render the container div so the ref is always available for measurement.
+    return (
+      <div ref={containerRef} className="absolute inset-2 z-[-1] pointer-events-none" />
+    );
   }
   
   const bulbSpacingH = 100 / hBulbs;
@@ -60,7 +73,7 @@ const CabaretBorder = () => {
     bulbs.push(<div key={`l-${i}`} className="bulb" style={{ top: `${(i + 0.5) * bulbSpacingV}%`, left: '0%', animationDelay: `${(index++ / totalBulbs) * animDuration}s` }} />);
   }
 
-  return <div className="absolute inset-2 z-[-1] pointer-events-none">{bulbs}</div>;
+  return <div ref={containerRef} className="absolute inset-2 z-[-1] pointer-events-none">{bulbs}</div>;
 };
 
 export default CabaretBorder;
