@@ -71,9 +71,22 @@ export default function CmsForm({ initialData }: CmsFormProps) {
     }
     setIsGenerating(true);
     try {
+      // Sanitize potentially problematic rule examples before sending them to the AI
+      // This is to avoid triggering overzealous safety filters.
+      const sanitizedRules = regularRules.map(group => {
+        if (group.primary_rule.name === 'Sexily') {
+          return {
+            ...group,
+            primary_rule: { ...group.primary_rule, name: 'Excitedly', description: 'You must say everything with intense excitement.' },
+            flipped_rule: { ...group.flipped_rule, name: 'Unexcitedly', description: 'You must say everything in a bored, unexcited tone.' }
+          };
+        }
+        return group;
+      });
+
       const result: GenerateCardsOutput = await generateCards({
         theme: aiPrompt,
-        existingRules: regularRules,
+        existingRules: sanitizedRules,
         existingPrompts: prompts,
       });
       

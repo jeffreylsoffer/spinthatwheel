@@ -93,7 +93,7 @@ This is a game where players try to complete challenges (Prompts) while adhering
 5.  **Preserve IDs:** Do NOT change the 'id' fields. Use the original IDs from the provided examples.
 6.  **Be Practical:** Rules and prompts should be actions or speech patterns that a person can reasonably perform during a conversation.
 
-Here are the existing cards to use as a template. Use their structure, quantity, and IDs for your new themed content.
+Here are the existing cards to use as a template for structure, quantity, and IDs.
 
 **Existing Content Examples:**
 \`\`\`json
@@ -103,7 +103,7 @@ Here are the existing cards to use as a template. Use their structure, quantity,
 }
 \`\`\`
 
-Now, generate the new themed content. Your response MUST be a valid JSON object matching the output schema, containing both \`ruleGroups\` and \`prompts\` keys.
+Your response MUST be a valid JSON object that strictly adheres to the output schema. It must contain both \`ruleGroups\` and \`prompts\` keys inside a single JSON object. Do not add any text or explanation outside of the JSON.
 `,
 });
 
