@@ -25,7 +25,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
 
   const flippedRuleCardStyle = {
     backgroundColor: "black",
-    color: "#FFD262", // yellow
+    color: "#FFFFFF",
     border: `14px solid black`
   };
 

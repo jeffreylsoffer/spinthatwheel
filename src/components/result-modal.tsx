@@ -10,7 +10,7 @@ import {
   DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
-import type { WheelItem, Modifier } from "@/lib/types";
+import type { WheelItem, Modifier, Rule } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { RefreshCw, X, Timer, CheckCircle2, XCircle } from "lucide-react";
@@ -84,18 +84,19 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
   };
   
   const handleSetOutcome = (outcome: 'success' | 'fail') => {
+    setIsTimerRunning(false);
     setPromptOutcome(outcome);
   };
   
   const initialLabel = landedItem.label;
   const isFlipModifier = landedItem.type === 'MODIFIER' && (landedItem.data as Modifier).type === 'FLIP';
   
-  const textColor = landedItem.color.labelColor;
-  const closeButtonColor = landedItem.color.labelBg === '#FFFFFF' || landedItem.color.labelBg === '#FFD262' || landedItem.color.labelBg === '#D4D4D4' ? 'text-black' : 'text-white';
+  const closeButtonColor = landedItem.color.labelColor === '#1F2937' ? 'text-black' : 'text-white';
   
-  const showDescriptionForRule = landedItem.type === 'RULE' && landedItem.data.description;
+  const showDescriptionForRule = landedItem.type === 'RULE' && (landedItem.data as Rule).description;
+  const showDescriptionForModifier = landedItem.type === 'MODIFIER' && (landedItem.data as Modifier).description;
   const showTimerButton = isPrompt && timerSeconds && !isTimerRunning && !timerFinished && !promptOutcome;
-  const showSuccessFailButtons = isPrompt && (!timerSeconds || timerFinished) && !promptOutcome;
+  const showSuccessFailButtons = isPrompt && !promptOutcome && (!timerSeconds || isTimerRunning || timerFinished);
 
   const renderContent = () => {
     // Phase 1: Show initial label (e.g., "PROMPT")
@@ -161,6 +162,21 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
           </div>
         );
       case 'MODIFIER':
+        return (
+          <div className="animate-in fade-in">
+            <h2 className={cn(
+              "font-headline uppercase break-words",
+              showDescriptionForModifier ? "text-3xl sm:text-4xl md:text-6xl" : "text-4xl sm:text-5xl md:text-7xl"
+            )}>
+              {landedItem.data.name}
+            </h2>
+            {showDescriptionForModifier && (
+              <p className="text-sm sm:text-base md:text-xl mt-4 font-body normal-case max-w-lg mx-auto">
+                {landedItem.data.description}
+              </p>
+            )}
+          </div>
+        );
       case 'END':
         return (
           <h2 className="text-4xl sm:text-5xl md:text-7xl font-headline uppercase break-words animate-in fade-in">
@@ -191,7 +207,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
                 <X className={cn("h-8 w-8", closeButtonColor)} />
                 <span className="sr-only">Close</span>
             </DialogClose>
-            <div className="relative w-full h-full flex items-center justify-center" style={{color: textColor}}>
+            <div className="relative w-full h-full flex items-center justify-center" style={{color: landedItem.color.labelColor}}>
               {renderContent()}
             </div>
           </div>
