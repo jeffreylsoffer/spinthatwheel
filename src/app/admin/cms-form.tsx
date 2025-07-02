@@ -14,7 +14,7 @@ import { Input } from '@/components/ui/input';
 import { Label } from '@/components/ui/label';
 import { Textarea } from '@/components/ui/textarea';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
-import { Save, Trash2, PlusCircle, Wand2, Loader2, Info } from 'lucide-react';
+import { Save, Trash2, PlusCircle, Wand2, Loader2, Info, Settings } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
@@ -32,6 +32,7 @@ interface CmsFormProps {
     ruleGroups: RuleGroup[];
     prompts: Prompt[];
     modifiers: Modifier[];
+    buzzerCountdown: number;
   };
 }
 
@@ -39,6 +40,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
   const [rules, setRules] = useState(initialData.ruleGroups);
   const [prompts, setPrompts] = useState(initialData.prompts);
   const [modifiers, setModifiers] = useState(initialData.modifiers);
+  const [buzzerCountdown, setBuzzerCountdown] = useState(initialData.buzzerCountdown);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
@@ -171,6 +173,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       localStorage.setItem('cms_prompts', JSON.stringify(prompts));
       localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
       localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(isBuzzerRuleEnabled));
+      localStorage.setItem('cms_buzzer_countdown', JSON.stringify(buzzerCountdown));
       
       toast({
         title: "Changes Saved!",
@@ -227,6 +230,36 @@ export default function CmsForm({ initialData }: CmsFormProps) {
               </CardFooter>
             </Card>
           </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Accordion type="single" collapsible className="w-full">
+        <AccordionItem value="game-settings">
+            <AccordionTrigger className="text-2xl font-headline hover:no-underline">
+              <div className="flex items-center gap-2">
+                <Settings className="h-6 w-6" />
+                <span>Game Settings</span>
+              </div>
+            </AccordionTrigger>
+            <AccordionContent>
+                <Card className="border-0 shadow-none">
+                    <CardContent className="pt-6">
+                        <div className="space-y-2 max-w-sm">
+                            <Label htmlFor="buzzer-countdown">Buzzer Countdown (seconds)</Label>
+                            <Input
+                                id="buzzer-countdown"
+                                type="number"
+                                value={buzzerCountdown}
+                                onChange={(e) => setBuzzerCountdown(Number(e.target.value))}
+                                min="1"
+                            />
+                            <p className="text-sm text-muted-foreground">
+                                How long the countdown timer runs when the buzzer sounds.
+                            </p>
+                        </div>
+                    </CardContent>
+                </Card>
+            </AccordionContent>
         </AccordionItem>
       </Accordion>
       

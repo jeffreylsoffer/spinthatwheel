@@ -7,7 +7,7 @@ import ResultModal from './result-modal';
 import CheatSheetModal from './cheatsheet-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
-import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
+import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
@@ -15,6 +15,7 @@ import { RefreshCw, BookOpen, Siren } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
+import BuzzerModal from './buzzer-modal';
 import {
   AlertDialog,
   AlertDialogAction,
@@ -56,6 +57,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [spinDuration, setSpinDuration] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
   const [spinCycle, setSpinCycle] = useState(0);
+  const [isBuzzerModalOpen, setIsBuzzerModalOpen] = useState(false);
+  const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -84,12 +87,13 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const savedPromptsJSON = localStorage.getItem('cms_prompts');
     const savedModifiersJSON = localStorage.getItem('cms_modifiers');
     const savedIsBuzzerEnabledJSON = localStorage.getItem('cms_is_buzzer_enabled');
+    const savedBuzzerCountdownJSON = localStorage.getItem('cms_buzzer_countdown');
 
     let ruleGroups = savedRulesJSON ? JSON.parse(savedRulesJSON) : defaultRuleGroups;
     const prompts = savedPromptsJSON ? JSON.parse(savedPromptsJSON) : defaultPrompts;
     const modifiers = savedModifiersJSON ? JSON.parse(savedModifiersJSON) : defaultModifiers;
-    
     const isBuzzerEnabled = savedIsBuzzerEnabledJSON ? JSON.parse(savedIsBuzzerEnabledJSON) : true;
+    const buzzerCountdownValue = savedBuzzerCountdownJSON ? JSON.parse(savedBuzzerCountdownJSON) : defaultBuzzerCountdown;
     
     if (!isBuzzerEnabled) {
       ruleGroups = ruleGroups.filter((rg: any) => rg.primary_rule.special !== 'BUZZER');
@@ -100,6 +104,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       prompts: prompts,
       modifiers: modifiers,
     });
+    setBuzzerCountdown(buzzerCountdownValue);
   }, []);
 
   const initializeGame = useCallback(() => {
@@ -133,6 +138,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         const randomTime = (Math.random() * 45 + 15) * 1000; // 15-60 seconds
         buzzerTimerRef.current = setTimeout(() => {
           playSound('buzzer');
+          setIsBuzzerModalOpen(true);
           setRandomBuzzer();
         }, randomTime);
       };
@@ -183,10 +189,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     console.log('--- SPIN START ---');
     setIsSpinning(true);
     
-    const currentRotation = rotation;
     const revolutions = 5 + Math.random() * 5; // 5 to 10 revolutions
     const randomExtraAngle = Math.random() * 360;
-    const newRotation = currentRotation - (revolutions * 360) - randomExtraAngle;
+    const newRotation = rotation - (revolutions * 360) - randomExtraAngle;
 
     const duration = 5000 + Math.random() * 2000;
     setSpinDuration(duration);
@@ -303,23 +308,20 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
 
   const handleModalOpenChange = (open: boolean) => {
-    if (!open) {
-      if (result) {
-        if (result.evolution) {
-          setWheelItems(currentWheelItems => {
-            const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
-            if (indexToUpdate === -1) {
-              console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
-              return currentWheelItems;
-            }
-            const newWheelItems = [...currentWheelItems];
-            newWheelItems[indexToUpdate] = result.evolution!;
-            return newWheelItems;
-          });
-        }
-        // Crucially, clear the result *after* processing it to prevent StrictMode double-calls.
-        setResult(null);
+    if (!open && result) {
+      if (result.evolution) {
+        setWheelItems(currentWheelItems => {
+          const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
+          if (indexToUpdate === -1) {
+            console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
+            return currentWheelItems;
+          }
+          const newWheelItems = [...currentWheelItems];
+          newWheelItems[indexToUpdate] = result.evolution!;
+          return newWheelItems;
+        });
       }
+      setResult(null); // Clear result after processing to prevent re-triggering.
     }
     setIsResultModalOpen(open);
   };
@@ -438,6 +440,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         onOpenChange={setIsCheatSheetModalOpen}
         rules={activeRules}
         onFlipRule={handleFlipRule}
+      />
+      <BuzzerModal
+        isOpen={isBuzzerModalOpen}
+        onOpenChange={setIsBuzzerModalOpen}
+        countdownSeconds={buzzerCountdown}
       />
        <AlertDialog open={isRefereeModalOpen} onOpenChange={setIsRefereeModalOpen}>
         <AlertDialogContent>

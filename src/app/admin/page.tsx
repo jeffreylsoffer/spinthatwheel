@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, RefreshCcw } from 'lucide-react';
 import CmsForm from './cms-form';
-import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
+import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -24,7 +24,8 @@ export default function AdminPage() {
   const [initialData, setInitialData] = useState({ 
     ruleGroups: defaultRuleGroups, 
     prompts: defaultPrompts, 
-    modifiers: defaultModifiers 
+    modifiers: defaultModifiers,
+    buzzerCountdown: defaultBuzzerCountdown,
   });
   const [isLoading, setIsLoading] = useState(true);
 
@@ -32,11 +33,13 @@ export default function AdminPage() {
     const savedRules = localStorage.getItem('cms_rules');
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
+    const savedBuzzerCountdown = localStorage.getItem('cms_buzzer_countdown');
 
     setInitialData({
         ruleGroups: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
         prompts: savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts,
         modifiers: savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers,
+        buzzerCountdown: savedBuzzerCountdown ? JSON.parse(savedBuzzerCountdown) : defaultBuzzerCountdown,
     });
     
     setIsLoading(false);
@@ -47,6 +50,7 @@ export default function AdminPage() {
     localStorage.removeItem('cms_prompts');
     localStorage.removeItem('cms_modifiers');
     localStorage.removeItem('cms_is_buzzer_enabled');
+    localStorage.removeItem('cms_buzzer_countdown');
     window.location.reload();
   };
 

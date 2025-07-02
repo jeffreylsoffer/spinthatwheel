@@ -90,6 +90,8 @@ export const prompts: Prompt[] = [
   { id: 405, text: "Invent and define a new word." },
 ];
 
+export const defaultBuzzerCountdown = 20;
+
 export const modifiers: Modifier[] = [
   { id: 501, type: 'LEFT', name: "Left", description: "Take one of your active rules and pass it to the person on your left." },
   { id: 502, type: 'RIGHT', name: "Right", description: "Take one of your active rules and pass it to the person on your right." },
