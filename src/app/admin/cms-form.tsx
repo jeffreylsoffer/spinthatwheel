@@ -348,6 +348,84 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
           </AccordionContent>
         </AccordionItem>
 
+        {buzzerRule && buzzerRuleIndex !== -1 && (
+          <AccordionItem value="item-4">
+            <AccordionTrigger className="text-2xl font-headline text-accent">Special "Buzzer" Rule</AccordionTrigger>
+            <AccordionContent className="pt-4">
+               <Card className={cn("bg-card/50 border-2 border-accent shadow-accent/20 shadow-lg")}>
+                  <CardHeader>
+                    <div className="flex justify-between items-center">
+                      <div className="flex items-center gap-4">
+                        <Label htmlFor="buzzer-switch" className="text-lg font-medium">Enable Buzzer Rule</Label>
+                        <Switch
+                          id="buzzer-switch"
+                          checked={isBuzzerRuleEnabled}
+                          onCheckedChange={setIsBuzzerRuleEnabled}
+                        />
+                      </div>
+                      <TooltipProvider>
+                        <Tooltip>
+                          <TooltipTrigger asChild>
+                            <Info className="h-5 w-5 text-muted-foreground" />
+                          </TooltipTrigger>
+                          <TooltipContent>
+                            <p className="max-w-xs">When enabled, a buzzer will sound randomly during the game. The player who has this rule active must perform the action on the card.</p>
+                          </TooltipContent>
+                        </Tooltip>
+                      </TooltipProvider>
+                    </div>
+                  </CardHeader>
+                  <CardContent className={cn("space-y-6 transition-opacity", !isBuzzerRuleEnabled && "opacity-50")}>
+                    <div className="space-y-4 p-4 border rounded-md">
+                      <h4 className="font-bold text-lg">Rule</h4>
+                      <div className="space-y-2">
+                        <Label htmlFor={`rule-${buzzerRule.id}-primary-name`}>Name</Label>
+                        <Input
+                          id={`rule-${buzzerRule.id}-primary-name`}
+                          value={buzzerRule.primary_rule.name}
+                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'primary', 'name', e.target.value)}
+                          disabled={!isBuzzerRuleEnabled}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`rule-${buzzerRule.id}-primary-desc`}>Description</Label>
+                        <Textarea
+                          id={`rule-${buzzerRule.id}-primary-desc`}
+                          value={buzzerRule.primary_rule.description}
+                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'primary', 'description', e.target.value)}
+                          rows={2}
+                          disabled={!isBuzzerRuleEnabled}
+                        />
+                      </div>
+                    </div>
+                    <div className="space-y-4 p-4 border rounded-md bg-black/20">
+                      <h4 className="font-bold text-lg">Flipped Rule</h4>
+                      <div className="space-y-2">
+                        <Label htmlFor={`rule-${buzzerRule.id}-flipped-name`}>Name</Label>
+                        <Input
+                          id={`rule-${buzzerRule.id}-flipped-name`}
+                          value={buzzerRule.flipped_rule.name}
+                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'flipped', 'name', e.target.value)}
+                           disabled={!isBuzzerRuleEnabled}
+                        />
+                      </div>
+                      <div className="space-y-2">
+                        <Label htmlFor={`rule-${buzzerRule.id}-flipped-desc`}>Description</Label>
+                        <Textarea
+                          id={`rule-${buzzerRule.id}-flipped-desc`}
+                          value={buzzerRule.flipped_rule.description}
+                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'flipped', 'description', e.target.value)}
+                          rows={2}
+                           disabled={!isBuzzerRuleEnabled}
+                        />
+                      </div>
+                    </div>
+                  </CardContent>
+                </Card>
+            </AccordionContent>
+          </AccordionItem>
+        )}
+
         <AccordionItem value="item-2">
           <AccordionTrigger className="text-2xl font-headline">Prompts ({prompts.length})</AccordionTrigger>
           <AccordionContent className="pt-4">
@@ -414,83 +492,6 @@ export default function CmsForm({ initialData, initialRatios }: CmsFormProps) {
           </AccordionContent>
         </AccordionItem>
 
-        {buzzerRule && buzzerRuleIndex !== -1 && (
-          <AccordionItem value="item-4">
-            <AccordionTrigger className="text-2xl font-headline text-accent">Special "Buzzer" Rule</AccordionTrigger>
-            <AccordionContent className="pt-4">
-               <Card className={cn("bg-card/50 border-2 border-accent shadow-accent/20 shadow-lg")}>
-                  <CardHeader>
-                    <div className="flex justify-between items-center">
-                      <div className="flex items-center gap-4">
-                        <Label htmlFor="buzzer-switch" className="text-lg font-medium">Enable Buzzer Rule</Label>
-                        <Switch
-                          id="buzzer-switch"
-                          checked={isBuzzerRuleEnabled}
-                          onCheckedChange={setIsBuzzerRuleEnabled}
-                        />
-                      </div>
-                      <TooltipProvider>
-                        <Tooltip>
-                          <TooltipTrigger asChild>
-                            <Info className="h-5 w-5 text-muted-foreground" />
-                          </TooltipTrigger>
-                          <TooltipContent>
-                            <p className="max-w-xs">When enabled, a buzzer will sound randomly during the game. The player who last spun the wheel must perform the action on the card.</p>
-                          </TooltipContent>
-                        </Tooltip>
-                      </TooltipProvider>
-                    </div>
-                  </CardHeader>
-                  <CardContent className={cn("space-y-6 transition-opacity", !isBuzzerRuleEnabled && "opacity-50")}>
-                    <div className="space-y-4 p-4 border rounded-md">
-                      <h4 className="font-bold text-lg">Rule</h4>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${buzzerRule.id}-primary-name`}>Name</Label>
-                        <Input
-                          id={`rule-${buzzerRule.id}-primary-name`}
-                          value={buzzerRule.primary_rule.name}
-                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'primary', 'name', e.target.value)}
-                          disabled={!isBuzzerRuleEnabled}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${buzzerRule.id}-primary-desc`}>Description</Label>
-                        <Textarea
-                          id={`rule-${buzzerRule.id}-primary-desc`}
-                          value={buzzerRule.primary_rule.description}
-                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'primary', 'description', e.target.value)}
-                          rows={2}
-                          disabled={!isBuzzerRuleEnabled}
-                        />
-                      </div>
-                    </div>
-                    <div className="space-y-4 p-4 border rounded-md bg-black/20">
-                      <h4 className="font-bold text-lg">Flipped Rule</h4>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${buzzerRule.id}-flipped-name`}>Name</Label>
-                        <Input
-                          id={`rule-${buzzerRule.id}-flipped-name`}
-                          value={buzzerRule.flipped_rule.name}
-                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'flipped', 'name', e.target.value)}
-                           disabled={!isBuzzerRuleEnabled}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${buzzerRule.id}-flipped-desc`}>Description</Label>
-                        <Textarea
-                          id={`rule-${buzzerRule.id}-flipped-desc`}
-                          value={buzzerRule.flipped_rule.description}
-                          onChange={(e) => handleRuleChange(buzzerRuleIndex, 'flipped', 'description', e.target.value)}
-                          rows={2}
-                           disabled={!isBuzzerRuleEnabled}
-                        />
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-            </AccordionContent>
-          </AccordionItem>
-        )}
       </Accordion>
 
       <div className="flex justify-end pt-8">
