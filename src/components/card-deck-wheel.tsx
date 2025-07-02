@@ -69,6 +69,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [spinDuration, setSpinDuration] = useState(0);
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
+  const [evolutionDeck, setEvolutionDeck] = useState<(Prompt | Modifier)[]>([]);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -139,6 +140,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const rules = createSessionDeck(gameData.rules);
     const items = populateWheel(rules);
     
+    // Create and shuffle a deck of evolution cards
+    const promptsAndModifiers = [...gameData.prompts, ...gameData.modifiers];
+    setEvolutionDeck(shuffle(promptsAndModifiers));
+
     setSessionRules(rules);
     setWheelItems(items);
     setRotation(0);
@@ -285,22 +290,50 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
     let evolution: WheelItem | null = null;
     if (itemThatWon.type === 'RULE') {
-      const rand = Math.random();
-      if (rand < 0.5 && gameData.prompts.length > 0) {
-          const prompt = shuffle([...gameData.prompts])[0];
+      let evolutionCard: Prompt | Modifier | undefined;
+
+      // Pop a card from the shuffled evolution deck
+      if (evolutionDeck.length > 0) {
+        evolutionCard = evolutionDeck[0];
+        setEvolutionDeck(prevDeck => prevDeck.slice(1));
+      } else {
+        // If the deck is empty, default to a Flip modifier.
+        evolutionCard = gameData.modifiers.find(m => m.type === 'FLIP');
+      }
+
+      if (evolutionCard) {
+        // Check if the card is a Prompt (has a 'text' property)
+        if ('text' in evolutionCard) {
+          const prompt = evolutionCard as Prompt;
           evolution = {
-              id: `prompt-evolved-${prompt.id}-${itemThatWon.id}`,
-              type: 'PROMPT', label: 'Prompt', data: prompt,
-              color: { segment: itemThatWon.color.segment, ...CARD_STYLES.PROMPT }
+            id: `prompt-evolved-${prompt.id}-${itemThatWon.id}`,
+            type: 'PROMPT',
+            label: 'Prompt',
+            data: prompt,
+            color: { segment: itemThatWon.color.segment, ...CARD_STYLES.PROMPT },
           };
-      } else if (gameData.modifiers.length > 0) {
-          const modifier = shuffle([...gameData.modifiers])[0];
+        } else { // Otherwise, it's a Modifier
+          const modifier = evolutionCard as Modifier;
           const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
           evolution = {
-              id: `modifier-evolved-${modifier.id}-${itemThatWon.id}`,
-              type: 'MODIFIER', label: 'Modifier', data: modifier,
-              color: { segment: itemThatWon.color.segment, labelBg: modifierStyle.bg, labelColor: modifierStyle.text }
+            id: `modifier-evolved-${modifier.id}-${itemThatWon.id}`,
+            type: 'MODIFIER',
+            label: 'Modifier',
+            data: modifier,
+            color: {
+              segment: itemThatWon.color.segment,
+              labelBg: modifierStyle.bg,
+              labelColor: modifierStyle.text,
+            },
           };
+        }
+      } else {
+        // Fallback: If no Flip modifier is defined, evolve to END.
+        evolution = {
+          id: `used-${itemThatWon.id}`, type: 'END', label: 'END',
+          data: { name: 'END', description: 'This slot has been used.' },
+          color: { segment: CARD_STYLES.END.labelBg, ...CARD_STYLES.END }
+        };
       }
     } else if (itemThatWon.type === 'PROMPT' || itemThatWon.type === 'MODIFIER') {
       evolution = {
@@ -312,7 +345,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     
     setResult({ landed: itemThatWon, evolution });
     setIsResultModalOpen(true);
-  }, [wheelItems, activeRules.length, gameData.prompts, gameData.modifiers]);
+  }, [wheelItems, activeRules.length, gameData, evolutionDeck]);
 
   const handleSpinClick = useCallback(() => {
     if (isSpinning || wheelItems.length === 0) return;

@@ -84,7 +84,7 @@ export const ruleGroups: RuleGroup[] = [
 
 export const prompts: Prompt[] = [
   { id: 401, text: "Name 5 character actors in 30 seconds." },
-  { id: 402, text: "Name 10 types of cheese." },
+  { id: 402, text: "Name 10 types of cheese in 60 seconds." },
   { id: 403, text: "Explain photosynthesis." },
   { id: 404, text: "Recite a famous movie quote." },
   { id: 405, text: "Invent and define a new word." },
@@ -99,6 +99,4 @@ export const modifiers: Modifier[] = [
   { id: 503, type: 'FLIP', name: "Flip", description: "Choose one of your active rules to flip to its alternate version." },
   { id: 504, type: 'CLONE', name: "Clone", description: "Clone one of your rules and give the copy to another player." },
   { id: 505, type: 'SWAP', name: "Swap", description: "Swap any rule with another player's rule." },
-  { id: 506, type: 'FLIP', name: "Flip", description: "Choose one of your active rules to flip to its alternate version." },
-  { id: 507, type: 'FLIP', name: "Flip", description: "Choose one of your active rules to flip to its alternate version." },
 ];
