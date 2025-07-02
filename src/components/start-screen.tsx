@@ -8,7 +8,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Settings, Plus, Minus } from 'lucide-react';
 
 export default function StartScreen({ onStartGame }: { onStartGame: (playerCount: number) => void }) {
-  const [playerCount, setPlayerCount] = useState(2);
+  const [playerCount, setPlayerCount] = useState(3);
 
   return (
     <div className="relative min-h-screen flex items-center justify-center p-4">
@@ -16,7 +16,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-5xl lg:text-6xl tracking-wider text-card-foreground">SPIN THAT WHEEL</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            Based on <a href="https://www.dropout.tv" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Dropout's Game Changer</a> episode <a href="https://www.dropout.tv/videos/rulette" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">"Rulette"</a>.
+            Based on <a href="https://www.dropout.tv" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Dropout's</a> Game Changer episode <a href="https://www.dropout.tv/videos/rulette" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">"Rulette"</a>.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 items-center">
@@ -25,8 +25,8 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
             <div>
               <h3 className="font-headline text-3xl text-card-foreground">What You'll Need</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-                <li><span className="font-bold text-card-foreground">Sticky Notes:</span> Write down rules and stick them on each player's chest.</li>
-                <li><span className="font-bold text-card-foreground">A Referee:</span> To take notes and call out players who don't follow their rules.</li>
+                <li><span className="font-bold text-card-foreground">Sticky Notes:</span> When a player gets a rule, write it on a sticky note and put it on their chest. A dedicated person can do this, or players can write their own.</li>
+                <li><span className="font-bold text-card-foreground">A Referee:</span> To keep score and call out players who don't follow their rules.</li>
               </ul>
             </div>
             <div>
