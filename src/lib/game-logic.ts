@@ -4,26 +4,31 @@ import type { SessionRule, WheelItem, Rule, Prompt, Modifier, WheelItemStyle, Ru
 // Palette for the background segments of the wheel
 export const SEGMENT_COLORS = [
   '#FFD262', // Yellow
-  '#87EAF2', // Light Teal
+  '#45B0C9', // Light Blue/Teal
   '#C8BFE7', // Lavender
-  '#EE6352', // Red-Orange
+  '#EE6352', // Red
+  '#F4A36B', // Orange
 ];
 
 // Palettes for the cards that sit inside the segments
 export const RULE_CARD_COLORS = [
-  { bg: '#F5A623', text: '#1F2937' }, // Orange with dark text
-  { bg: '#6CD4FF', text: '#1F2937' }, // Light Blue with dark text
+  { bg: '#FFD262', text: '#1F2937' }, // Yellow with dark text
+  { bg: '#45B0C9', text: '#FFFFFF' }, // Teal with white text
+  { bg: '#C8BFE7', text: '#1F2937' }, // Lavender with dark text
+  { bg: '#EE6352', text: '#FFFFFF' }, // Red with white text
+  { bg: '#F4A36B', text: '#1F2937' }, // Orange with dark text
 ];
 
+// As requested: Lavender, Red, or Teal with white text
 export const MODIFIER_CARD_COLORS = [
-  { bg: '#B19CD9', text: '#FFFFFF' }, // Lavender with white text
-  { bg: '#FF5349', text: '#FFFFFF' }, // Red-Orange with white text
-  { bg: '#4DB6AC', text: '#FFFFFF' }, // Teal with white text
+  { bg: '#C8BFE7', text: '#FFFFFF' }, // Lavender
+  { bg: '#EE6352', text: '#FFFFFF' }, // Red
+  { bg: '#45B0C9', text: '#FFFFFF' }, // Teal
 ];
 
 // Color palette for special cards
 export const CARD_STYLES: Record<'PROMPT' | 'END', Omit<WheelItemStyle, 'segment'>> = {
-  PROMPT:   { labelBg: '#FFFFFF', labelColor: '#1F2937' },   // White card
+  PROMPT:   { labelBg: '#F8F8F8', labelColor: '#1F2937' },   // White card
   END:      { labelBg: '#111827', labelColor: '#F9FAFB' },   // Black card
 };
 
@@ -55,8 +60,6 @@ function shuffle<T>(array: T[]): T[] {
 export function populateWheel(
   sessionRules: SessionRule[]
 ): WheelItem[] {
-  const rawWheel: Omit<WheelItem, 'color'>[] = [];
-
   // The wheel will contain one slot for each rule group
   const availableRules = sessionRules.map(r => r.primary);
   const shuffledRules = shuffle([...availableRules]);
@@ -68,7 +71,12 @@ export function populateWheel(
   return shuffledRules.map((rule, index) => {
     // Cycle through the shuffled color palettes
     const segmentColor = shuffledSegmentColors[index % shuffledSegmentColors.length];
-    const cardStyle = shuffledRuleCardColors[index % shuffledRuleCardColors.length];
+    let cardStyle = shuffledRuleCardColors[index % shuffledRuleCardColors.length];
+
+    // Ensure the card and segment have different colors
+    if (cardStyle.bg === segmentColor) {
+      cardStyle = shuffledRuleCardColors[(index + 1) % shuffledRuleCardColors.length];
+    }
     
     return {
       id: `rule-initial-${rule.id}`, // Unique ID for initial state
