@@ -1,3 +1,4 @@
+
 "use client"
 
 // Inspired by react-hot-toast library
@@ -152,14 +153,17 @@ function toast({ ...props }: Toast) {
     })
   const dismiss = () => dispatch({ type: "DISMISS_TOAST", toastId: id })
 
+  const { onOpenChange, ...rest } = props;
+
   dispatch({
     type: "ADD_TOAST",
     toast: {
-      ...props,
+      ...rest,
       id,
       open: true,
       onOpenChange: (open) => {
-        if (!open) dismiss()
+        if (!open) dismiss();
+        onOpenChange?.(open);
       },
     },
   })

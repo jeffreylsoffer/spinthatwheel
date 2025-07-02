@@ -5,6 +5,7 @@ import { useState, useEffect, useCallback, useRef } from 'react';
 import Wheel from './wheel';
 import ResultModal from './result-modal';
 import CheatSheetModal from './cheatsheet-modal';
+import GameOverModal from './game-over-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
@@ -56,9 +57,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [isRefereeModalOpen, setIsRefereeModalOpen] = useState(false);
+  const [isGameOver, setIsGameOver] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
-  const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
-  const [spinCycle, setSpinCycle] = useState(0);
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
 
   const [gameData, setGameData] = useState({
@@ -71,11 +71,12 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resultProcessed = useRef(false);
+  const buzzerAudioRef = useRef<HTMLAudioElement | null>(null);
   
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
-  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'buzzer' | 'tick' | 'whistle') => {
+  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'tick' | 'whistle') => {
     // This function plays a sound effect.
     // It expects to find the corresponding .mp3 file in the `public/audio/` directory.
     // For example, calling playSound('rule') will attempt to play `/audio/rule.mp3`.
@@ -83,6 +84,22 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const audio = new Audio(`/audio/${sound}.mp3`);
     audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3. Make sure the file exists in public/audio/.`, e));
   };
+
+  const playBuzzer = useCallback(() => {
+    if (buzzerAudioRef.current) return; // Already playing
+    const audio = new Audio(`/audio/buzzer.mp3`);
+    audio.loop = true;
+    audio.play().catch(e => console.error("Could not play buzzer sound.", e));
+    buzzerAudioRef.current = audio;
+  }, []);
+
+  const stopBuzzer = useCallback(() => {
+      if (buzzerAudioRef.current) {
+          buzzerAudioRef.current.pause();
+          buzzerAudioRef.current.currentTime = 0;
+          buzzerAudioRef.current = null;
+      }
+  }, []);
 
   useEffect(() => {
     const savedRulesJSON = localStorage.getItem('cms_rules');
@@ -119,40 +136,28 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setIsSpinning(false);
     setResult(null);
     setActiveRules([]);
+    setIsGameOver(false);
   }, [gameData]);
 
   useEffect(() => {
     initializeGame();
   }, [initializeGame]);
   
-  useEffect(() => {
-    const hasBuzzerRule = activeRules.some(sessionRule => {
-        const currentRule = sessionRule.isFlipped ? sessionRule.flipped : sessionRule.primary;
-        return currentRule.special === 'BUZZER';
-    });
-    setIsBuzzerRuleActive(hasBuzzerRule);
-  }, [activeRules]);
-  
   // This effect handles processing the result after the modal closes.
   // It also now handles triggering the buzzer toast.
   useEffect(() => {
     if (result && !isResultModalOpen && !resultProcessed.current) {
-        console.log('--- MODAL CLOSE & PROCESSING ---');
         resultProcessed.current = true; // Mark as processed
-        console.log('Result item being processed:', {id: result.landed.id, type: result.landed.type, label: result.landed.label});
 
         if (result.evolution) {
-            console.log('Wheel items BEFORE update:', wheelItems.map(i => i.id));
             setWheelItems(currentWheelItems => {
                 const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
                 if (indexToUpdate === -1) {
                     console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
                     return currentWheelItems;
                 }
-                console.log('Found item to update at index:', indexToUpdate);
                 const newWheelItems = [...currentWheelItems];
                 newWheelItems[indexToUpdate] = result.evolution;
-                console.log('Wheel items AFTER update:', newWheelItems.map(i => i.id));
                 return newWheelItems;
             });
         }
@@ -166,20 +171,31 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             }
         }
         
-        // --- NEW BUZZER LOGIC ---
+        // --- BUZZER LOGIC ---
         // After a turn, there is a chance for the buzzer to go off.
         const buzzerRule = activeRules.find(r => (r.isFlipped ? r.flipped : r.primary).special === 'BUZZER');
         if (buzzerRule && Math.random() < 0.33) {
             const delay = Math.random() * 2000 + 2000; // 2-4 second delay
             setTimeout(() => {
-                playSound('buzzer');
+                const soundTimeoutId = setTimeout(playBuzzer, buzzerCountdown * 1000);
+
+                const stopAndClear = () => {
+                    clearTimeout(soundTimeoutId);
+                    stopBuzzer();
+                };
+
                 const ruleData = buzzerRule.isFlipped ? buzzerRule.flipped : buzzerRule.primary;
                 toast({
-                    duration: buzzerCountdown * 1000 + 500,
+                    duration: buzzerCountdown * 1000 + 1000, // Give a little extra time
+                    onOpenChange: (open) => {
+                        if (!open) {
+                            stopAndClear();
+                        }
+                    },
                     className: "w-full max-w-md p-0 border-accent shadow-lg shadow-accent/20 bg-card",
                     description: <BuzzerToast rule={ruleData} countdownSeconds={buzzerCountdown} />,
                     action: (
-                        <ToastAction altText="Acknowledge" className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border-0">
+                        <ToastAction altText="Acknowledge" onClick={stopAndClear} className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border-0">
                            <Check className="h-6 w-6" />
                         </ToastAction>
                     ),
@@ -190,9 +206,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         // IMPORTANT: Clear the result so this effect doesn't run again with the same data
         setResult(null);
     }
-  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, wheelItems]);
-
-
+  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, wheelItems, playBuzzer, stopBuzzer]);
 
   const handleFlipRule = (ruleId: number) => {
     const ruleToFlip = sessionRules.find(r => r.id === ruleId);
@@ -225,14 +239,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const handleSpinClick = () => {
     if (isSpinning || wheelItems.length === 0) return;
 
-    console.log('--- SPIN START ---');
     resultProcessed.current = false; // Reset processed flag for the next result
     setIsSpinning(true);
 
-    const segmentAngle = 360 / wheelItems.length;
-
-    // --- NEW: Spin randomly and determine winner from the result ---
-    const currentAngle = rotation % 360;
     const revolutions = (5 + Math.random() * 5) * 360;
     const randomExtraAngle = Math.random() * 360;
     
@@ -270,13 +279,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
   
   const handleSpinEnd = (finalRotation: number) => {
-    console.log('--- SPIN END ---');
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
       tickTimeoutRef.current = null;
     }
 
-    setSpinCycle(c => c + 1);
     setIsSpinning(false);
 
     const segmentAngle = 360 / wheelItems.length;
@@ -285,24 +292,29 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     let winningIndex = Math.floor(effectiveAngle / segmentAngle);
 
     let itemThatWon = wheelItems[winningIndex];
+    
+    // Handle game over condition immediately
+    if (itemThatWon.type === 'END') {
+        playSound('end');
+        setIsGameOver(true);
+        return; // Stop processing
+    }
 
     const isFirstSpin = activeRules.length === 0;
-    const isInvalidLanding = itemThatWon.type === 'END' || (isFirstSpin && itemThatWon.type === 'MODIFIER');
-    
-    if (isInvalidLanding) {
-        let newIndex = winningIndex;
+
+    // Handle invalid modifier on first spin
+    if (isFirstSpin && itemThatWon.type === 'MODIFIER') {
+        // Find the next non-modifier, non-end slot
         for (let i = 1; i < wheelItems.length; i++) {
-            newIndex = (winningIndex + i) % wheelItems.length;
+            let newIndex = (winningIndex + i) % wheelItems.length;
             const potentialWinner = wheelItems[newIndex];
-            const isPotentialWinnerInvalid = potentialWinner.type === 'END' || (isFirstSpin && potentialWinner.type === 'MODIFIER');
-            if (!isPotentialWinnerInvalid) {
+            if (potentialWinner.type !== 'MODIFIER' && potentialWinner.type !== 'END') {
                 itemThatWon = potentialWinner;
                 break;
             }
         }
     }
     
-    console.log('Landed on:', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
     playSound((itemThatWon.type.toLowerCase() as any) || 'end');
 
     let evolution: WheelItem | null = null;
@@ -341,6 +353,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         clearTimeout(tickTimeoutRef.current);
         tickTimeoutRef.current = null;
     }
+    stopBuzzer();
     onResetGame();
   }
 
@@ -430,7 +443,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           onPointerCancel={handlePointerCancel}
         >
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} spinDuration={spinDuration} segmentHeight={segmentHeight} />
-          <WheelPointer key={spinCycle} />
+          <WheelPointer />
         </div>
       </div>
 
@@ -448,6 +461,12 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         onOpenChange={setIsCheatSheetModalOpen}
         rules={activeRules}
         onFlipRule={handleFlipRule}
+      />
+      <GameOverModal
+        isOpen={isGameOver}
+        onOpenChange={setIsGameOver}
+        players={players}
+        onPlayAgain={handleReset}
       />
        <AlertDialog open={isRefereeModalOpen} onOpenChange={setIsRefereeModalOpen}>
         <AlertDialogContent>

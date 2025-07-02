@@ -47,13 +47,13 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule }: CheatSheet
           ) : (
             rules.map((rule) => {
               const ruleCardStyle = {
-                backgroundColor: rule.color?.labelBg || '#FFD262', // Default to yellow if color somehow missing
+                backgroundColor: rule.color?.labelBg || '#CCAA4F', // Default to yellow if color somehow missing
                 color: rule.color?.labelColor || '#1F2937',
                 border: `14px solid black`
               };
 
               return (
-                <div key={rule.id} className="h-48 [perspective:1000px]">
+                <div key={rule.id} className="w-full aspect-video [perspective:1000px]">
                   <div
                     className={cn(
                       "relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d]",
