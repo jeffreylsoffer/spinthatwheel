@@ -232,8 +232,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     // This function will play ticks that get slower over time, mimicking the wheel.
     const scheduleTicks = () => {
       let elapsed = 0;
-      const minDelay = 60; // Fastest ticks
-      const maxDelay = 500; // Slowest ticks at the end
+      const minDelay = 20; // Fastest ticks
+      const maxDelay = 250; // Slowest ticks at the end
 
       function tick() {
         // Stop if the spin is over

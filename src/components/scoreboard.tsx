@@ -40,7 +40,7 @@ const Scoreboard = ({ players, onScoreChange, onNameChange }: ScoreboardProps) =
   return (
     <Card className="w-full">
       <CardHeader className="p-2 sm:p-4">
-        <CardTitle className="font-headline text-xl sm:text-2xl">Scoreboard</CardTitle>
+        <CardTitle className="font-headline text-xl sm:text-2xl">SCOREBOARD</CardTitle>
       </CardHeader>
       <CardContent className="flex flex-col gap-2 p-2 sm:p-4 pt-0">
         {players.map((player) => {
