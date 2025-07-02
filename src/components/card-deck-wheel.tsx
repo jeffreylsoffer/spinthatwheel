@@ -369,13 +369,20 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const handleWhistleClick = useCallback(() => {
     playSound('whistle');
     setIsRefereeModalOpen(true);
-  }, []);
+  }, [playSound]);
 
   // Keyboard Shortcuts
   useEffect(() => {
     const handleKeyDown = (event: KeyboardEvent) => {
         // Do not trigger shortcuts if a modal is open
         if (isResultModalOpen || isCheatSheetModalOpen || isRefereeModalOpen || isGameOver || isResetConfirmOpen) {
+             if (event.key.toLowerCase() === 'escape') {
+                setIsResultModalOpen(false);
+                setIsCheatSheetModalOpen(false);
+                setIsRefereeModalOpen(false);
+                setIsGameOver(false);
+                setIsResetConfirmOpen(false);
+            }
             return;
         }
 
@@ -388,10 +395,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         const key = event.key.toLowerCase();
         
         // Player score shortcuts (1-8)
-        const playerIndex = parseInt(key) - 1;
+        const playerIndex = parseInt(event.key) - 1;
         if (!isNaN(playerIndex) && playerIndex >= 0 && playerIndex < players.length) {
             event.preventDefault();
-            onScoreChange(players[playerIndex].id, 1);
+            const delta = event.shiftKey ? -1 : 1;
+            onScoreChange(players[playerIndex].id, delta);
             return;
         }
 
@@ -512,7 +520,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                       <TooltipContent align="center" className="p-4 w-64">
                           <h4 className="font-bold mb-2 text-center">Keyboard Shortcuts</h4>
                           <ul className="space-y-1 text-sm">
-                              <li className="flex justify-between"><span>+1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">1-8</span></li>
+                              <li className="flex justify-between"><span>Add 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">1-8</span></li>
+                              <li className="flex justify-between"><span>Remove 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Shift + 1-8</span></li>
                               <li className="flex justify-between"><span>Spin Wheel</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Space</span></li>
                               <li className="flex justify-between"><span>Flip Sheet</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">C</span></li>
                               <li className="flex justify-between"><span>Referee Whistle</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">W</span></li>
