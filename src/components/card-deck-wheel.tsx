@@ -177,16 +177,15 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         if (buzzerRule && Math.random() < 0.33) {
             const delay = Math.random() * 2000 + 2000; // 2-4 second delay
             setTimeout(() => {
-                const soundTimeoutId = setTimeout(playBuzzer, buzzerCountdown * 1000);
+                playBuzzer(); // Start sound immediately when toast appears
 
                 const stopAndClear = () => {
-                    clearTimeout(soundTimeoutId);
                     stopBuzzer();
                 };
 
                 const ruleData = buzzerRule.isFlipped ? buzzerRule.flipped : buzzerRule.primary;
                 toast({
-                    duration: buzzerCountdown * 1000 + 1000, // Give a little extra time
+                    duration: buzzerCountdown * 1000,
                     onOpenChange: (open) => {
                         if (!open) {
                             stopAndClear();
