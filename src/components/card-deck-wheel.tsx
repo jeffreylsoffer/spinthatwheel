@@ -8,7 +8,7 @@ import CheatSheetModal from './cheatsheet-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers } from '@/lib/data';
-import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_COLORS, SEGMENT_COLORS } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen, Siren } from 'lucide-react';
@@ -109,7 +109,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     
     setSessionRules(rules);
     setWheelItems(items);
-    setAvailableItems(items.filter(i => i.type !== 'END')); // Can't land on END
     setRotation(0);
     setIsSpinning(false);
     setResult(null);
@@ -119,6 +118,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   useEffect(() => {
     initializeGame();
   }, [initializeGame]);
+  
+  // This effect ensures `availableItems` is always in sync with `wheelItems`
+  useEffect(() => {
+    setAvailableItems(wheelItems.filter(item => item.type !== 'END'));
+  }, [wheelItems]);
   
   useEffect(() => {
     const hasBuzzerRule = activeRules.some(sessionRule => {
@@ -177,7 +181,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     };
     
     setWheelItems(prevItems => prevItems.map(updateItem));
-    setAvailableItems(prevAvailable => prevAvailable.map(updateItem));
   };
 
   const handleSpinClick = (velocity: number) => {
@@ -344,15 +347,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         if (evolvedItem) {
           const newWheelItems = [...currentWheelItems];
           newWheelItems[indexToUpdate] = evolvedItem;
-
-          setAvailableItems(prev => {
-              const afterRemoval = prev.filter(i => i.id !== landedItem.id);
-              if (evolvedItem && evolvedItem.type !== 'END') {
-                  return [...afterRemoval, evolvedItem];
-              }
-              return afterRemoval;
-          });
-
           return newWheelItems;
         }
 
@@ -491,3 +485,5 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
+
+    
