@@ -18,6 +18,7 @@ import { Save, Trash2, PlusCircle, Wand2, Loader2, Info } from 'lucide-react';
 import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
+import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts } from '@/lib/data';
 import { Switch } from '@/components/ui/switch';
 import {
   Tooltip,
@@ -71,9 +72,12 @@ export default function CmsForm({ initialData }: CmsFormProps) {
     }
     setIsGenerating(true);
     try {
+      // ALWAYS use the hardcoded default rules as the template, not the current state.
+      const defaultRegularRules = defaultRuleGroups.filter(r => r.primary_rule.special !== 'BUZZER');
+
       // Sanitize potentially problematic rule examples before sending them to the AI
       // This is to avoid triggering overzealous safety filters.
-      const sanitizedRules = regularRules.map(group => {
+      const sanitizedRules = defaultRegularRules.map(group => {
         if (group.primary_rule.name === 'Sexily') {
           return {
             ...group,
@@ -87,7 +91,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       const result: GenerateCardsOutput = await generateCards({
         theme: aiPrompt,
         existingRules: sanitizedRules,
-        existingPrompts: prompts,
+        existingPrompts: defaultPrompts, // ALWAYS use default prompts
       });
       
       const newRules = [...result.ruleGroups];
@@ -113,15 +117,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       toast({
         variant: 'destructive',
         title: 'AI Generation Failed',
-        description: (
-            <div className="mt-2 w-full space-y-2">
-              <p>The AI returned an invalid response. The raw output is shown below for debugging:</p>
-              <pre className="max-h-[300px] w-full max-w-[400px] overflow-auto rounded-md bg-black/20 p-2">
-                <code className="text-sm text-white">{error instanceof Error ? error.message : String(error)}</code>
-              </pre>
-            </div>
-        ),
-        duration: 30000,
+        description: 'The AI was unable to generate new cards. Please try a different theme or try again later.',
       });
     } finally {
       setIsGenerating(false);
