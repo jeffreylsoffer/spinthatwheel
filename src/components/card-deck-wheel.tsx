@@ -35,6 +35,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [spinCount, setSpinCount] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
   const [showRuleDescriptions, setShowRuleDescriptions] = useState(false);
+  const [includeBuzzerRule, setIncludeBuzzerRule] = useState(true);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -62,6 +63,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedRatios = localStorage.getItem('cms_ratios');
     const savedShowRuleDescriptions = localStorage.getItem('cms_show_rule_descriptions');
+    const savedIncludeBuzzerRule = localStorage.getItem('cms_include_buzzer_rule');
 
     setGameData({
       rules: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
@@ -81,11 +83,24 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     if (savedShowRuleDescriptions) {
       setShowRuleDescriptions(JSON.parse(savedShowRuleDescriptions));
     }
+
+    if (savedIncludeBuzzerRule) {
+      setIncludeBuzzerRule(JSON.parse(savedIncludeBuzzerRule));
+    }
   }, []);
 
   const initializeGame = useCallback(() => {
-    const rules = createSessionDeck(gameData.rules);
+    const rulesForDeck = includeBuzzerRule
+      ? gameData.rules
+      : gameData.rules.filter(
+          (rg) =>
+            rg.primary_rule.special !== 'BUZZER' &&
+            rg.flipped_rule.special !== 'BUZZER'
+        );
+
+    const rules = createSessionDeck(rulesForDeck);
     const items = populateWheel(rules, gameData.prompts, gameData.modifiers, gameRatios);
+    
     setSessionRules(rules);
     setWheelItems(items);
     setAvailableItems(items);
@@ -94,7 +109,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     setResult(null);
     setSpinCount(0);
     setActiveRules([]);
-  }, [gameData, gameRatios]);
+  }, [gameData, gameRatios, includeBuzzerRule]);
 
   useEffect(() => {
     initializeGame();

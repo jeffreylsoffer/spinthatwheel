@@ -19,6 +19,8 @@ import { cn } from '@/lib/utils';
 import { useToast } from '@/hooks/use-toast';
 import { generateCards, type GenerateCardsOutput } from '@/ai/flows/generate-cards-flow';
 import { Checkbox } from '@/components/ui/checkbox';
+import { Slider } from '@/components/ui/slider';
+import { Switch } from '@/components/ui/switch';
 
 interface CmsFormProps {
   initialData: {
@@ -32,17 +34,22 @@ interface CmsFormProps {
     modifiers: number;
   };
   initialShowRuleDescriptions: boolean;
+  initialIncludeBuzzerRule: boolean;
 }
 
-export default function CmsForm({ initialData, initialRatios, initialShowRuleDescriptions }: CmsFormProps) {
+export default function CmsForm({ initialData, initialRatios, initialShowRuleDescriptions, initialIncludeBuzzerRule }: CmsFormProps) {
   const [rules, setRules] = useState(initialData.ruleGroups);
   const [prompts, setPrompts] = useState(initialData.prompts);
   const [modifiers, setModifiers] = useState(initialData.modifiers);
   const [ratios, setRatios] = useState(initialRatios);
   const [showRuleDescriptions, setShowRuleDescriptions] = useState(initialShowRuleDescriptions);
+  const [includeBuzzerRule, setIncludeBuzzerRule] = useState(initialIncludeBuzzerRule);
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
   const { toast } = useToast();
+
+  const buzzerRuleIndex = rules.findIndex(r => r.primary_rule.special === 'BUZZER' || r.flipped_rule.special === 'BUZZER');
+  const buzzerRule = buzzerRuleIndex !== -1 ? rules[buzzerRuleIndex] : null;
 
   // --- AI Generation ---
   const handleGenerate = async () => {
@@ -58,11 +65,15 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
     try {
       const result: GenerateCardsOutput = await generateCards({
         theme: aiPrompt,
-        existingRules: rules,
+        existingRules: rules.filter((_, i) => i !== buzzerRuleIndex), // Exclude buzzer rule from generation
         existingPrompts: prompts,
       });
       
-      setRules(result.ruleGroups);
+      const newRules = [...result.ruleGroups];
+      if (buzzerRule) {
+        newRules.splice(buzzerRuleIndex, 0, buzzerRule);
+      }
+      setRules(newRules);
       setPrompts(result.prompts);
       
       toast({
@@ -93,17 +104,6 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
     }
     setRules(newRules);
   };
-
-  const handleSpecialChange = (groupIdx: number, ruleType: 'primary' | 'flipped', checked: boolean | 'indeterminate') => {
-    const newRules = [...rules];
-    const rule = ruleType === 'primary' ? newRules[groupIdx].primary_rule : newRules[groupIdx].flipped_rule;
-    if (checked === true) {
-        rule.special = 'BUZZER';
-    } else {
-        delete rule.special;
-    }
-    setRules(newRules);
-  };
   
   const handlePromptChange = (promptIdx: number, value: string) => {
     const newPrompts = [...prompts];
@@ -117,10 +117,18 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
     setModifiers(newModifiers);
   };
 
-  const handleRatioChange = (type: 'prompts' | 'rules' | 'modifiers', value: string) => {
-    const numValue = parseInt(value, 10) || 0;
-    setRatios(prev => ({ ...prev, [type]: numValue }));
+  const handleSliderChange = (value: number[]) => {
+    const [rulesVal, promptsEndVal] = value;
+    const promptsVal = promptsEndVal - rulesVal;
+    const modifiersVal = 100 - promptsEndVal;
+
+    setRatios({
+      rules: rulesVal,
+      prompts: promptsVal,
+      modifiers: modifiersVal,
+    });
   }
+
 
   // --- Add/Delete Handlers ---
   const handleAddNewRule = () => {
@@ -158,12 +166,12 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
 
   // --- Save Handler ---
   const handleSaveChanges = () => {
-    const totalRatio = ratios.prompts + ratios.rules + ratios.modifiers;
-    if (totalRatio !== 100) {
+    const totalRatio = ratios.rules + ratios.prompts + ratios.modifiers;
+    if (totalRatio < 99 || totalRatio > 101) { // Allow for rounding errors
       toast({
         variant: "destructive",
         title: "Invalid Ratios",
-        description: "The total percentage for wheel configuration must be exactly 100%.",
+        description: `The total percentage for wheel configuration must be exactly 100%. Current: ${totalRatio}%`,
       });
       return;
     }
@@ -174,6 +182,7 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
       localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
       localStorage.setItem('cms_ratios', JSON.stringify(ratios));
       localStorage.setItem('cms_show_rule_descriptions', JSON.stringify(showRuleDescriptions));
+      localStorage.setItem('cms_include_buzzer_rule', JSON.stringify(includeBuzzerRule));
 
       toast({
         title: "Changes Saved!",
@@ -189,7 +198,7 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
     }
   };
 
-  const totalRatio = ratios.prompts + ratios.rules + ratios.modifiers;
+  const totalRatio = ratios.rules + ratios.prompts + ratios.modifiers;
 
   return (
     <div className="space-y-8">
@@ -205,7 +214,7 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
             <Card className="border-0 shadow-none">
               <CardHeader className="pt-2">
                 <CardDescription>
-                  Enter a theme and let AI generate a new set of Rules and Prompts. This will replace any unsaved content in those sections. Modifiers will not be changed.
+                  Enter a theme and let AI generate a new set of Rules and Prompts. This will replace any unsaved content in those sections. The special Buzzer rule and Modifiers will not be changed.
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -238,20 +247,20 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
       <Card>
         <CardHeader>
           <CardTitle>Wheel Configuration</CardTitle>
-          <CardDescription>Adjust the percentage of each card type on the wheel. The total must be 100%.</CardDescription>
+          <CardDescription>Adjust the percentage of each card type on the wheel by dragging the sliders. The total must be 100%.</CardDescription>
         </CardHeader>
-        <CardContent className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <div className="space-y-2">
-            <Label htmlFor="ratio-rules">Rules %</Label>
-            <Input id="ratio-rules" type="number" value={ratios.rules} onChange={(e) => handleRatioChange('rules', e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ratio-prompts">Prompts %</Label>
-            <Input id="ratio-prompts" type="number" value={ratios.prompts} onChange={(e) => handleRatioChange('prompts', e.target.value)} />
-          </div>
-          <div className="space-y-2">
-            <Label htmlFor="ratio-modifiers">Modifiers %</Label>
-            <Input id="ratio-modifiers" type="number" value={ratios.modifiers} onChange={(e) => handleRatioChange('modifiers', e.target.value)} />
+        <CardContent className="pt-4">
+          <Slider
+            value={[ratios.rules, ratios.rules + ratios.prompts]}
+            onValueChange={handleSliderChange}
+            max={100}
+            step={1}
+            className="w-full"
+          />
+          <div className="flex justify-between mt-4 text-sm font-medium text-muted-foreground">
+            <span className="text-blue-400">Rules: {ratios.rules}%</span>
+            <span className="text-green-400">Prompts: {ratios.prompts}%</span>
+            <span className="text-purple-400">Modifiers: {ratios.modifiers}%</span>
           </div>
         </CardContent>
         <CardFooter className={cn("text-sm font-medium", totalRatio !== 100 && "text-destructive")}>
@@ -262,96 +271,139 @@ export default function CmsForm({ initialData, initialRatios, initialShowRuleDes
       <Card>
         <CardHeader>
           <CardTitle>Game Display Settings</CardTitle>
-          <CardDescription>Adjust how information is displayed during the game.</CardDescription>
+          <CardDescription>Adjust how information is displayed and which special rules are active.</CardDescription>
         </CardHeader>
-        <CardContent>
+        <CardContent className="space-y-6 pt-6">
           <div className="flex items-center space-x-2">
             <Checkbox
               id="show-descriptions"
               checked={showRuleDescriptions}
               onCheckedChange={(checked) => setShowRuleDescriptions(!!checked)}
             />
-            <Label htmlFor="show-descriptions" className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+            <Label htmlFor="show-descriptions" className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
               Show rule descriptions on result cards.
             </Label>
           </div>
+          <div className="flex items-center space-x-2">
+            <Switch
+              id="include-buzzer"
+              checked={includeBuzzerRule}
+              onCheckedChange={setIncludeBuzzerRule}
+            />
+            <Label htmlFor="include-buzzer" className="font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+              Include the special "Buzzer" rule in the game.
+            </Label>
+          </div>
+          {includeBuzzerRule && buzzerRule && (
+             <Card key={buzzerRule.id} className="bg-card/50 border-2 border-accent shadow-accent/20 shadow-lg">
+                <CardHeader>
+                  <CardTitle className='font-headline text-xl text-accent'>Special "Buzzer" Rule</CardTitle>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4 p-4 border rounded-md">
+                    <h4 className="font-bold text-lg">Primary Rule</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor={`rule-${buzzerRule.id}-primary-name`}>Name</Label>
+                      <Input
+                        id={`rule-${buzzerRule.id}-primary-name`}
+                        value={buzzerRule.primary_rule.name}
+                        onChange={(e) => handleRuleChange(buzzerRuleIndex, 'primary', 'name', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`rule-${buzzerRule.id}-primary-desc`}>Description</Label>
+                      <Textarea
+                        id={`rule-${buzzerRule.id}-primary-desc`}
+                        value={buzzerRule.primary_rule.description}
+                        onChange={(e) => handleRuleChange(buzzerRuleIndex, 'primary', 'description', e.target.value)}
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                  <div className="space-y-4 p-4 border rounded-md bg-black/20">
+                    <h4 className="font-bold text-lg">Flipped Rule</h4>
+                    <div className="space-y-2">
+                      <Label htmlFor={`rule-${buzzerRule.id}-flipped-name`}>Name</Label>
+                      <Input
+                        id={`rule-${buzzerRule.id}-flipped-name`}
+                        value={buzzerRule.flipped_rule.name}
+                        onChange={(e) => handleRuleChange(buzzerRuleIndex, 'flipped', 'name', e.target.value)}
+                      />
+                    </div>
+                    <div className="space-y-2">
+                      <Label htmlFor={`rule-${buzzerRule.id}-flipped-desc`}>Description</Label>
+                      <Textarea
+                        id={`rule-${buzzerRule.id}-flipped-desc`}
+                        value={buzzerRule.flipped_rule.description}
+                        onChange={(e) => handleRuleChange(buzzerRuleIndex, 'flipped', 'description', e.target.value)}
+                        rows={2}
+                      />
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+          )}
         </CardContent>
       </Card>
 
       <Accordion type="single" collapsible className="w-full" defaultValue="item-1">
         <AccordionItem value="item-1">
-          <AccordionTrigger className="text-2xl font-headline">Rules ({rules.length})</AccordionTrigger>
+          <AccordionTrigger className="text-2xl font-headline">Rules ({rules.filter(r => !r.primary_rule.special).length})</AccordionTrigger>
           <AccordionContent className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {rules.map((group, groupIdx) => (
-                <Card key={group.id} className="bg-card/50 relative group">
-                  <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteRule(groupIdx)}>
-                    <Trash2 className="h-5 w-5" />
-                  </Button>
-                  <CardContent className="space-y-6 pt-6">
-                    <div className="space-y-4 p-4 border rounded-md">
-                      <h4 className="font-bold text-lg">Primary Rule</h4>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${group.id}-primary-name`}>Name</Label>
-                        <Input
-                          id={`rule-${group.id}-primary-name`}
-                          value={group.primary_rule.name}
-                          onChange={(e) => handleRuleChange(groupIdx, 'primary', 'name', e.target.value)}
-                        />
+              {rules.map((group, groupIdx) => {
+                if (group.primary_rule.special === 'BUZZER' || group.flipped_rule.special === 'BUZZER') return null;
+
+                return (
+                  <Card key={group.id} className="bg-card/50 relative group">
+                    <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteRule(groupIdx)}>
+                      <Trash2 className="h-5 w-5" />
+                    </Button>
+                    <CardContent className="space-y-6 pt-6">
+                      <div className="space-y-4 p-4 border rounded-md">
+                        <h4 className="font-bold text-lg">Primary Rule</h4>
+                        <div className="space-y-2">
+                          <Label htmlFor={`rule-${group.id}-primary-name`}>Name</Label>
+                          <Input
+                            id={`rule-${group.id}-primary-name`}
+                            value={group.primary_rule.name}
+                            onChange={(e) => handleRuleChange(groupIdx, 'primary', 'name', e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`rule-${group.id}-primary-desc`}>Description</Label>
+                          <Textarea
+                            id={`rule-${group.id}-primary-desc`}
+                            value={group.primary_rule.description}
+                            onChange={(e) => handleRuleChange(groupIdx, 'primary', 'description', e.target.value)}
+                            rows={2}
+                          />
+                        </div>
                       </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${group.id}-primary-desc`}>Description</Label>
-                        <Textarea
-                          id={`rule-${group.id}-primary-desc`}
-                          value={group.primary_rule.description}
-                          onChange={(e) => handleRuleChange(groupIdx, 'primary', 'description', e.target.value)}
-                          rows={2}
-                        />
+                      <div className="space-y-4 p-4 border rounded-md bg-black/20">
+                        <h4 className="font-bold text-lg">Flipped Rule</h4>
+                        <div className="space-y-2">
+                          <Label htmlFor={`rule-${group.id}-flipped-name`}>Name</Label>
+                          <Input
+                            id={`rule-${group.id}-flipped-name`}
+                            value={group.flipped_rule.name}
+                            onChange={(e) => handleRuleChange(groupIdx, 'flipped', 'name', e.target.value)}
+                          />
+                        </div>
+                        <div className="space-y-2">
+                          <Label htmlFor={`rule-${group.id}-flipped-desc`}>Description</Label>
+                          <Textarea
+                            id={`rule-${group.id}-flipped-desc`}
+                            value={group.flipped_rule.description}
+                            onChange={(e) => handleRuleChange(groupIdx, 'flipped', 'description', e.target.value)}
+                            rows={2}
+                          />
+                        </div>
                       </div>
-                      <div className="flex items-center space-x-2 pt-2">
-                        <Checkbox
-                          id={`rule-${group.id}-primary-special`}
-                          checked={group.primary_rule.special === 'BUZZER'}
-                          onCheckedChange={(checked) => handleSpecialChange(groupIdx, 'primary', checked)}
-                        />
-                        <Label htmlFor={`rule-${group.id}-primary-special`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          This is a special "Buzzer" rule.
-                        </Label>
-                      </div>
-                    </div>
-                    <div className="space-y-4 p-4 border rounded-md bg-black/20">
-                      <h4 className="font-bold text-lg">Flipped Rule</h4>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${group.id}-flipped-name`}>Name</Label>
-                        <Input
-                          id={`rule-${group.id}-flipped-name`}
-                          value={group.flipped_rule.name}
-                          onChange={(e) => handleRuleChange(groupIdx, 'flipped', 'name', e.target.value)}
-                        />
-                      </div>
-                      <div className="space-y-2">
-                        <Label htmlFor={`rule-${group.id}-flipped-desc`}>Description</Label>
-                        <Textarea
-                          id={`rule-${group.id}-flipped-desc`}
-                          value={group.flipped_rule.description}
-                          onChange={(e) => handleRuleChange(groupIdx, 'flipped', 'description', e.target.value)}
-                          rows={2}
-                        />
-                      </div>
-                       <div className="flex items-center space-x-2 pt-2">
-                        <Checkbox
-                          id={`rule-${group.id}-flipped-special`}
-                          checked={group.flipped_rule.special === 'BUZZER'}
-                          onCheckedChange={(checked) => handleSpecialChange(groupIdx, 'flipped', checked)}
-                        />
-                        <Label htmlFor={`rule-${group.id}-flipped-special`} className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                          This is a special "Buzzer" rule.
-                        </Label>
-                      </div>
-                    </div>
-                  </CardContent>
-                </Card>
-              ))}
+                    </CardContent>
+                  </Card>
+                )
+              })}
               <Button onClick={handleAddNewRule} variant="outline" className="min-h-[200px] flex flex-col items-center justify-center border-dashed h-full">
                 <PlusCircle className="h-8 w-8 text-muted-foreground" />
                 <span className="mt-2 text-muted-foreground">Add New Rule</span>

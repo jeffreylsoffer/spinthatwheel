@@ -33,6 +33,7 @@ export default function AdminPage() {
     modifiers: defaultRatios.MODIFIERS * 100,
   });
   const [initialShowRuleDescriptions, setInitialShowRuleDescriptions] = useState(false);
+  const [initialIncludeBuzzerRule, setInitialIncludeBuzzerRule] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,6 +42,7 @@ export default function AdminPage() {
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedRatios = localStorage.getItem('cms_ratios');
     const savedShowRuleDescriptions = localStorage.getItem('cms_show_rule_descriptions');
+    const savedIncludeBuzzerRule = localStorage.getItem('cms_include_buzzer_rule');
 
     setInitialData({
         ruleGroups: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
@@ -55,6 +57,10 @@ export default function AdminPage() {
     if (savedShowRuleDescriptions) {
         setInitialShowRuleDescriptions(JSON.parse(savedShowRuleDescriptions));
     }
+    
+    if (savedIncludeBuzzerRule) {
+        setInitialIncludeBuzzerRule(JSON.parse(savedIncludeBuzzerRule));
+    }
 
     setIsLoading(false);
   }, []);
@@ -65,6 +71,7 @@ export default function AdminPage() {
     localStorage.removeItem('cms_modifiers');
     localStorage.removeItem('cms_ratios');
     localStorage.removeItem('cms_show_rule_descriptions');
+    localStorage.removeItem('cms_include_buzzer_rule');
     window.location.reload();
   };
 
@@ -126,6 +133,7 @@ export default function AdminPage() {
         initialData={initialData} 
         initialRatios={initialRatios} 
         initialShowRuleDescriptions={initialShowRuleDescriptions}
+        initialIncludeBuzzerRule={initialIncludeBuzzerRule}
       />
     </main>
   );
