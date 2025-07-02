@@ -47,6 +47,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
+  const [spinCycle, setSpinCycle] = useState(0);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -208,6 +209,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   };
   
   const handleSpinEnd = () => {
+    setSpinCycle(c => c + 1); // Trigger pointer animation
     if (winningItem) {
       playSound((winningItem.type.toLowerCase() as any) || 'end');
       setResult(winningItem);
@@ -357,7 +359,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
           onPointerCancel={handlePointerCancel}
         >
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} segmentHeight={segmentHeight} />
-          <WheelPointer />
+          <WheelPointer key={spinCycle} />
         </div>
       </div>
 

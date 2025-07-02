@@ -68,6 +68,18 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHe
               }}
             >
               <div 
+                className="absolute left-1/2 -translate-x-1/2 bg-neutral-400"
+                style={{
+                  top: `-${segmentHeight * 0.05}px`,
+                  width: `${segmentHeight * 0.04}px`,
+                  height: `${segmentHeight * 0.1}px`,
+                  transform: 'translateZ(4px)',
+                  borderRadius: '99px',
+                  border: '1px solid #555',
+                  boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.5)'
+                }}
+              />
+              <div 
                 className={cn(
                   "aspect-video rounded-2xl flex items-center justify-center shadow-lg",
                   segmentHeight < 150 ? 'h-[70%] px-2' : 'h-[80%] px-4'
