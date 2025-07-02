@@ -3,7 +3,7 @@
 
 const WheelPointer = () => {
   return (
-    <div className="absolute right-0 top-1/2 h-12 w-12 drop-shadow-lg z-10 origin-bottom animate-wobble">
+    <div className="absolute right-0 top-1/2 -translate-y-1/2 h-12 w-12 drop-shadow-lg z-10">
       <svg
         viewBox="0 0 100 100"
         fill="currentColor"
