@@ -5,7 +5,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 1,
     name: "Voice",
-    primary_rule: { id: 101, name: "Speak in a sing-song voice", description: "You must speak in a sing-song voice, lilting up and down." },
+    primary_rule: { id: 101, name: "In a sing-song voice", description: "You must speak in a sing-song voice, lilting up and down." },
     flipped_rule: { id: 102, name: "Speak in a monotone voice", description: "You must speak in a monotone voice, with no inflection." },
   },
   {
@@ -23,8 +23,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 4,
     name: "Impression",
-    primary_rule: { id: 401, name: "Do a Christopher Walken impression", description: "You must do your best Christopher Walken impression." },
-    flipped_rule: { id: 402, name: "Do a Robert DeNiro impression", description: "You must do your worst Robert DeNiro impression." },
+    primary_rule: { id: 401, name: "Doing your best Christopher Walken", description: "You must do your best Christopher Walken impression." },
+    flipped_rule: { id: 402, name: "Doing your worst Robert DeNiro", description: "You must do your worst Robert DeNiro impression." },
   },
   {
     id: 5,
@@ -35,8 +35,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 6,
     name: "Sentence Structure",
-    primary_rule: { id: 601, name: "Only speak in questions", description: "You can only speak in questions." },
-    flipped_rule: { id: 602, name: "Only speak in statements", description: "You can only speak in statements." },
+    primary_rule: { id: 601, name: "Questions Only", description: "You can only speak in questions." },
+    flipped_rule: { id: 602, name: "Statements Only", description: "You can only speak in statements." },
   },
   {
     id: 7,
@@ -47,8 +47,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 8,
     name: "Tone",
-    primary_rule: { id: 801, name: "Speak sexily", description: "You must say everything in your sexiest voice." },
-    flipped_rule: { id: 802, name: "Speak unsexily", description: "You must say everything in your most unsexy voice." },
+    primary_rule: { id: 801, name: "Sexily", description: "You must say everything in your sexiest voice." },
+    flipped_rule: { id: 802, name: "Unsexily", description: "You must say everything in your most unsexy voice." },
   },
   {
     id: 9,
@@ -59,7 +59,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 10,
     name: "Energy",
-    primary_rule: { id: 1001, name: "End with big energy", description: "You must end every sentence with a burst of high energy." },
+    primary_rule: { id: 1001, name: "Big energy at the end", description: "You must end every sentence with a burst of high energy." },
     flipped_rule: { id: 1002, name: "End with low energy", description: "You must end every sentence with very low, fading energy." },
   },
   {

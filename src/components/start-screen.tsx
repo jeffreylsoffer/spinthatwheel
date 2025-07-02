@@ -50,7 +50,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
       </div>
 
       <div className="flex items-center justify-center gap-4">
-        <Link href="/admin">
+        <Link href="/admin" prefetch={false}>
           <Button 
             size="lg"
             variant="outline"
