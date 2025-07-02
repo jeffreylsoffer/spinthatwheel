@@ -21,6 +21,7 @@ import {
   AlertDialogContent,
   AlertDialogHeader,
   AlertDialogTitle,
+  AlertDialogDescription,
 } from "@/components/ui/alert-dialog";
 
 interface CardDeckWheelProps {
@@ -208,36 +209,30 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     
     console.log('Chosen winning item:', { id: targetItem.id, type: targetItem.type, label: targetItem.label });
     
+    // --- NEW, ROBUST ROTATION CALCULATION ---
     console.log('--- SPIN CALCULATION ---');
     const segmentAngle = 360 / wheelItems.length;
-    console.log(`Wheel has ${wheelItems.length} items. Segment angle: ${segmentAngle.toFixed(2)}`);
 
+    // The final angle on the wheel we want the pointer to be on.
     const targetAngle = -(targetIndex * segmentAngle);
-    console.log(`Target Index: ${targetIndex} -> Target Angle: ${targetAngle.toFixed(2)}`);
 
-    const fullRevolutions = (5 + Math.random() * 3) * 360;
-    console.log(`Random full revolutions (degrees): ${fullRevolutions.toFixed(2)}`);
+    // Figure out the current number of revolutions the wheel has already completed.
+    // We use Math.ceil because rotation is negative. e.g., ceil(-730 / 360) = ceil(-2.02) = -2
+    const currentRevolutionCount = Math.ceil(rotation / 360);
 
-    const currentRotation = rotation;
-    const currentAngleMod360 = currentRotation % 360;
-    console.log(`Current Rotation: ${currentRotation.toFixed(2)} -> Current Angle (mod 360): ${currentAngleMod360.toFixed(2)}`);
-
-    let angleDifference = targetAngle - currentAngleMod360;
-    console.log(`Initial Angle Difference (target - current): ${angleDifference.toFixed(2)}`);
-
-    if (angleDifference > 0 && Math.abs(angleDifference) > 1) {
-      angleDifference -= 360;
-      console.log(`Adjusted Angle Difference (to ensure forward spin): ${angleDifference.toFixed(2)}`);
-    }
+    // Add a random number of new revolutions to spin.
+    const newRevolutions = 5 + Math.random() * 3;
     
+    // Add a small random offset so it doesn't land perfectly on the line every time.
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-    console.log(`Random offset: ${randomOffset.toFixed(2)}`);
-    
-    const newRotation = currentRotation + angleDifference - fullRevolutions + randomOffset;
-    console.log(`FINAL CALCULATION: ${currentRotation.toFixed(2)} (current) + ${angleDifference.toFixed(2)} (diff) - ${fullRevolutions.toFixed(2)} (revs) + ${randomOffset.toFixed(2)} (offset) = ${newRotation.toFixed(2)}`);
 
-    const finalAngleMod360 = newRotation % 360;
-    console.log(`Predicted final angle (mod 360): ${finalAngleMod360.toFixed(2)}`);
+    // The new rotation is calculated fresh, not incrementally.
+    // This avoids cascading floating point errors.
+    const newRotation = ((currentRevolutionCount - newRevolutions) * 360) + targetAngle + randomOffset;
+
+    console.log(`Target Index: ${targetIndex}, Target Angle: ${targetAngle.toFixed(2)}`);
+    console.log(`Final Rotation: ${newRotation.toFixed(2)}`);
+
 
     const duration = 5000 + Math.random() * 2000;
     setSpinDuration(duration);
@@ -260,11 +255,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           tickTimeoutRef.current = null;
           return;
         }
-
-        const ticksPerSegment = 3;
-        const totalTicksInSpin = (360 / segmentAngle) * ticksPerSegment * (fullRevolutions / 360);
-        const averageDelay = duration / totalTicksInSpin;
-
+        
         playSound('tick');
         
         const progress = elapsed / duration;
@@ -286,7 +277,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     }, duration);
   };
   
-  const handleSpinEnd = (itemThatWon: WheelItem | null) => {
+  const handleSpinEnd = (itemThatWon: WheelItem) => {
     console.log('--- SPIN END ---');
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
@@ -295,72 +286,58 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
     setSpinCycle(c => c + 1);
     setIsSpinning(false);
+    
+    console.log('Landed on:', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
+    playSound((itemThatWon.type.toLowerCase() as any) || 'end');
 
-    if (itemThatWon) {
-      console.log('Landed on (from handleSpinEnd param):', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
-      playSound((itemThatWon.type.toLowerCase() as any) || 'end');
-
-      let evolution: WheelItem | null = null;
-      if (itemThatWon.type === 'RULE') {
-        if (Math.random() < 0.5 && gameData.prompts.length > 0) {
-            const prompt = shuffle([...gameData.prompts])[0];
-            evolution = {
-                id: `prompt-evolved-${prompt.id}-${itemThatWon.id}`,
-                type: 'PROMPT',
-                label: 'Prompt',
-                data: prompt,
-                color: {
-                    segment: itemThatWon.color.segment,
-                    ...CARD_STYLES.PROMPT,
-                }
-            };
-        } else if (gameData.modifiers.length > 0) {
-            const modifier = shuffle([...gameData.modifiers])[0];
-            const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
-            evolution = {
-                id: `modifier-evolved-${modifier.id}-${itemThatWon.id}`,
-                type: 'MODIFIER',
-                label: 'Modifier',
-                data: modifier,
-                color: {
-                    segment: itemThatWon.color.segment,
-                    labelBg: modifierStyle.bg,
-                    labelColor: modifierStyle.text,
-                }
-            };
-        }
-      } else if (itemThatWon.type === 'PROMPT' || itemThatWon.type === 'MODIFIER') {
-        evolution = {
-            id: `used-${itemThatWon.id}`,
-            type: 'END',
-            label: 'END',
-            data: { name: 'END', description: 'This slot has been used.' },
-            color: { 
-                segment: CARD_STYLES.END.labelBg, 
-                ...CARD_STYLES.END 
-            }
-        };
+    // --- PRE-DETERMINE EVOLUTION ---
+    // This happens here, before the modal opens, to avoid race conditions.
+    let evolution: WheelItem | null = null;
+    if (itemThatWon.type === 'RULE') {
+      const rand = Math.random();
+      if (rand < 0.5 && gameData.prompts.length > 0) {
+          const prompt = shuffle([...gameData.prompts])[0];
+          evolution = {
+              id: `prompt-evolved-${prompt.id}-${itemThatWon.id}`,
+              type: 'PROMPT', label: 'Prompt', data: prompt,
+              color: { segment: itemThatWon.color.segment, ...CARD_STYLES.PROMPT }
+          };
+      } else if (gameData.modifiers.length > 0) {
+          const modifier = shuffle([...gameData.modifiers])[0];
+          const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
+          evolution = {
+              id: `modifier-evolved-${modifier.id}-${itemThatWon.id}`,
+              type: 'MODIFIER', label: 'Modifier', data: modifier,
+              color: { segment: itemThatWon.color.segment, labelBg: modifierStyle.bg, labelColor: modifierStyle.text }
+          };
       }
+    } else if (itemThatWon.type === 'PROMPT' || itemThatWon.type === 'MODIFIER') {
+      evolution = {
+          id: `used-${itemThatWon.id}`, type: 'END', label: 'END',
+          data: { name: 'END', description: 'This slot has been used.' },
+          color: { segment: CARD_STYLES.END.labelBg, ...CARD_STYLES.END }
+      };
+    }
+    
+    setResult({ landed: itemThatWon, evolution });
+    setIsResultModalOpen(true);
 
-      setResult({ landed: itemThatWon, evolution });
-      setIsResultModalOpen(true);
-
-      if (itemThatWon.type === 'RULE') {
-        const ruleData = itemThatWon.data as Rule;
-        const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
-        if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
-           const ruleWithColor = { ...sessionRule, color: itemThatWon.color };
-           setActiveRules(prev => [...prev, ruleWithColor]);
-        }
+    if (itemThatWon.type === 'RULE') {
+      const ruleData = itemThatWon.data as Rule;
+      const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
+      if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
+         const ruleWithColor = { ...sessionRule, color: itemThatWon.color };
+         setActiveRules(prev => [...prev, ruleWithColor]);
       }
-    } else {
-        console.warn("handleSpinEnd called with no winning item.");
     }
   };
 
   const handleModalOpenChange = (open: boolean) => {
-    if (!open && result) {
-      if (result.evolution) {
+    // This now only controls the visibility of the modal.
+    // The logic to update the wheel is handled separately to prevent bugs.
+    if (!open) {
+      // If we have a result ready, process it.
+      if (result && result.evolution) {
         setWheelItems(currentWheelItems => {
           const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
           if (indexToUpdate === -1) {
@@ -372,10 +349,13 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           return newWheelItems;
         });
       }
+      // Crucially, clear the result *after* processing it.
+      // This prevents StrictMode from running the logic twice with stale data.
       setResult(null);
     }
     setIsResultModalOpen(open);
   };
+
 
   const handleReset = () => {
     if (tickTimeoutRef.current) {
@@ -481,8 +461,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         onOpenChange={handleModalOpenChange} 
         result={result} 
         onOpenCheatSheet={() => {
+          // This needs to be a two-step state change to work correctly
           setIsResultModalOpen(false);
-          setIsCheatSheetModalOpen(true);
+          setTimeout(() => setIsCheatSheetModalOpen(true), 150);
         }}
       />
       <CheatSheetModal 
@@ -495,6 +476,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         <AlertDialogContent>
           <AlertDialogHeader>
             <AlertDialogTitle className="text-center text-5xl font-headline tracking-widest">REFEREE'S CALL</AlertDialogTitle>
+            <AlertDialogDescription className="sr-only">A call has been made by the referee.</AlertDialogDescription>
           </AlertDialogHeader>
           <AlertDialogAction onClick={() => setIsRefereeModalOpen(false)}>Close</AlertDialogAction>
         </AlertDialogContent>

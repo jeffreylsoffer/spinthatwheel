@@ -43,7 +43,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
   const initialLabel = landedItem.label;
   const isFlipModifier = landedItem.type === 'MODIFIER' && (landedItem.data as Modifier).type === 'FLIP';
   
-  const textColor = landedItem.type === 'PROMPT' || landedItem.type === 'RULE' ? 'black' : 'white';
+  const textColor = landedItem.color.labelColor;
   const closeButtonColor = landedItem.color.labelBg === '#FFFFFF' || landedItem.color.labelBg === '#FFD262' || landedItem.color.labelBg === '#D4D4D4' ? 'text-black' : 'text-white';
   
   const showDescriptionForRule = landedItem.type === 'RULE' && landedItem.data.description;
@@ -52,6 +52,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="bg-transparent border-none shadow-none p-0 data-[state=open]:animate-in data-[state=open]:zoom-in-75 w-[90vw] max-w-[640px]">
         <DialogHeader>
+           {/* These are visually hidden for screen reader accessibility */}
           <DialogTitle className="sr-only">{`${landedItem.label}: ${landedItem.data.name}`}</DialogTitle>
           <DialogDescription className="sr-only">
             {landedItem.data.description || 'Result from the wheel spin.'}
