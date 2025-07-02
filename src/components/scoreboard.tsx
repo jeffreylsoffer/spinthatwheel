@@ -16,28 +16,28 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
 
   return (
     <Card className="w-full">
-      <CardHeader className="p-4">
-        <CardTitle className="font-headline text-2xl">Scoreboard</CardTitle>
+      <CardHeader className="p-2 sm:p-4">
+        <CardTitle className="font-headline text-xl sm:text-2xl">Scoreboard</CardTitle>
       </CardHeader>
-      <CardContent className="flex flex-col gap-2 p-4 pt-0">
+      <CardContent className="flex flex-col gap-2 p-2 sm:p-4 pt-0">
         {players.map((player, index) => {
           return (
             <div
               key={player.id}
               className="flex items-center justify-between"
             >
-              <span className="font-bold text-md lg:text-lg text-card-foreground">Player {index + 1}</span>
-              <div className="flex items-center gap-2">
+              <span className="font-bold text-base sm:text-lg text-card-foreground">Player {index + 1}</span>
+              <div className="flex items-center gap-1 sm:gap-2">
                 <Button
                   variant="outline"
                   size="icon"
-                  className="w-8 h-8"
+                  className="w-7 h-7 sm:w-8 sm:h-8"
                   onClick={() => onScoreChange(player.id, -1)}
                 >
                   <Minus className="h-4 w-4" />
                 </Button>
                 <div 
-                  className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-destructive text-3xl lg:text-4xl font-bold tabular-nums h-12 lg:h-14 w-20 lg:w-24 border border-white/10"
+                  className="flex items-center justify-center bg-black/50 rounded-lg font-digital text-destructive text-3xl sm:text-4xl font-bold tabular-nums h-10 sm:h-14 w-20 sm:w-24 border border-white/10"
                   style={{ textShadow: '0 0 5px hsl(var(--destructive) / 0.7)' }}
                 >
                   {player.score < 0 ? (
@@ -52,7 +52,7 @@ const Scoreboard = ({ players, onScoreChange }: ScoreboardProps) => {
                 <Button
                   variant="outline"
                   size="icon"
-                  className="w-8 h-8"
+                  className="w-7 h-7 sm:w-8 sm:h-8"
                   onClick={() => onScoreChange(player.id, 1)}
                 >
                   <Plus className="h-4 w-4" />

@@ -13,6 +13,7 @@ import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } fr
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
+import { cn } from '@/lib/utils';
 
 interface CardDeckWheelProps {
   players: Player[];
@@ -322,24 +323,30 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   };
   
   return (
-    <div className="grid grid-cols-1 grid-rows-[auto_1fr] lg:grid-cols-5 lg:grid-rows-1 h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
-      <div className="lg:col-span-2 w-full flex flex-col gap-6 justify-start lg:justify-center max-w-sm mx-auto lg:max-w-none lg:mx-0 overflow-y-auto min-h-0">
-        <Scoreboard players={players} onScoreChange={onScoreChange} />
-        <Button 
-          variant="outline"
-          size="lg"
-          onClick={() => setIsCheatSheetModalOpen(true)}
-        >
-          <BookOpen className="mr-2 h-5 w-5" />
-          Flip Cheat Sheet
-        </Button>
-        <Button variant="ghost" onClick={handleReset} className="self-center">
-            <RefreshCw className="mr-2 h-4 w-4" />
-            New Game
-        </Button>
+    <div className="flex flex-col-reverse lg:flex-row h-screen overflow-hidden p-4 lg:p-8 gap-4 lg:gap-8">
+      
+      {/* Left Column: Scoreboard & Controls */}
+      <div className="lg:w-2/5 flex flex-col gap-6 justify-center overflow-y-auto">
+        <div className="max-w-sm mx-auto w-full flex flex-col gap-6">
+            <Scoreboard players={players} onScoreChange={onScoreChange} />
+            <Button 
+              variant="outline"
+              size="lg"
+              onClick={() => setIsCheatSheetModalOpen(true)}
+              className="w-full"
+            >
+              <BookOpen className="mr-2 h-5 w-5" />
+              Flip Cheat Sheet
+            </Button>
+            <Button variant="ghost" onClick={handleReset} className="self-center">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                New Game
+            </Button>
+        </div>
       </div>
 
-      <div className="lg:col-span-3 w-full flex flex-col items-center justify-center h-full min-h-0">
+      {/* Right Column: Wheel */}
+      <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative">
         <div 
           className="relative w-full max-w-[12rem] lg:max-w-lg h-full mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           onPointerDown={handlePointerDown}
