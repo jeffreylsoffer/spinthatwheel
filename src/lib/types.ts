@@ -1,3 +1,4 @@
+
 export interface Rule {
   id: number;
   name: string;
@@ -17,7 +18,7 @@ export interface Prompt {
   text: string;
 }
 
-export type ModifierType = 'LEFT' | 'RIGHT' | 'FLIP' | 'CLONE';
+export type ModifierType = 'LEFT' | 'RIGHT' | 'FLIP' | 'CLONE' | 'SWAP';
 
 export interface Modifier {
   id: number;

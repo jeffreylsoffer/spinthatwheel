@@ -16,7 +16,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <CardHeader className="text-center">
           <CardTitle className="font-headline text-5xl lg:text-6xl tracking-wider text-card-foreground">SPIN THAT WHEEL</CardTitle>
           <CardDescription className="text-lg text-muted-foreground">
-            Based on <a href="https://www.dropout.tv" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Dropout's</a> Game Changer episode <a href="https://www.dropout.tv/videos/rulette" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">"Rulette"</a>.
+            Based on <a href="https://www.dropout.tv" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Dropout's</a> <i>Game Changer</i> episode <a href="https://www.dropout.tv/videos/rulette" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">"Rulette"</a>.
           </CardDescription>
         </CardHeader>
         <CardContent className="flex flex-col gap-6 items-center">
@@ -32,7 +32,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
             <div>
               <h3 className="font-headline text-3xl text-card-foreground">How to Score</h3>
               <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-2">
-                <li>Players get a point for successfully completing a <span className="font-bold text-accent">PROMPT</span> while following all their active rules. In addition to a point, you also get to shred one of your active rules.</li>
+                <li><span className="font-bold text-white">PROMPTS:</span> Completing a PROMPT successfully earns you <span className="font-bold text-card-foreground">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-card-foreground">-2 points</span>.</li>
                 <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
               </ul>
             </div>
