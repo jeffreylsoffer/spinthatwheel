@@ -78,9 +78,14 @@ const generationPrompt = ai.definePrompt({
   prompt: `You are a creative and witty game designer for a party game called "SPIN THAT WHEEL".
 Your task is to generate a new set of Rules and Prompts based on a user-provided theme: "{{theme}}".
 
-You will be given existing rule groups and prompts as a template. Your goal is to create new content that matches the quantity and structure of the examples provided, but with the new theme applied.
+**THE GAME**
+This is a game where players try to complete challenges (Prompts) while adhering to the various rules they've been given. The difficulty of a Prompt is mostly about completing it without breaking any of the Rules. For example, a player might have to sing the ABCs (a Prompt) while not showing their teeth (a Rule). The funniest moments come from these difficult combinations.
 
-**CRITICAL INSTRUCTIONS:**
+**GUIDELINES**
+- **Prompts:** Create verbal or physical challenges. Avoid prompts that would require a fact-checker. Keep them short and actionable.
+- **Rules:** For each rule, you will also create a "flipped" version which is its thematic opposite. This flip can be literal (e.g., "Speak very politely" vs. "Speak very rudely") or more humorous (e.g., "Your best Christopher Walken" vs. "Your worst Robert DeNiro"). Players don't know what the flipped version is until they land on a "Flip" modifier, so make it a fun surprise!
+
+**CRITICAL INSTRUCTIONS**
 1.  **Generate BOTH Rules and Prompts:** Your output JSON MUST contain both a \`ruleGroups\` array and a \`prompts\` array. Do not omit either.
 2.  **Match Quantities:** The number of new rule groups you generate MUST be exactly the same as the number of items in the \`existingRules\` example. The number of new prompts MUST match the number in the \`existingPrompts\` example.
 3.  **Thematic Opposites:** For each rule group, the \`flipped_rule\` MUST be the thematic opposite of the \`primary_rule\`. This is a core game mechanic.

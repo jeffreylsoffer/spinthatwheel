@@ -23,8 +23,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 4,
     name: "Impression",
-    primary_rule: { id: 401, name: "Doing your best Christopher Walken", description: "You must do your best Christopher Walken impression." },
-    flipped_rule: { id: 402, name: "Doing your worst Robert DeNiro", description: "You must do your worst Robert DeNiro impression." },
+    primary_rule: { id: 401, name: "Doing your best Christopher walker", description: "You must do your best Christopher walker impression." },
+    flipped_rule: { id: 402, name: "Doing your worst Robert Deniro", description: "You must do your worst Robert Deniro impression." },
   },
   {
     id: 5,
@@ -88,6 +88,8 @@ export const prompts: Prompt[] = [
   { id: 403, text: "Explain photosynthesis." },
   { id: 404, text: "Recite a famous movie quote." },
   { id: 405, text: "Invent and define a new word." },
+  { id: 406, text: "Name 5 blue things in this room." },
+  { id: 407, text: "say the ABCs" },
 ];
 
 export const defaultBuzzerCountdown = 20;
