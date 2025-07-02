@@ -114,13 +114,19 @@ const generateCardsFlow = ai.defineFlow(
     outputSchema: GenerateCardsOutputSchema,
   },
   async (input) => {
-    const { output } = await generationPrompt(input);
+    const response = await generationPrompt(input);
+    
+    // Log the entire raw response object from the AI for debugging.
+    console.log("Full AI response object:", JSON.stringify(response, null, 2));
+
+    const { output } = response;
+
     if (!output) {
-      throw new Error('AI failed to generate card data.');
+      throw new Error('AI failed to generate card data (output was null or empty).');
     }
     if (!output.ruleGroups || output.ruleGroups.length === 0) {
-      console.error("AI returned no rule groups. Full output:", output);
-      throw new Error('AI failed to generate any rule groups. It may have only returned prompts.');
+      // The full response is logged above, so this error can be simpler.
+      throw new Error('AI generated prompts but failed to generate any rule groups.');
     }
     return output;
   }
