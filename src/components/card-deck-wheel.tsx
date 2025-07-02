@@ -49,8 +49,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [availableItems, setAvailableItems] = useState<WheelItem[]>([]);
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
-  const [result, setResult] = useState<WheelItem | null>(null);
-  const [resultToProcess, setResultToProcess] = useState<WheelItem | null>(null);
+  const [result, setResult] = useState<{ landed: WheelItem; evolution: WheelItem | null } | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [isRefereeModalOpen, setIsRefereeModalOpen] = useState(false);
@@ -67,7 +66,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const buzzerTimerRef = useRef<NodeJS.Timeout | null>(null);
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
-
+  
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
@@ -188,7 +187,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
     console.log('--- SPIN START ---');
 
-    // Prevent landing on a modifier if no rules are active yet
     const selectableItems = activeRules.length === 0 
       ? availableItems.filter(item => item.type !== 'MODIFIER')
       : availableItems;
@@ -220,14 +218,14 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const fullRevolutions = (5 + Math.random() * 3) * 360;
     console.log(`Random full revolutions (degrees): ${fullRevolutions.toFixed(2)}`);
 
-    const currentRotation = rotation; // Capture state at this moment
+    const currentRotation = rotation;
     const currentAngleMod360 = currentRotation % 360;
     console.log(`Current Rotation: ${currentRotation.toFixed(2)} -> Current Angle (mod 360): ${currentAngleMod360.toFixed(2)}`);
 
     let angleDifference = targetAngle - currentAngleMod360;
     console.log(`Initial Angle Difference (target - current): ${angleDifference.toFixed(2)}`);
 
-    if (angleDifference > 0) {
+    if (angleDifference > 0 && Math.abs(angleDifference) > 1) {
       angleDifference -= 360;
       console.log(`Adjusted Angle Difference (to ensure forward spin): ${angleDifference.toFixed(2)}`);
     }
@@ -283,7 +281,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
     scheduleTicks();
 
-    // Use setTimeout to handle spin end, which is more reliable than onTransitionEnd
     setTimeout(() => {
         handleSpinEnd(targetItem);
     }, duration);
@@ -302,7 +299,50 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     if (itemThatWon) {
       console.log('Landed on (from handleSpinEnd param):', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
       playSound((itemThatWon.type.toLowerCase() as any) || 'end');
-      setResult(itemThatWon);
+
+      let evolution: WheelItem | null = null;
+      if (itemThatWon.type === 'RULE') {
+        if (Math.random() < 0.5 && gameData.prompts.length > 0) {
+            const prompt = shuffle([...gameData.prompts])[0];
+            evolution = {
+                id: `prompt-evolved-${prompt.id}-${itemThatWon.id}`,
+                type: 'PROMPT',
+                label: 'Prompt',
+                data: prompt,
+                color: {
+                    segment: itemThatWon.color.segment,
+                    ...CARD_STYLES.PROMPT,
+                }
+            };
+        } else if (gameData.modifiers.length > 0) {
+            const modifier = shuffle([...gameData.modifiers])[0];
+            const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
+            evolution = {
+                id: `modifier-evolved-${modifier.id}-${itemThatWon.id}`,
+                type: 'MODIFIER',
+                label: 'Modifier',
+                data: modifier,
+                color: {
+                    segment: itemThatWon.color.segment,
+                    labelBg: modifierStyle.bg,
+                    labelColor: modifierStyle.text,
+                }
+            };
+        }
+      } else if (itemThatWon.type === 'PROMPT' || itemThatWon.type === 'MODIFIER') {
+        evolution = {
+            id: `used-${itemThatWon.id}`,
+            type: 'END',
+            label: 'END',
+            data: { name: 'END', description: 'This slot has been used.' },
+            color: { 
+                segment: CARD_STYLES.END.labelBg, 
+                ...CARD_STYLES.END 
+            }
+        };
+      }
+
+      setResult({ landed: itemThatWon, evolution });
       setIsResultModalOpen(true);
 
       if (itemThatWon.type === 'RULE') {
@@ -317,90 +357,21 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         console.warn("handleSpinEnd called with no winning item.");
     }
   };
-  
-  // This effect handles processing the result after the modal closes.
-  // It's more robust against React StrictMode's double-invocations.
-  useEffect(() => {
-    if (!isResultModalOpen && resultToProcess) {
-        const landedItem = resultToProcess;
-        console.log('--- MODAL CLOSE & PROCESSING ---');
-        console.log('Result item being processed:', { id: landedItem.id, type: landedItem.type, label: landedItem.label });
-
-        setWheelItems(currentWheelItems => {
-            console.log('Wheel items BEFORE update:', currentWheelItems.map(i => i.id));
-            const indexToUpdate = currentWheelItems.findIndex(item => item.id === landedItem.id);
-
-            if (indexToUpdate === -1) {
-                console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: landedItem.id });
-                return currentWheelItems;
-            }
-
-            console.log(`Found item to update at index: ${indexToUpdate}`);
-
-            let evolvedItem: WheelItem | null = null;
-
-            if (landedItem.type === 'RULE') {
-                if (Math.random() < 0.5 && gameData.prompts.length > 0) {
-                    const prompt = shuffle([...gameData.prompts])[0];
-                    evolvedItem = {
-                        id: `prompt-evolved-${prompt.id}-${landedItem.id}`,
-                        type: 'PROMPT',
-                        label: 'Prompt',
-                        data: prompt,
-                        color: {
-                            segment: landedItem.color.segment, // Keep original segment color
-                            ...CARD_STYLES.PROMPT,
-                        }
-                    };
-                } else if (gameData.modifiers.length > 0) {
-                    const modifier = shuffle([...gameData.modifiers])[0];
-                    const modifierStyle = MODIFIER_CARD_COLORS[Math.floor(Math.random() * MODIFIER_CARD_COLORS.length)];
-                    evolvedItem = {
-                        id: `modifier-evolved-${modifier.id}-${landedItem.id}`,
-                        type: 'MODIFIER',
-                        label: 'Modifier',
-                        data: modifier,
-                        color: {
-                            segment: landedItem.color.segment, // Keep segment color
-                            labelBg: modifierStyle.bg,
-                            labelColor: modifierStyle.text,
-                        }
-                    };
-                }
-            } else if (landedItem.type === 'PROMPT' || landedItem.type === 'MODIFIER') {
-                evolvedItem = {
-                    id: `used-${landedItem.id}`,
-                    type: 'END',
-                    label: 'END',
-                    data: { name: 'END', description: 'This slot has been used.' },
-                    color: { 
-                        segment: CARD_STYLES.END.labelBg, 
-                        ...CARD_STYLES.END 
-                    }
-                };
-            }
-
-            if (evolvedItem) {
-                const newWheelItems = [...currentWheelItems];
-                newWheelItems[indexToUpdate] = evolvedItem;
-                console.log('Wheel items AFTER update:', newWheelItems.map(i => i.id));
-                return newWheelItems;
-            }
-            
-            console.log('Item did not evolve, returning current items.');
-            return currentWheelItems;
-        });
-
-        // After processing, clear the item so this doesn't run again
-        setResultToProcess(null);
-    }
-  }, [isResultModalOpen, resultToProcess, gameData, sessionRules]);
-
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
-      // When modal is closing, move the current result to the 'to process' queue
-      setResultToProcess(result);
+      if (result.evolution) {
+        setWheelItems(currentWheelItems => {
+          const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
+          if (indexToUpdate === -1) {
+            console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
+            return currentWheelItems;
+          }
+          const newWheelItems = [...currentWheelItems];
+          newWheelItems[indexToUpdate] = result.evolution!;
+          return newWheelItems;
+        });
+      }
       setResult(null);
     }
     setIsResultModalOpen(open);
