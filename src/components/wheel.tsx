@@ -9,22 +9,15 @@ interface WheelProps {
   items: WheelItem[];
   rotation: number;
   isSpinning: boolean;
-  onSpinEnd?: () => void;
   spinDuration: number;
   segmentHeight: number;
 }
 
-const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHeight }: WheelProps) => {
+const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: WheelProps) => {
   const segmentCount = items.length;
   if (segmentCount === 0) return null;
   
   const radius = Math.round((segmentHeight / 2) / Math.tan(Math.PI / segmentCount));
-
-  const handleTransitionEnd = (e: React.TransitionEvent<HTMLDivElement>) => {
-    if (e.propertyName === 'transform' && isSpinning) {
-      onSpinEnd?.();
-    }
-  };
 
   return (
     <div 
@@ -44,7 +37,6 @@ const Wheel = ({ items, rotation, isSpinning, onSpinEnd, spinDuration, segmentHe
           transitionProperty: 'transform',
           transitionDuration: `${spinDuration}ms`,
         }}
-        onTransitionEnd={handleTransitionEnd}
       >
         {items.map((item, i) => {
           const segmentAngle = 360 / segmentCount;

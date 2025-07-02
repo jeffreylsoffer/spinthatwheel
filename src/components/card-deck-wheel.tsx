@@ -50,7 +50,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [rotation, setRotation] = useState(0);
   const [isSpinning, setIsSpinning] = useState(false);
   const [result, setResult] = useState<WheelItem | null>(null);
-  const [winningItem, setWinningItem] = useState<WheelItem | null>(null);
   const [isResultModalOpen, setIsResultModalOpen] = useState(false);
   const [isCheatSheetModalOpen, setIsCheatSheetModalOpen] = useState(false);
   const [isRefereeModalOpen, setIsRefereeModalOpen] = useState(false);
@@ -186,21 +185,30 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const handleSpinClick = (velocity: number) => {
     if (isSpinning || availableItems.length === 0 || wheelItems.length === 0) return;
 
+    console.log('--- SPIN START ---');
+
     // Prevent landing on a modifier if no rules are active yet
     const selectableItems = activeRules.length === 0 
       ? availableItems.filter(item => item.type !== 'MODIFIER')
       : availableItems;
       
-    if (selectableItems.length === 0) return;
+    if (selectableItems.length === 0) {
+      console.warn("No selectable items available to spin to.");
+      return;
+    }
+
+    console.log(`Selectable items: ${selectableItems.length}/${availableItems.length}`);
 
     const targetItem = selectableItems[Math.floor(Math.random() * selectableItems.length)];
-    setWinningItem(targetItem);
     const targetIndex = wheelItems.findIndex(item => item.id === targetItem.id);
 
     if (targetIndex === -1) {
-      console.error("Target item not found in wheel, cannot spin.");
+      console.error("Target item not found in wheel, cannot spin.", { targetItem, wheelItems });
       return;
     }
+
+    console.log('Chosen winning item:', { id: targetItem.id, type: targetItem.type, label: targetItem.label });
+    console.log('Target index in wheelItems:', targetIndex);
 
     const segmentAngle = 360 / wheelItems.length;
     
@@ -222,9 +230,12 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     desiredRotation -= targetSliceAngle;
     
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
+    const finalRotation = desiredRotation + randomOffset;
+
+    console.log('Calculated rotation:', finalRotation);
 
     setIsSpinning(true);
-    setRotation(desiredRotation + randomOffset);
+    setRotation(finalRotation);
 
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
@@ -242,7 +253,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           return;
         }
 
-        // Increase tick frequency to account for more pegs
         const ticksPerSegment = 3;
         const totalTicksInSpin = (360 / segmentAngle) * ticksPerSegment * (additionalRevolutions);
         const averageDelay = duration / totalTicksInSpin;
@@ -262,44 +272,59 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     };
 
     scheduleTicks();
+
+    // Use setTimeout to handle spin end, which is more reliable than onTransitionEnd
+    setTimeout(() => {
+        handleSpinEnd(targetItem);
+    }, duration);
   };
   
-  const handleSpinEnd = () => {
+  const handleSpinEnd = (itemThatWon: WheelItem | null) => {
+    console.log('--- SPIN END ---');
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
       tickTimeoutRef.current = null;
     }
 
     setSpinCycle(c => c + 1);
-    if (winningItem) {
-      playSound((winningItem.type.toLowerCase() as any) || 'end');
-      setResult(winningItem);
+    setIsSpinning(false);
+
+    if (itemThatWon) {
+      console.log('Landed on (from handleSpinEnd param):', { id: itemThatWon.id, type: itemThatWon.type, label: itemThatWon.label });
+      playSound((itemThatWon.type.toLowerCase() as any) || 'end');
+      setResult(itemThatWon);
       setIsResultModalOpen(true);
 
-      if (winningItem.type === 'RULE') {
-        const ruleData = winningItem.data as Rule;
+      if (itemThatWon.type === 'RULE') {
+        const ruleData = itemThatWon.data as Rule;
         const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
         if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
-           const ruleWithColor = { ...sessionRule, color: winningItem.color };
+           const ruleWithColor = { ...sessionRule, color: itemThatWon.color };
            setActiveRules(prev => [...prev, ruleWithColor]);
         }
       }
-      setWinningItem(null);
+    } else {
+        console.warn("handleSpinEnd called with no winning item.");
     }
-    setIsSpinning(false);
   };
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
       const landedItem = result;
+      console.log('--- MODAL CLOSE ---');
+      console.log('Result item being processed:', { id: landedItem.id, type: landedItem.type, label: landedItem.label });
+
 
       setWheelItems(currentWheelItems => {
+        console.log('Wheel items BEFORE update:', currentWheelItems.map(i => i.id));
         const indexToUpdate = currentWheelItems.findIndex(item => item.id === landedItem.id);
 
         if (indexToUpdate === -1) {
-            console.error("Landed item not found in wheel. Aborting update to prevent incorrect changes.");
+            console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: landedItem.id });
             return currentWheelItems;
         }
+
+        console.log(`Found item to update at index: ${indexToUpdate}`);
 
         let evolvedItem: WheelItem | null = null;
 
@@ -347,9 +372,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         if (evolvedItem) {
           const newWheelItems = [...currentWheelItems];
           newWheelItems[indexToUpdate] = evolvedItem;
+          console.log('Wheel items AFTER update:', newWheelItems.map(i => i.id));
           return newWheelItems;
         }
-
+        
+        console.log('Item did not evolve, returning current items.');
         return currentWheelItems;
       });
       
@@ -452,7 +479,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           onPointerUp={handlePointerUp}
           onPointerCancel={handlePointerCancel}
         >
-          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} onSpinEnd={handleSpinEnd} spinDuration={spinDuration} segmentHeight={segmentHeight} />
+          <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} spinDuration={spinDuration} segmentHeight={segmentHeight} />
           <WheelPointer key={spinCycle} />
         </div>
       </div>
