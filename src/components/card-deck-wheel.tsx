@@ -211,28 +211,26 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     console.log('Target index in wheelItems:', targetIndex);
 
     const segmentAngle = 360 / wheelItems.length;
-    const targetSliceAngle = targetIndex * segmentAngle;
+    
+    // The final angle we want the wheel to point to. We subtract because rotation is counter-clockwise.
+    const finalAngle = -(targetIndex * segmentAngle);
 
-    // The final angle we want to land on, relative to a 0-degree start.
-    // A rotation of -targetSliceAngle will bring the target slice to the top.
-    const finalAngle = -targetSliceAngle;
-
-    // Get the current angle of the wheel, normalized to be between 0 and 360.
-    const currentAngle = (rotation % 360 + 360) % 360;
+    // Get the current angle of the wheel, normalized to be between 0 and -360.
+    const currentAngle = rotation % 360;
     
     // Add a random number of full revolutions for visual effect.
     const revolutions = (3 + Math.random() * 3) * 360;
 
-    // Calculate how far we need to rotate to get from the current angle to the final angle,
-    // ensuring we always move forward.
-    const spinDistance = (finalAngle - currentAngle + 360) % 360;
+    // Calculate how far we need to rotate to get from the current angle to the final angle.
+    // We add 360 to handle negative angles and ensure we always spin forward.
+    const spinDistance = (360 + finalAngle - currentAngle) % 360;
     
     // The new rotation is the current rotation plus the full revolutions and the spin distance.
-    const newRotation = rotation + revolutions + spinDistance;
+    const newRotation = rotation - revolutions - spinDistance;
     
     // Add a slight random offset to make it not land perfectly every time
     const randomOffset = (Math.random() - 0.5) * segmentAngle * 0.8;
-    const finalRotationWithOffset = newRotation + randomOffset;
+    const finalRotationWithOffset = newRotation - randomOffset;
 
     const duration = 4000 + (revolutions / 360) * 300;
     setSpinDuration(duration);
@@ -316,6 +314,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
       const landedItem = result;
+      // Immediately clear the result to prevent this block from running again on a double-invocation from Strict Mode.
+      setResult(null);
+
       console.log('--- MODAL CLOSE ---');
       console.log('Result item being processed:', { id: landedItem.id, type: landedItem.type, label: landedItem.label });
 
@@ -384,8 +385,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         console.log('Item did not evolve, returning current items.');
         return currentWheelItems;
       });
-      
-      setResult(null);
     }
     setIsResultModalOpen(open);
   };

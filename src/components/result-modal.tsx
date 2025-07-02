@@ -5,6 +5,8 @@ import { useState, useEffect } from "react";
 import {
   Dialog,
   DialogContent,
+  DialogDescription,
+  DialogTitle,
   DialogClose,
 } from "@/components/ui/dialog";
 import type { WheelItem, Modifier } from "@/lib/types";
@@ -46,6 +48,12 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
       <DialogContent className="bg-transparent border-none shadow-none p-0 data-[state=open]:animate-in data-[state=open]:zoom-in-75 w-[90vw] max-w-[640px]">
+        {/* Visually hidden Title and Description for screen readers, preventing console warnings */}
+        <DialogTitle className="sr-only">{`${result.label}: ${result.data.name}`}</DialogTitle>
+        <DialogDescription className="sr-only">
+          {result.data.description || 'Result from the wheel spin.'}
+        </DialogDescription>
+        
         <div className={cn("relative", isFlipModifier && "pb-16")}>
           <div 
             style={{ backgroundColor: result.color.labelBg }}
