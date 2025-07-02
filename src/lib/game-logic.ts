@@ -61,7 +61,9 @@ export function populateWheel(
   }
   
   return rawWheel.map((item, index) => {
-    const cardStyle = CARD_STYLES[item.type as 'RULE'];
+    // This logic assumes the initial item is a RULE.
+    // If other types are added initially, this needs adjustment.
+    const cardStyle = CARD_STYLES.RULE;
     const segmentColor = SEGMENT_COLORS[index % SEGMENT_COLORS.length];
     return {
       ...item,

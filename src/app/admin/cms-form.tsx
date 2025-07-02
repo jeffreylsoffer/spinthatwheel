@@ -79,7 +79,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
         // Re-insert the buzzer rule at its original position to maintain it
         const originalBuzzerRule = rules[buzzerRuleIndex];
         const newRulesWithBuzzer = [...result.ruleGroups];
-        newRulesWithBuzzer.push(originalBuzzerRule);
+        newRulesWithBuzzer.splice(buzzerRuleIndex, 0, originalBuzzerRule);
         setRules(newRulesWithBuzzer);
       } else {
         setRules(result.ruleGroups);
@@ -139,7 +139,9 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       primary_rule: { id: newId + 1, name: '', description: '' },
       flipped_rule: { id: newId + 2, name: '', description: '' },
     };
-    setRules([...regularRules, newRuleGroup, ...(buzzerRule ? [buzzerRule] : [])]);
+    const regularRulesWithNew = [...regularRules, newRuleGroup];
+    const newRules = buzzerRule ? [...regularRulesWithNew.slice(0, buzzerRuleIndex), buzzerRule, ...regularRulesWithNew.slice(buzzerRuleIndex)] : regularRulesWithNew;
+    setRules(newRules);
   };
 
   const handleDeleteRule = (groupId: number) => {
@@ -170,12 +172,6 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
       localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(isBuzzerRuleEnabled));
       
-      // Clean up old local storage items
-      localStorage.removeItem('cms_show_rule_descriptions');
-      localStorage.removeItem('cms_include_buzzer_rule');
-      localStorage.removeItem('cms_ratios');
-
-
       toast({
         title: "Changes Saved!",
         description: "Your new card and wheel configuration has been saved locally.",
@@ -243,9 +239,11 @@ export default function CmsForm({ initialData }: CmsFormProps) {
                   const originalIndex = rules.findIndex(r => r.id === group.id);
                   return (
                     <Card key={group.id} className="bg-card/50 relative group">
-                      <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteRule(group.id)}>
-                        <Trash2 className="h-5 w-5" />
-                      </Button>
+                       {group.primary_rule.special !== 'BUZZER' && (
+                        <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteRule(group.id)}>
+                            <Trash2 className="h-5 w-5" />
+                        </Button>
+                      )}
                       <CardContent className="space-y-6 pt-6">
                         <div className="space-y-4 p-4 border rounded-md">
                           <h4 className="font-bold text-lg">Rule</h4>

@@ -222,7 +222,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
 
   const handleModalOpenChange = (open: boolean) => {
     if (!open && result) {
-      let evolvedItem: WheelItem;
+      let evolvedItem: WheelItem | null = null;
       const resultIndex = wheelItems.findIndex(item => item.id === result.id);
 
       if (result.type === 'RULE') {
@@ -250,17 +250,9 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
                       ...CARD_STYLES.MODIFIER,
                   }
               };
-          } else {
-              evolvedItem = {
-                  id: `used-${result.id}`,
-                  type: 'END',
-                  label: 'END',
-                  data: { name: 'END', description: 'This slot has been used.' },
-                  color: { segment: '#111827', ...CARD_STYLES.END }
-              };
           }
-      } else { // Prompt or Modifier becomes END
-          evolvedItem = {
+      } else if (result.type === 'PROMPT' || result.type === 'MODIFIER') {
+           evolvedItem = {
               id: `used-${result.id}`,
               type: 'END',
               label: 'END',
@@ -268,20 +260,20 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
               color: { segment: '#111827', ...CARD_STYLES.END }
           };
       }
-
-      const newWheelItems = [...wheelItems];
-      if (resultIndex !== -1) {
-          newWheelItems[resultIndex] = evolvedItem;
-      }
-      setWheelItems(newWheelItems);
       
-      setAvailableItems(prev => {
-          const afterRemoval = prev.filter(i => i.id !== result.id);
-          if (evolvedItem.type !== 'END') {
-              return [...afterRemoval, evolvedItem];
-          }
-          return afterRemoval;
-      });
+      if (evolvedItem && resultIndex !== -1) {
+        const newWheelItems = [...wheelItems];
+        newWheelItems[resultIndex] = evolvedItem;
+        setWheelItems(newWheelItems);
+        
+        setAvailableItems(prev => {
+            const afterRemoval = prev.filter(i => i.id !== result.id);
+            if (evolvedItem!.type !== 'END') {
+                return [...afterRemoval, evolvedItem!];
+            }
+            return afterRemoval;
+        });
+      }
     }
     setIsResultModalOpen(open);
   };
