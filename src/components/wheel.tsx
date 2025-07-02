@@ -47,7 +47,6 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
           const g = parseInt(segmentColor.slice(3, 5), 16);
           const b = parseInt(segmentColor.slice(5, 7), 16);
           const borderColor = item.type === 'END' ? 'rgb(0,0,0)' : `rgb(${r * 0.7}, ${g * 0.7}, ${b * 0.7})`;
-          const highlightColor = `rgba(255, 255, 255, 0.2)`;
 
           return (
             <div
@@ -57,9 +56,10 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
                 height: `${segmentHeight}px`,
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: segmentColor,
+                backgroundImage: `linear-gradient(to top, rgba(255,255,255,0.0), rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.0) 100%)`,
                 backfaceVisibility: 'hidden',
                 border: `8px solid ${borderColor}`,
-                boxShadow: `inset 0 2px 2px ${highlightColor}, inset 0 -2px 2px rgba(0,0,0,0.2)`
+                boxShadow: `inset 0 3px 3px rgba(255,255,255,0.4), inset 0 -3px 3px rgba(0,0,0,0.3)`
               }}
             >
               <div 
