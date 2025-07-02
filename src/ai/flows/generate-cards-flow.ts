@@ -114,6 +114,7 @@ const generateCardsFlow = ai.defineFlow(
     outputSchema: GenerateCardsOutputSchema,
   },
   async (input) => {
+    console.log(`[AI THEME] Generating cards for theme: "${input.theme}"`);
     const response = await generationPrompt(input);
     const { output } = response;
 
