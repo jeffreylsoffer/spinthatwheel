@@ -1,3 +1,4 @@
+
 import type { RuleGroup, Prompt, Modifier } from './types';
 
 export const ruleGroups: RuleGroup[] = [
@@ -75,9 +76,9 @@ export const ruleGroups: RuleGroup[] = [
   },
   {
     id: 13,
-    name: "Special",
-    primary_rule: { id: 1301, name: "Buzzer Reaction", description: "When you hear the buzzer, you must immediately stand up and shout 'Bazinga!'", special: 'BUZZER' },
-    flipped_rule: { id: 1302, name: "Buzzer Stillness", description: "When you hear the buzzer, you must freeze in place until another player tells you to stop.", special: 'BUZZER' }
+    name: "Buzzer",
+    primary_rule: { id: 1301, name: "Mirror Kiss", description: "Kiss the closest mirror.", special: 'BUZZER' },
+    flipped_rule: { id: 1302, name: "Mirror Insult", description: "Tell yourself 'You suck!' in the closest mirror.", special: 'BUZZER' }
   }
 ];
 

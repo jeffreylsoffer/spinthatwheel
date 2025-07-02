@@ -34,8 +34,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
   const [spinDuration, setSpinDuration] = useState(0);
   const [spinCount, setSpinCount] = useState(0);
   const [isBuzzerRuleActive, setIsBuzzerRuleActive] = useState(false);
-  const [showRuleDescriptions, setShowRuleDescriptions] = useState(false);
-  const [includeBuzzerRule, setIncludeBuzzerRule] = useState(true);
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -62,8 +60,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedRatios = localStorage.getItem('cms_ratios');
-    const savedShowRuleDescriptions = localStorage.getItem('cms_show_rule_descriptions');
-    const savedIncludeBuzzerRule = localStorage.getItem('cms_include_buzzer_rule');
 
     setGameData({
       rules: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
@@ -80,25 +76,10 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
       });
     }
 
-    if (savedShowRuleDescriptions) {
-      setShowRuleDescriptions(JSON.parse(savedShowRuleDescriptions));
-    }
-
-    if (savedIncludeBuzzerRule) {
-      setIncludeBuzzerRule(JSON.parse(savedIncludeBuzzerRule));
-    }
   }, []);
 
   const initializeGame = useCallback(() => {
-    const rulesForDeck = includeBuzzerRule
-      ? gameData.rules
-      : gameData.rules.filter(
-          (rg) =>
-            rg.primary_rule.special !== 'BUZZER' &&
-            rg.flipped_rule.special !== 'BUZZER'
-        );
-
-    const rules = createSessionDeck(rulesForDeck);
+    const rules = createSessionDeck(gameData.rules);
     const items = populateWheel(rules, gameData.prompts, gameData.modifiers, gameRatios);
     
     setSessionRules(rules);
@@ -109,7 +90,7 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
     setResult(null);
     setSpinCount(0);
     setActiveRules([]);
-  }, [gameData, gameRatios, includeBuzzerRule]);
+  }, [gameData, gameRatios]);
 
   useEffect(() => {
     initializeGame();
@@ -344,7 +325,6 @@ const CardDeckWheel = ({ players, onScoreChange, onResetGame }: CardDeckWheelPro
         isOpen={isResultModalOpen} 
         onOpenChange={handleModalOpenChange} 
         result={result} 
-        showRuleDescriptions={showRuleDescriptions}
         onOpenCheatSheet={() => {
           setIsResultModalOpen(false);
           setIsCheatSheetModalOpen(true);

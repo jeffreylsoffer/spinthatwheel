@@ -1,3 +1,4 @@
+
 "use client";
 
 import { useState, useEffect } from "react";
@@ -15,11 +16,10 @@ interface ResultModalProps {
   isOpen: boolean;
   onOpenChange: (open: boolean) => void;
   result: WheelItem | null;
-  showRuleDescriptions?: boolean;
   onOpenCheatSheet: () => void;
 }
 
-const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpenCheatSheet }: ResultModalProps) => {
+const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultModalProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
   useEffect(() => {
@@ -41,7 +41,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, showRuleDescriptions, onOpe
   const textColor = result.type === 'PROMPT' || result.type === 'RULE' ? 'black' : 'white';
   const closeButtonColor = result.color.labelBg === '#FFFFFF' || result.color.labelBg === '#FFD262' ? 'text-black' : 'text-white';
   
-  const showDescriptionForRule = result.type === 'RULE' && showRuleDescriptions && result.data.description;
+  const showDescriptionForRule = result.type === 'RULE' && result.data.description;
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>

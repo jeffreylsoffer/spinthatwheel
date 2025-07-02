@@ -1,3 +1,4 @@
+
 'use server';
 /**
  * @fileOverview An AI flow for generating themed card content for the SPIN THAT WHEEL game.
@@ -59,10 +60,10 @@ Your task is to generate a new set of Rules and Prompts based on a user-provided
 
 You must follow these instructions carefully:
 1.  **Maintain Structure:** Use the provided existing cards as a template for the structure and quantity of new cards. The number of new rule groups and prompts should be the same as the number of existing ones.
-2.  **Preserve Mechanics:** Flipped rules should be the thematic opposite of their primary rule.
-3.  **Inject Theme:** Creatively infuse the "{{theme}}" into the 'name' and 'description' of each Rule and the 'text' of each Prompt. Be clever and funny.
-4.  **Keep IDs:** Do NOT change the 'id' fields. Preserve the original IDs from the existing cards.
-5.  **Be Practical:** Ensure the generated rules are actions or speech patterns that a person can reasonably perform during a conversation. Avoid overly complex physical tasks.
+2.  **Thematic Opposites:** Flipped rules MUST be the thematic opposite of their primary rule. This is a core game mechanic. For example, if a rule is "Speak loudly", the flipped rule could be "Whisper".
+3.  **Be Practical & Achievable:** The generated rules and prompts must be actions or speech patterns that a person can reasonably perform during a conversation. The fun comes from combining rules, not from the difficulty of a single task. Avoid obscure trivia or complex physical challenges.
+4.  **Inject Theme:** Creatively infuse the "{{theme}}" into the 'name' and 'description' of each Rule and the 'text' of each Prompt. Be clever and funny.
+5.  **Keep IDs:** Do NOT change the 'id' fields. Preserve the original IDs from the existing cards.
 
 Here are the existing cards for reference:
 - Rules: {{{json existingRules}}}

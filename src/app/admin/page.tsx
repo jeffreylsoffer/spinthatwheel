@@ -32,8 +32,6 @@ export default function AdminPage() {
     rules: defaultRatios.RULES * 100,
     modifiers: defaultRatios.MODIFIERS * 100,
   });
-  const [initialShowRuleDescriptions, setInitialShowRuleDescriptions] = useState(false);
-  const [initialIncludeBuzzerRule, setInitialIncludeBuzzerRule] = useState(true);
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
@@ -41,8 +39,6 @@ export default function AdminPage() {
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedRatios = localStorage.getItem('cms_ratios');
-    const savedShowRuleDescriptions = localStorage.getItem('cms_show_rule_descriptions');
-    const savedIncludeBuzzerRule = localStorage.getItem('cms_include_buzzer_rule');
 
     setInitialData({
         ruleGroups: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
@@ -54,14 +50,6 @@ export default function AdminPage() {
         setInitialRatios(JSON.parse(savedRatios));
     }
     
-    if (savedShowRuleDescriptions) {
-        setInitialShowRuleDescriptions(JSON.parse(savedShowRuleDescriptions));
-    }
-    
-    if (savedIncludeBuzzerRule) {
-        setInitialIncludeBuzzerRule(JSON.parse(savedIncludeBuzzerRule));
-    }
-
     setIsLoading(false);
   }, []);
 
@@ -132,8 +120,6 @@ export default function AdminPage() {
       <CmsForm 
         initialData={initialData} 
         initialRatios={initialRatios} 
-        initialShowRuleDescriptions={initialShowRuleDescriptions}
-        initialIncludeBuzzerRule={initialIncludeBuzzerRule}
       />
     </main>
   );
