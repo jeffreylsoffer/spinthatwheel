@@ -65,7 +65,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 11,
     name: "Nickname",
-    primary_rule: { id: 1101, name: "Call everyone 'Big Dog'", description: "You must refer to every other player as 'Big Dog'." },
+    primary_rule: { id: 1101, name: "Call everyone 'Big Dog'", description: "You must refer to everyone as 'Big Dog'." },
     flipped_rule: { id: 1102, name: "Use formal names", description: "You must refer to everyone by their formal, full name." },
   },
   {
