@@ -27,7 +27,7 @@ export default function RootLayout({
         <link rel="preconnect" href="https://fonts.gstatic.com" crossOrigin="anonymous" />
         <link href="https://fonts.googleapis.com/css2?family=League+Gothic&family=Orbitron:wght@700&family=PT+Sans:wght@400;700&display=swap" rel="stylesheet" />
       </head>
-      <body className={cn("font-body antialiased relative")}>
+      <body className={cn("font-body antialiased relative overflow-x-hidden")}>
         {children}
         <Toaster />
         <CabaretBorder />
