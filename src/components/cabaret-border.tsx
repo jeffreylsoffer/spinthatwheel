@@ -11,28 +11,25 @@ const CabaretBorder = () => {
     const container = containerRef.current;
     if (!container) return;
     
-    const calculateBulbs = () => {
-      // Only update state if the dimensions have actually changed to prevent infinite loops
-      setDimensions(prevDims => {
-        if (prevDims.width !== container.clientWidth || prevDims.height !== container.clientHeight) {
-          return { width: container.clientWidth, height: container.clientHeight };
-        }
-        return prevDims;
-      });
+    const handleResize = (entries: ResizeObserverEntry[]) => {
+      for (const entry of entries) {
+        const { width, height } = entry.contentRect;
+        setDimensions({ width, height });
+      }
     };
+    
+    // Use ResizeObserver to detect size changes of the container itself.
+    const resizeObserver = new ResizeObserver(handleResize);
+    resizeObserver.observe(container);
 
-    // Use ResizeObserver to detect size changes of the body. This is more reliable
-    // for content-driven height changes than the window's resize event.
-    const resizeObserver = new ResizeObserver(calculateBulbs);
-    resizeObserver.observe(document.body);
-
-    // Initial calculation
-    calculateBulbs();
-
+    // Cleanup function to disconnect the observer
     return () => {
+      if (container) {
+        resizeObserver.unobserve(container);
+      }
       resizeObserver.disconnect();
     };
-  }, []); // Empty dependency array ensures this effect runs once on mount.
+  }, []); // Empty dependency array ensures this effect runs once to set up the observer
 
   const bulbs: React.ReactNode[] = [];
   
@@ -64,7 +61,7 @@ const CabaretBorder = () => {
   }
   // Bottom edge
   for (let i = hBulbs - 1; i >= 0; i--) {
-    bulbs.push(<div key={`b-${i}`} className="bulb" style={{ top: '100%', bottom: 'auto', left: `${horizontalMargin + (i + 0.5) * BULB_SPACING_PX}px`, animationDelay: `${(index++ / totalBulbs) * animDuration}s` }} />);
+    bulbs.push(<div key={`b-${i}`} className="bulb" style={{ top: 'auto', bottom: '0%', left: `${horizontalMargin + (i + 0.5) * BULB_SPACING_PX}px`, animationDelay: `${(index++ / totalBulbs) * animDuration}s` }} />);
   }
   // Left edge
   for (let i = vBulbs - 1; i >= 0; i--) {
