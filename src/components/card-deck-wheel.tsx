@@ -140,9 +140,49 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const rules = createSessionDeck(gameData.rules);
     const items = populateWheel(rules);
     
-    // Create and shuffle a deck of evolution cards
-    const promptsAndModifiers = [...gameData.prompts, ...gameData.modifiers];
-    setEvolutionDeck(shuffle(promptsAndModifiers));
+    // --- Create and shuffle a deck of evolution cards (new logic) ---
+    const numRules = gameData.rules.length;
+
+    // 1. Generate prompts (roughly 50% of the deck)
+    const numPromptsToGenerate = Math.floor(numRules / 2);
+    const generatedPrompts: Prompt[] = [];
+    if (gameData.prompts.length > 0) {
+      const availablePrompts = shuffle([...gameData.prompts]);
+      for (let i = 0; i < numPromptsToGenerate; i++) {
+        generatedPrompts.push(availablePrompts[i % availablePrompts.length]);
+      }
+    }
+
+    // 2. Generate modifiers (the other 50%)
+    const numModifiersToGenerate = numRules - numPromptsToGenerate;
+    const generatedModifiers: Modifier[] = [];
+    if (gameData.modifiers.length > 0) {
+      const availableModifiers = [...gameData.modifiers];
+      const flipModifier = availableModifiers.find(m => m.type === 'FLIP');
+      
+      if (flipModifier) {
+        let modifiersToCreate = numModifiersToGenerate;
+        // Add full sets of all available modifiers
+        while (modifiersToCreate >= availableModifiers.length) {
+          generatedModifiers.push(...shuffle([...availableModifiers]));
+          modifiersToCreate -= availableModifiers.length;
+        }
+        // Fill the rest of the slots with FLIP modifiers
+        while (modifiersToCreate > 0) {
+          generatedModifiers.push(flipModifier);
+          modifiersToCreate--;
+        }
+      } else {
+        // Fallback if no FLIP modifier exists: just cycle through available modifiers
+        const availableModifiersShuffled = shuffle([...gameData.modifiers]);
+        for (let i = 0; i < numModifiersToGenerate; i++) {
+            generatedModifiers.push(availableModifiersShuffled[i % availableModifiersShuffled.length]);
+        }
+      }
+    }
+    
+    const finalEvolutionDeck = shuffle([...generatedPrompts, ...generatedModifiers]);
+    setEvolutionDeck(finalEvolutionDeck);
 
     setSessionRules(rules);
     setWheelItems(items);

@@ -5,7 +5,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 1,
     name: "Voice",
-    primary_rule: { id: 101, name: "In a sing-song voice", description: "You must speak in a sing-song voice, lilting up and down." },
+    primary_rule: { id: 101, name: "In a sing-song voice", description: "You must speak in a sing-song voice" },
     flipped_rule: { id: 102, name: "Speak in a monotone voice", description: "You must speak in a monotone voice, with no inflection." },
   },
   {
@@ -41,14 +41,14 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 7,
     name: "Humor",
-    primary_rule: { id: 701, name: "Be allergic to jokes", description: "You are deathly allergic to jokes and must react accordingly." },
-    flipped_rule: { id: 702, name: "Laugh at everything", description: "You must laugh hysterically at everything, funny or not." },
+    primary_rule: { id: 701, name: "Be allergic to jokes", description: "You must sneaze at everyone's jokes." },
+    flipped_rule: { id: 702, name: "Laugh at everything", description: "You must laugh at everything, funny or not." },
   },
   {
     id: 8,
     name: "Tone",
-    primary_rule: { id: 801, name: "Sexily", description: "You must say everything in your sexiest voice." },
-    flipped_rule: { id: 802, name: "Unsexily", description: "You must say everything in your most unsexy voice." },
+    primary_rule: { id: 801, name: "Sexily", description: "You speak and act sexily." },
+    flipped_rule: { id: 802, name: "Unsexily", description: "You must speak and act in the most unsexy way." },
   },
   {
     id: 9,
