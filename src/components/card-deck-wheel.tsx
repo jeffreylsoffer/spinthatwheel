@@ -214,88 +214,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     initializeGame();
   }, [initializeGame]);
   
-  // This effect handles processing the result after the modal closes.
-  // It also now handles triggering the buzzer toast.
-  useEffect(() => {
-    if (result && !isResultModalOpen && !resultProcessed.current) {
-        resultProcessed.current = true; // Mark as processed
-
-        let finalWheelItems: WheelItem[] = wheelItems;
-        if (result.evolution) {
-            setWheelItems(currentWheelItems => {
-                const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
-                if (indexToUpdate === -1) {
-                    console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
-                    return currentWheelItems;
-                }
-                const newWheelItems = [...currentWheelItems];
-                newWheelItems[indexToUpdate] = result.evolution;
-                finalWheelItems = newWheelItems; // Store for end-game check
-                return newWheelItems;
-            });
-        }
-
-        if (result.landed.type === 'RULE') {
-            const ruleData = result.landed.data as Rule;
-            const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
-            if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
-                const ruleWithColor = { ...sessionRule, color: result.landed.color };
-                setActiveRules(prev => [...prev, ruleWithColor]);
-            }
-        }
-        
-        // --- BUZZER LOGIC ---
-        // After a turn, there is a chance for the buzzer to go off.
-        const buzzerRule = activeRules.find(r => (r.isFlipped ? r.flipped : r.primary).special === 'BUZZER');
-        const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
-
-        if (buzzerRule && hasPlayableCards && Math.random() < 0.33) {
-            const delay = Math.random() * 2000 + 2000; // 2-4 second delay
-            setTimeout(() => {
-                playBuzzer(); // Start sound immediately when toast appears
-
-                const stopAndClear = () => {
-                    stopBuzzer();
-                };
-
-                const ruleData = buzzerRule.isFlipped ? buzzerRule.flipped : buzzerRule.primary;
-                toast({
-                    duration: buzzerCountdown * 1000,
-                    onOpenChange: (open) => {
-                        if (!open) {
-                            stopAndClear();
-                        }
-                    },
-                    className: "w-full max-w-md p-0 border-accent shadow-lg shadow-accent/20 bg-card",
-                    description: <BuzzerToast rule={ruleData} countdownSeconds={buzzerCountdown} />,
-                    action: (
-                        <ToastAction altText="Acknowledge" onClick={stopAndClear} className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border-0">
-                           <Check className="h-6 w-6" />
-                        </ToastAction>
-                    ),
-                });
-            }, delay);
-        }
-
-        // --- END GAME LOGIC ---
-        if (!hasPlayableCards) {
-            setTimeout(() => handleSpinClick(true), 1500);
-        }
-
-        // IMPORTANT: Clear the result so this effect doesn't run again with the same data
-        setResult(null);
-    }
-  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer, wheelItems, handleSpinClick]);
-
-  const handleFlipRule = useCallback((ruleId: number) => {
-    const ruleToFlip = sessionRules.find(r => r.id === ruleId);
-    if (!ruleToFlip) return;
-
-    // This only affects the player's state (active rules), not the wheel itself.
-    setSessionRules(prev => prev.map(r => r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r));
-    setActiveRules(prev => prev.map(ar => ar.id === ruleId ? { ...ar, isFlipped: !ar.isFlipped } : ar));
-  }, [sessionRules]);
-
   const handleSpinEnd = useCallback((finalRotation: number) => {
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
@@ -452,7 +370,89 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         handleSpinEnd(newRotation);
     }, duration);
   }, [isSpinning, wheelItems.length, rotation, handleSpinEnd, playSound]);
+
+  // This effect handles processing the result after the modal closes.
+  // It also now handles triggering the buzzer toast.
+  useEffect(() => {
+    if (result && !isResultModalOpen && !resultProcessed.current) {
+        resultProcessed.current = true; // Mark as processed
+
+        let finalWheelItems: WheelItem[] = wheelItems;
+        if (result.evolution) {
+            setWheelItems(currentWheelItems => {
+                const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
+                if (indexToUpdate === -1) {
+                    console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
+                    return currentWheelItems;
+                }
+                const newWheelItems = [...currentWheelItems];
+                newWheelItems[indexToUpdate] = result.evolution;
+                finalWheelItems = newWheelItems; // Store for end-game check
+                return newWheelItems;
+            });
+        }
+
+        if (result.landed.type === 'RULE') {
+            const ruleData = result.landed.data as Rule;
+            const sessionRule = sessionRules.find(sr => sr.primary.id === ruleData.id || sr.flipped.id === ruleData.id);
+            if (sessionRule && !activeRules.some(ar => ar.id === sessionRule.id)) {
+                const ruleWithColor = { ...sessionRule, color: result.landed.color };
+                setActiveRules(prev => [...prev, ruleWithColor]);
+            }
+        }
+        
+        // --- BUZZER LOGIC ---
+        // After a turn, there is a chance for the buzzer to go off.
+        const buzzerRule = activeRules.find(r => (r.isFlipped ? r.flipped : r.primary).special === 'BUZZER');
+        const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
+
+        if (buzzerRule && hasPlayableCards && Math.random() < 0.33) {
+            const delay = Math.random() * 2000 + 2000; // 2-4 second delay
+            setTimeout(() => {
+                playBuzzer(); // Start sound immediately when toast appears
+
+                const stopAndClear = () => {
+                    stopBuzzer();
+                };
+
+                const ruleData = buzzerRule.isFlipped ? buzzerRule.flipped : buzzerRule.primary;
+                toast({
+                    duration: buzzerCountdown * 1000,
+                    onOpenChange: (open) => {
+                        if (!open) {
+                            stopAndClear();
+                        }
+                    },
+                    className: "w-full max-w-md p-0 border-accent shadow-lg shadow-accent/20 bg-card",
+                    description: <BuzzerToast rule={ruleData} countdownSeconds={buzzerCountdown} />,
+                    action: (
+                        <ToastAction altText="Acknowledge" onClick={stopAndClear} className="text-green-400 hover:text-green-300 hover:bg-green-400/10 border-0">
+                           <Check className="h-6 w-6" />
+                        </ToastAction>
+                    ),
+                });
+            }, delay);
+        }
+
+        // --- END GAME LOGIC ---
+        if (!hasPlayableCards) {
+            setTimeout(() => handleSpinClick(true), 1500);
+        }
+
+        // IMPORTANT: Clear the result so this effect doesn't run again with the same data
+        setResult(null);
+    }
+  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer, wheelItems, handleSpinClick]);
   
+  const handleFlipRule = useCallback((ruleId: number) => {
+    const ruleToFlip = sessionRules.find(r => r.id === ruleId);
+    if (!ruleToFlip) return;
+
+    // This only affects the player's state (active rules), not the wheel itself.
+    setSessionRules(prev => prev.map(r => r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r));
+    setActiveRules(prev => prev.map(ar => ar.id === ruleId ? { ...ar, isFlipped: !ar.isFlipped } : ar));
+  }, [sessionRules]);
+
   const handleReset = useCallback(() => {
     if (tickTimeoutRef.current) {
         clearTimeout(tickTimeoutRef.current);
