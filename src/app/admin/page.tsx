@@ -56,7 +56,7 @@ export default function AdminPage() {
 
   if (isLoading) {
     return (
-      <main className="container mx-auto p-8 lg:p-12">
+      <main className="container mx-auto p-8">
           <div className="flex items-center justify-between mb-8">
               <Skeleton className="h-12 w-1/2" />
               <Skeleton className="h-10 w-36" />
@@ -71,7 +71,7 @@ export default function AdminPage() {
   }
 
   return (
-    <main className="container mx-auto p-8 lg:p-12">
+    <main className="container mx-auto p-8">
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-4xl lg:text-5xl">Manage Cards</h1>
         <div className="flex items-center gap-2">
