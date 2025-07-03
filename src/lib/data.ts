@@ -12,7 +12,7 @@ export const ruleGroups: RuleGroup[] = [
     id: 2,
     name: "Speech",
     primary_rule: { id: 201, name: "No filler words", description: "You cannot use filler words (um, uh, like)." },
-    flipped_rule: { id: 202, name: "Only use filler words", description: "You must use filler words in every sentence." },
+    flipped_rule: { id: 202, name: "Full Valley Girl", description: "You must, like, totally speak like a Valley Girl." },
   },
   {
     id: 3,
@@ -79,6 +79,12 @@ export const ruleGroups: RuleGroup[] = [
     name: "Buzzer",
     primary_rule: { id: 1301, name: "Kiss the nearest mirror", description: "When the buzzer sounds, find and kiss the closest mirror.", special: 'BUZZER' },
     flipped_rule: { id: 1302, name: "Insult yourself in the mirror", description: "When the buzzer sounds, tell yourself 'You suck!' in the closest mirror.", special: 'BUZZER' }
+  },
+  {
+    id: 14,
+    name: "Salutation",
+    primary_rule: { id: 1401, name: "Start with 'What's up YouTube'", description: "You must start every sentence with 'What's up YouTube'." },
+    flipped_rule: { id: 1402, name: "End with 'Like and Subscribe'", description: "You must end every sentence with '...like and subscribe!'" },
   }
 ];
 

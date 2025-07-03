@@ -518,7 +518,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
   
   return (
-    <div className="flex flex-col lg:flex-row h-screen overflow-hidden lg:p-8 lg:gap-8">
+    <div className="flex flex-col lg:flex-row h-screen lg:p-8 lg:gap-8">
       
       {/* Wheel Column */}
       <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
@@ -610,7 +610,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         onOpenChange={setIsGameOver}
         players={players}
         onPlayAgain={handleReset}
-        onKeepPlaying={() => setIsGameOver(false)}
       />
       <AlertDialog open={isResetConfirmOpen} onOpenChange={setIsResetConfirmOpen}>
         <AlertDialogContent>
