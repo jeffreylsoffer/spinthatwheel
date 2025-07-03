@@ -83,7 +83,6 @@ body {
 @layer utilities {
   .bulb {
     @apply absolute w-4 h-4 bg-yellow-900 rounded-full -translate-x-1/2 -translate-y-1/2;
-    animation: bulb-chase 4s infinite linear;
   }
 
   .sr-only {
