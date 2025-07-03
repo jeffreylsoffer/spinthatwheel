@@ -44,6 +44,7 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
           const angle = i * segmentAngle;
 
           const segmentColor = item.type === 'END' ? '#111827' : item.color.segment;
+          // Calculate a darker border color for a cheap 3D effect
           const r = parseInt(segmentColor.slice(1, 3), 16);
           const g = parseInt(segmentColor.slice(3, 5), 16);
           const b = parseInt(segmentColor.slice(5, 7), 16);
