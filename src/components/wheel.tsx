@@ -57,10 +57,8 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
                 height: `${segmentHeight}px`,
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: segmentColor,
-                backgroundImage: `linear-gradient(to top, rgba(255,255,255,0.0), rgba(255,255,255,0.4) 50%, rgba(255,255,255,0.0) 100%)`,
                 backfaceVisibility: 'hidden',
                 border: `8px solid ${borderColor}`,
-                boxShadow: `inset 0 3px 3px rgba(255,255,255,0.4), inset 0 -3px 3px rgba(0,0,0,0.3)`
               }}
             >
               <div 
@@ -85,24 +83,6 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
                   {item.label.toUpperCase()}
                 </span>
               </div>
-
-              {/* Pegs */}
-              {[0, 1, 2].map((pegIndex) => (
-                <div
-                  key={pegIndex}
-                  className="absolute bg-neutral-400 rounded-full"
-                  style={{
-                    right: '5%',
-                    top: `${25 + pegIndex * 25}%`,
-                    transform: 'translateY(-50%)',
-                    width: '8px',
-                    height: '8px',
-                    border: '1px solid #333',
-                    boxShadow: 'inset 0 1px 1px rgba(255,255,255,0.7)',
-                  }}
-                />
-              ))}
-
             </div>
           );
         })}

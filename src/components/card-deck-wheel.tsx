@@ -83,17 +83,34 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const resultProcessed = useRef(false);
   const buzzerAudioRef = useRef<HTMLAudioElement | null>(null);
   
+  const audioRefs = {
+      prompt: useRef<HTMLAudioElement | null>(null),
+      rule: useRef<HTMLAudioElement | null>(null),
+      modifier: useRef<HTMLAudioElement | null>(null),
+      end: useRef<HTMLAudioElement | null>(null),
+      tick: useRef<HTMLAudioElement | null>(null),
+      whistle: useRef<HTMLAudioElement | null>(null),
+  };
+
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
-  const playSound = useCallback((sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'tick' | 'whistle') => {
-    // This function plays a sound effect.
-    // It expects to find the corresponding .mp3 file in the `public/audio/` directory.
-    // For example, calling playSound('rule') will attempt to play `/audio/rule.mp3`.
-    // Ensure your audio files (e.g., `rule.mp3`, `prompt.mp3`, `whistle.mp3`, etc.) are in that folder.
-    const audio = new Audio(`/audio/${sound}.mp3`);
-    audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3. Make sure the file exists in public/audio/.`, e));
-  }, []);
+  useEffect(() => {
+    // Preload audio
+    if (typeof window !== "undefined") {
+        (Object.keys(audioRefs) as Array<keyof typeof audioRefs>).forEach(sound => {
+            audioRefs[sound].current = new Audio(`/audio/${sound}.mp3`);
+        });
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+
+  const playSound = useCallback((sound: keyof typeof audioRefs) => {
+    const audio = audioRefs[sound]?.current;
+    if (audio) {
+        audio.currentTime = 0;
+        audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3.`, e));
+    }
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const playBuzzer = useCallback(() => {
     if (buzzerAudioRef.current) return; // Already playing
@@ -203,6 +220,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     if (result && !isResultModalOpen && !resultProcessed.current) {
         resultProcessed.current = true; // Mark as processed
 
+        let finalWheelItems: WheelItem[] = wheelItems;
         if (result.evolution) {
             setWheelItems(currentWheelItems => {
                 const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
@@ -212,6 +230,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                 }
                 const newWheelItems = [...currentWheelItems];
                 newWheelItems[indexToUpdate] = result.evolution;
+                finalWheelItems = newWheelItems; // Store for end-game check
                 return newWheelItems;
             });
         }
@@ -228,7 +247,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         // --- BUZZER LOGIC ---
         // After a turn, there is a chance for the buzzer to go off.
         const buzzerRule = activeRules.find(r => (r.isFlipped ? r.flipped : r.primary).special === 'BUZZER');
-        if (buzzerRule && Math.random() < 0.33) {
+        const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
+
+        if (buzzerRule && hasPlayableCards && Math.random() < 0.33) {
             const delay = Math.random() * 2000 + 2000; // 2-4 second delay
             setTimeout(() => {
                 playBuzzer(); // Start sound immediately when toast appears
@@ -256,38 +277,23 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             }, delay);
         }
 
+        // --- END GAME LOGIC ---
+        if (!hasPlayableCards) {
+            setTimeout(() => handleSpinClick(true), 1500);
+        }
+
         // IMPORTANT: Clear the result so this effect doesn't run again with the same data
         setResult(null);
     }
-  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer]);
+  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer, wheelItems, handleSpinClick]);
 
   const handleFlipRule = useCallback((ruleId: number) => {
     const ruleToFlip = sessionRules.find(r => r.id === ruleId);
     if (!ruleToFlip) return;
 
-    const fromRule = ruleToFlip.isFlipped ? ruleToFlip.flipped : ruleToFlip.primary;
-    const toRule = ruleToFlip.isFlipped ? ruleToFlip.primary : ruleToFlip.flipped;
-
-    const newSessionRules = sessionRules.map(r =>
-      r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r
-    );
-    setSessionRules(newSessionRules);
-
-    // Correctly map over active rules to just toggle the flip state, preserving color
-    setActiveRules(prevActiveRules => prevActiveRules.map(ar =>
-      ar.id === ruleId ? { ...ar, isFlipped: !ar.isFlipped } : ar
-    ));
-    
-    const updateItem = (item: WheelItem): WheelItem => {
-      if (item.type === 'RULE' && (item.data as Rule).id === fromRule.id) {
-        const oldIdParts = item.id.split('-');
-        const newId = `${oldIdParts[0]}-${oldIdParts[1]}-${toRule.id}`;
-        return { ...item, data: toRule, id: newId };
-      }
-      return item;
-    };
-    
-    setWheelItems(prevItems => prevItems.map(updateItem));
+    // This only affects the player's state (active rules), not the wheel itself.
+    setSessionRules(prev => prev.map(r => r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r));
+    setActiveRules(prev => prev.map(ar => ar.id === ruleId ? { ...ar, isFlipped: !ar.isFlipped } : ar));
   }, [sessionRules]);
 
   const handleSpinEnd = useCallback((finalRotation: number) => {
@@ -299,29 +305,42 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const segmentAngle = 360 / wheelItems.length;
     const normalizedAngle = ((-finalRotation) % 360 + 360) % 360;
     const effectiveAngle = (normalizedAngle + (segmentAngle / 2)) % 360;
-    const winningIndex = Math.floor(effectiveAngle / segmentAngle);
+    let winningIndex = Math.floor(effectiveAngle / segmentAngle);
 
     let itemThatWon = wheelItems[winningIndex];
     let actualWinningIndex = winningIndex;
     
     const isFirstSpin = activeRules.length === 0;
     const hasActiveCards = wheelItems.some(item => item.type !== 'END');
-
+    
     // --- Prevent invalid landings ---
-    const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
-    const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
+    // On the final automatic spin, land on any 'END' card.
+    if (itemThatWon.type !== 'END' && !hasActiveCards) {
+        const endIndices = wheelItems.reduce((acc, item, index) => {
+            if (item.type === 'END') acc.push(index);
+            return acc;
+        }, [] as number[]);
 
-    if (isInvalidEnd || isInvalidModifier) {
-      for (let i = 1; i < wheelItems.length; i++) {
-        const nextIndex = (winningIndex + i) % wheelItems.length;
-        const potentialWinner = wheelItems[nextIndex];
-        const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
-        if (isPotentialWinnerValid) {
-          itemThatWon = potentialWinner;
-          actualWinningIndex = nextIndex;
-          break;
+        if (endIndices.length > 0) {
+            actualWinningIndex = endIndices[Math.floor(Math.random() * endIndices.length)];
+            itemThatWon = wheelItems[actualWinningIndex];
         }
-      }
+    } else {
+        const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
+        const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
+
+        if (isInvalidEnd || isInvalidModifier) {
+          for (let i = 1; i < wheelItems.length; i++) {
+            const nextIndex = (winningIndex + i) % wheelItems.length;
+            const potentialWinner = wheelItems[nextIndex];
+            const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
+            if (isPotentialWinnerValid) {
+              itemThatWon = potentialWinner;
+              actualWinningIndex = nextIndex;
+              break;
+            }
+          }
+        }
     }
     
     const processResult = (landedItem: WheelItem) => {
@@ -392,17 +411,18 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     }
   }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound]);
 
-  const handleSpinClick = useCallback(() => {
+  const handleSpinClick = useCallback((isFinalSpin = false) => {
     if (isSpinning || wheelItems.length === 0) return;
 
     resultProcessed.current = false;
     setIsSpinning(true);
 
-    const revolutions = (5 + Math.random() * 5) * 360;
+    const revolutions = (isFinalSpin ? 2 : 5) + Math.random() * (isFinalSpin ? 2 : 5);
+    const totalRevolutions = revolutions * 360;
     const randomExtraAngle = Math.random() * 360;
     
-    const newRotation = rotation - revolutions - randomExtraAngle;
-    const duration = 5000 + Math.random() * 2000;
+    const newRotation = rotation - totalRevolutions - randomExtraAngle;
+    const duration = (isFinalSpin ? 3000 : 5000) + Math.random() * 2000;
     setSpinDuration(duration);
     setRotation(newRotation);
 
