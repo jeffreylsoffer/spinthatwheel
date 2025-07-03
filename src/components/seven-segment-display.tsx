@@ -1,11 +1,11 @@
 "use client";
+import React from 'react';
 
-// Reverted to a simpler, font-based implementation as requested.
-export const SevenSegmentDisplay = ({ score }: { score: number }) => {
+const SevenSegmentDisplayComponent = ({ score }: { score: number }) => {
   // Clamp score to fit within the display
   const clampedScore = Math.max(-99, Math.min(score, 99));
   // Pad with a non-breaking space to help alignment
-  const scoreStr = String(clampedScore).padStart(3, '\u00A0'); 
+  const scoreStr = String(clampedScore).padStart(3, ' '); 
 
   return (
     <div 
@@ -16,3 +16,5 @@ export const SevenSegmentDisplay = ({ score }: { score: number }) => {
     </div>
   );
 };
+
+export const SevenSegmentDisplay = React.memo(SevenSegmentDisplayComponent);

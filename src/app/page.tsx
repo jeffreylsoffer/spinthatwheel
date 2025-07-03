@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 import CardDeckWheel from '@/components/card-deck-wheel';
 import StartScreen from '@/components/start-screen';
 
@@ -15,7 +15,7 @@ export default function Home() {
   const [gameState, setGameState] = useState<'start' | 'playing'>('start');
   const [players, setPlayers] = useState<Player[]>([]);
 
-  const handleStartGame = (playerCount: number) => {
+  const handleStartGame = useCallback((playerCount: number) => {
     const newPlayers = Array.from({ length: playerCount }, (_, i) => ({
       id: i + 1,
       name: `Player ${i + 1}`,
@@ -23,28 +23,28 @@ export default function Home() {
     }));
     setPlayers(newPlayers);
     setGameState('playing');
-  };
+  }, []);
 
-  const handleScoreChange = (playerId: number, delta: number) => {
+  const handleScoreChange = useCallback((playerId: number, delta: number) => {
     setPlayers(currentPlayers =>
       currentPlayers.map(p =>
         p.id === playerId ? { ...p, score: p.score + delta } : p
       )
     );
-  };
+  }, []);
   
-  const handleNameChange = (playerId: number, newName: string) => {
+  const handleNameChange = useCallback((playerId: number, newName: string) => {
     setPlayers(currentPlayers =>
       currentPlayers.map(p =>
         p.id === playerId ? { ...p, name: newName } : p
       )
     );
-  };
+  }, []);
 
-  const handleResetGame = () => {
+  const handleResetGame = useCallback(() => {
     setGameState('start');
     setPlayers([]);
-  };
+  }, []);
 
   if (gameState === 'start') {
     return <StartScreen onStartGame={handleStartGame} />;

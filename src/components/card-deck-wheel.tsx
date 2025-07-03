@@ -86,14 +86,14 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
-  const playSound = (sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'tick' | 'whistle') => {
+  const playSound = useCallback((sound: 'prompt' | 'rule' | 'modifier' | 'end' | 'tick' | 'whistle') => {
     // This function plays a sound effect.
     // It expects to find the corresponding .mp3 file in the `public/audio/` directory.
     // For example, calling playSound('rule') will attempt to play `/audio/rule.mp3`.
     // Ensure your audio files (e.g., `rule.mp3`, `prompt.mp3`, `whistle.mp3`, etc.) are in that folder.
     const audio = new Audio(`/audio/${sound}.mp3`);
     audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3. Make sure the file exists in public/audio/.`, e));
-  };
+  }, []);
 
   const playBuzzer = useCallback(() => {
     if (buzzerAudioRef.current) return; // Already playing
@@ -259,9 +259,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         // IMPORTANT: Clear the result so this effect doesn't run again with the same data
         setResult(null);
     }
-  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, wheelItems, playBuzzer, stopBuzzer]);
+  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer]);
 
-  const handleFlipRule = (ruleId: number) => {
+  const handleFlipRule = useCallback((ruleId: number) => {
     const ruleToFlip = sessionRules.find(r => r.id === ruleId);
     if (!ruleToFlip) return;
 
@@ -288,7 +288,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     };
     
     setWheelItems(prevItems => prevItems.map(updateItem));
-  };
+  }, [sessionRules]);
 
   const handleSpinEnd = useCallback((finalRotation: number) => {
     if (tickTimeoutRef.current) {
@@ -390,7 +390,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     } else {
         processResult(itemThatWon);
     }
-  }, [wheelItems, activeRules.length, gameData, evolutionDeck]);
+  }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound]);
 
   const handleSpinClick = useCallback(() => {
     if (isSpinning || wheelItems.length === 0) return;
@@ -431,7 +431,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setTimeout(() => {
         handleSpinEnd(newRotation);
     }, duration);
-  }, [isSpinning, wheelItems.length, rotation, handleSpinEnd]);
+  }, [isSpinning, wheelItems.length, rotation, handleSpinEnd, playSound]);
   
   const handleReset = useCallback(() => {
     if (tickTimeoutRef.current) {

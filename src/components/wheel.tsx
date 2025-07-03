@@ -36,6 +36,7 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
           transform: `translateZ(${-radius}px) rotateX(${rotation}deg)`,
           transitionProperty: 'transform',
           transitionDuration: `${spinDuration}ms`,
+          willChange: 'transform',
         }}
       >
         {items.map((item, i) => {
@@ -110,4 +111,4 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
   );
 };
 
-export default Wheel;
+export default React.memo(Wheel);

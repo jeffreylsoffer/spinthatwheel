@@ -1,4 +1,6 @@
+
 "use client";
+import React from 'react';
 
 const WheelPointer = () => {
   return (
@@ -15,4 +17,4 @@ const WheelPointer = () => {
   );
 };
 
-export default WheelPointer;
+export default React.memo(WheelPointer);
