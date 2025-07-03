@@ -4,11 +4,12 @@
 import { useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { Settings, Plus, Minus, PlayCircle } from 'lucide-react';
+import { Settings, Plus, Minus, PlayCircle, X } from 'lucide-react';
 import {
   Dialog,
   DialogContent,
   DialogTrigger,
+  DialogClose,
 } from "@/components/ui/dialog";
 
 export default function StartScreen({ onStartGame }: { onStartGame: (playerCount: number) => void }) {
@@ -31,7 +32,18 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
                     </Button>
                 </DialogTrigger>
                 <DialogContent className="sm:max-w-sm p-0 border-0 bg-transparent shadow-none">
-                    <div className="aspect-[9/16] w-full">
+                    <div className="relative aspect-[9/16] w-full">
+                        <DialogClose asChild>
+                           <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                className="absolute top-2 right-2 z-10 h-8 w-8 rounded-full bg-black/50 text-white hover:bg-black/75 hover:text-white"
+                            >
+                                <X className="h-5 w-5" />
+                                <span className="sr-only">Close</span>
+                            </Button>
+                        </DialogClose>
                         <iframe 
                             className="w-full h-full rounded-lg"
                             src="https://www.youtube.com/embed/qwjJWTDqBPM" 
