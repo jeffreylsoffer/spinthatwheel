@@ -41,7 +41,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 7,
     name: "Humor",
-    primary_rule: { id: 701, name: "Be allergic to jokes", description: "You must sneaze at everyone's jokes." },
+    primary_rule: { id: 701, name: "Be allergic to jokes", description: "You must sneeze at everyone's jokes." },
     flipped_rule: { id: 702, name: "Laugh at everything", description: "You must laugh at everything, funny or not." },
   },
   {
