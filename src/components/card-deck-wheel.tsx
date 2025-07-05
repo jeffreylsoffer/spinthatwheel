@@ -86,6 +86,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     modifiers: defaultModifiers,
   });
 
+  const isSpinningRef = useRef(isSpinning);
+  isSpinningRef.current = isSpinning;
+
   const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -150,8 +153,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         trackToPlay = musicAudioRefs.current[0];
         isFirstMusicPlay.current = false;
     } else {
-        const otherTracks = musicAudioRefs.current.slice(1);
-        trackToPlay = otherTracks[Math.floor(Math.random() * otherTracks.length)];
+        const trackPool = musicAudioRefs.current;
+        trackToPlay = trackPool[Math.floor(Math.random() * trackPool.length)];
     }
     
     if (trackToPlay) {
@@ -476,6 +479,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         if (buzzerRule && hasPlayableCards && Math.random() < 0.33) {
             const delay = Math.random() * 2000 + 2000; // 2-4 second delay
             setTimeout(() => {
+                if (isSpinningRef.current) return;
                 playBuzzer(); // Start sound immediately when toast appears
 
                 const stopAndClear = () => {
@@ -662,7 +666,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     <div className="flex flex-col lg:flex-row min-h-screen lg:p-8 lg:gap-8">
       
       {/* Wheel Column */}
-      <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
+      <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
         <div 
           className="relative w-full max-w-[12rem] lg:max-w-md mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
@@ -677,8 +681,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-2/5 flex flex-col gap-4 justify-start lg:justify-center relative z-10 bg-background lg:bg-transparent mt-[-6rem] lg:mt-0 pt-8 px-4 pb-4 lg:p-0 rounded-t-2xl lg:rounded-none border-t border-border lg:border-none">
-        <div className="max-w-sm mx-auto w-full flex flex-col gap-4">
+      <div className="flex-shrink-0 lg:w-1/3 flex flex-col gap-4 justify-start lg:justify-center relative z-10 bg-background lg:bg-transparent mt-[-6rem] lg:mt-0 pt-8 px-4 pb-4 lg:p-0 rounded-t-2xl lg:rounded-none border-t border-border lg:border-none">
+        <div className="max-w-xs mx-auto w-full flex flex-col gap-4">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
@@ -793,3 +797,5 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
+
+    
