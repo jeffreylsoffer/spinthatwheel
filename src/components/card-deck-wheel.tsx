@@ -12,7 +12,8 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX, MusicOff } from 'lucide-react';
+import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX } from 'lucide-react';
+import { MdMusicOff } from "react-icons/md";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
@@ -684,7 +685,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                     <TooltipTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={handleSoundModeToggle}>
                             {soundMode === 'on' && <Volume2 className="h-5 w-5" />}
-                            {soundMode === 'sfx' && <MusicOff className="h-5 w-5" />}
+                            {soundMode === 'sfx' && <MdMusicOff className="h-5 w-5" />}
                             {soundMode === 'off' && <VolumeX className="h-5 w-5" />}
                             <span className="sr-only">Toggle Sound</span>
                         </Button>
