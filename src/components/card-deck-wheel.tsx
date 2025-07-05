@@ -56,6 +56,13 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
+const musicTracks = [
+  '/audio/wheelmusic.mp3',
+  '/audio/wheelmusic2.mp3',
+  '/audio/wheelmusic3.mp3',
+  '/audio/wheelmusic4.mp3',
+];
+
 const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: CardDeckWheelProps) => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
   const [activeRules, setActiveRules] = useState<SessionRule[]>([]);
@@ -84,6 +91,9 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const resultProcessed = useRef(false);
   const buzzerAudioRef = useRef<HTMLAudioElement | null>(null);
+  const musicAudioRefs = useRef<HTMLAudioElement[]>([]);
+  const currentMusicRef = useRef<HTMLAudioElement | null>(null);
+  const isFirstMusicPlay = useRef(true);
   
   const audioRefs = {
       prompt: useRef<HTMLAudioElement | null>(null),
@@ -92,7 +102,6 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       end: useRef<HTMLAudioElement | null>(null),
       tick: useRef<HTMLAudioElement | null>(null),
       whistle: useRef<HTMLAudioElement | null>(null),
-      wheelMusic: useRef<HTMLAudioElement | null>(null),
   };
 
   const isMobile = useIsMobile();
@@ -106,12 +115,14 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     // Preload audio
     if (typeof window !== "undefined") {
         (Object.keys(audioRefs) as Array<keyof typeof audioRefs>).forEach(sound => {
-            const fileName = sound === 'wheelMusic' ? 'wheelmusic' : sound;
-            audioRefs[sound].current = new Audio(`/audio/${fileName}.mp3`);
+            audioRefs[sound].current = new Audio(`/audio/${sound}.mp3`);
         });
-        if(audioRefs.wheelMusic.current) {
-          audioRefs.wheelMusic.current.loop = true;
-        }
+
+        musicAudioRefs.current = musicTracks.map(trackSrc => {
+          const audio = new Audio(trackSrc);
+          audio.loop = true;
+          return audio;
+        });
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
@@ -126,39 +137,52 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   }, [soundMode, audioRefs]);
 
   const playMusic = useCallback(() => {
-    if (soundMode === 'on' && audioRefs.wheelMusic.current) {
-      const music = audioRefs.wheelMusic.current;
-      music.currentTime = 0;
-      music.volume = 1;
-      music.play().catch(e => console.error('Could not play music.', e));
+    if (soundMode !== 'on') return;
+
+    if (currentMusicRef.current && !currentMusicRef.current.paused) {
+      currentMusicRef.current.pause();
+      currentMusicRef.current.currentTime = 0;
     }
-  }, [soundMode, audioRefs.wheelMusic]);
+
+    let trackToPlay: HTMLAudioElement;
+
+    if (isFirstMusicPlay.current) {
+        trackToPlay = musicAudioRefs.current[0];
+        isFirstMusicPlay.current = false;
+    } else {
+        const otherTracks = musicAudioRefs.current.slice(1);
+        trackToPlay = otherTracks[Math.floor(Math.random() * otherTracks.length)];
+    }
+    
+    if (trackToPlay) {
+      trackToPlay.currentTime = 0;
+      trackToPlay.volume = 1;
+      trackToPlay.play().catch(e => console.error('Could not play music.', e));
+      currentMusicRef.current = trackToPlay;
+    }
+  }, [soundMode]);
 
   const stopMusic = useCallback(() => {
-    if (audioRefs.wheelMusic.current) {
-      const music = audioRefs.wheelMusic.current;
-      if (!music.paused) {
-          let volume = music.volume;
-          const fadeOutInterval = setInterval(() => {
-              if (volume > 0.1) {
-                  volume -= 0.1;
-                  try {
-                    music.volume = volume;
-                  } catch (e) {
-                    // This can throw an error if the component is unmounted during the fade.
-                    // We can safely ignore it.
-                    clearInterval(fadeOutInterval);
-                  }
-              } else {
+    const music = currentMusicRef.current;
+    if (music && !music.paused) {
+        let volume = music.volume;
+        const fadeOutInterval = setInterval(() => {
+            if (volume > 0.1) {
+                volume -= 0.1;
+                try {
+                  music.volume = volume;
+                } catch (e) {
                   clearInterval(fadeOutInterval);
-                  music.pause();
-                  music.currentTime = 0;
-                  music.volume = 1; // Reset volume
-              }
-          }, 50);
-      }
+                }
+            } else {
+                clearInterval(fadeOutInterval);
+                music.pause();
+                music.currentTime = 0;
+                music.volume = 1; // Reset volume
+            }
+        }, 50);
     }
-  }, [audioRefs.wheelMusic]);
+  }, []);
 
   const playBuzzer = useCallback(() => {
     if (soundMode === 'off') return;
@@ -503,6 +527,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     }
     stopMusic();
     stopBuzzer();
+    isFirstMusicPlay.current = true;
     onResetGame();
     setIsResetConfirmOpen(false);
   }, [onResetGame, stopBuzzer, stopMusic]);
@@ -517,7 +542,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       const nextMode = current === 'on' ? 'sfx' : current === 'sfx' ? 'off' : 'on';
       localStorage.setItem('sound_mode', nextMode);
       // If toggling music off, stop it immediately.
-      if (nextMode !== 'on' && audioRefs.wheelMusic.current && !audioRefs.wheelMusic.current.paused) {
+      if (nextMode !== 'on' && currentMusicRef.current && !currentMusicRef.current.paused) {
           stopMusic();
       }
       return nextMode;
@@ -634,12 +659,12 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   };
   
   return (
-    <div className="flex flex-col lg:flex-row h-screen lg:p-8 lg:gap-8">
+    <div className="flex flex-col lg:flex-row min-h-screen lg:p-8 lg:gap-8">
       
       {/* Wheel Column */}
       <div className="lg:w-3/5 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
         <div 
-          className="relative w-full max-w-[12rem] lg:max-w-lg mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-[12rem] lg:max-w-md mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -652,7 +677,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="lg:w-2/5 flex flex-col gap-4 justify-start lg:justify-center overflow-y-auto relative z-10 bg-background lg:bg-transparent mt-[-6rem] lg:mt-0 pt-8 px-4 pb-4 lg:p-0 rounded-t-2xl lg:rounded-none border-t border-border lg:border-none">
+      <div className="flex-shrink-0 lg:w-2/5 flex flex-col gap-4 justify-start lg:justify-center relative z-10 bg-background lg:bg-transparent mt-[-6rem] lg:mt-0 pt-8 px-4 pb-4 lg:p-0 rounded-t-2xl lg:rounded-none border-t border-border lg:border-none">
         <div className="max-w-sm mx-auto w-full flex flex-col gap-4">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
@@ -768,5 +793,3 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
-
-    
