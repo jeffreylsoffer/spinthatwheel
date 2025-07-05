@@ -12,7 +12,7 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Megaphone, Check, Keyboard } from 'lucide-react';
+import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume1, Volume2, VolumeX } from 'lucide-react';
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
@@ -70,6 +70,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [evolutionDeck, setEvolutionDeck] = useState<(Prompt | Modifier)[]>([]);
+  const [soundMode, setSoundMode] = useState<'on' | 'sfx' | 'off'>('on');
 
   const [gameData, setGameData] = useState({
     rules: defaultRuleGroups,
@@ -90,35 +91,82 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       end: useRef<HTMLAudioElement | null>(null),
       tick: useRef<HTMLAudioElement | null>(null),
       whistle: useRef<HTMLAudioElement | null>(null),
+      wheelMusic: useRef<HTMLAudioElement | null>(null),
   };
 
   const isMobile = useIsMobile();
   const segmentHeight = isMobile ? 120 : 192;
 
   useEffect(() => {
+    const savedMode = localStorage.getItem('sound_mode') as 'on' | 'sfx' | 'off' | null;
+    if (savedMode) {
+      setSoundMode(savedMode);
+    }
     // Preload audio
     if (typeof window !== "undefined") {
         (Object.keys(audioRefs) as Array<keyof typeof audioRefs>).forEach(sound => {
-            audioRefs[sound].current = new Audio(`/audio/${sound}.mp3`);
+            const fileName = sound === 'wheelMusic' ? 'wheelmusic' : sound;
+            audioRefs[sound].current = new Audio(`/audio/${fileName}.mp3`);
         });
+        if(audioRefs.wheelMusic.current) {
+          audioRefs.wheelMusic.current.loop = true;
+        }
     }
   }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
-  const playSound = useCallback((sound: keyof typeof audioRefs) => {
+  const playSound = useCallback((sound: keyof Omit<typeof audioRefs, 'wheelMusic'>) => {
+    if (soundMode === 'off') return;
+    
     const audio = audioRefs[sound]?.current;
     if (audio) {
         audio.currentTime = 0;
         audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3.`, e));
     }
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [soundMode]);
+
+  const playMusic = useCallback(() => {
+    if (soundMode === 'on' && audioRefs.wheelMusic.current) {
+      const music = audioRefs.wheelMusic.current;
+      music.currentTime = 0;
+      music.volume = 1;
+      music.play().catch(e => console.error('Could not play music.', e));
+    }
+  }, [soundMode]);
+
+  const stopMusic = useCallback(() => {
+    if (audioRefs.wheelMusic.current) {
+      const music = audioRefs.wheelMusic.current;
+      if (!music.paused) {
+          let volume = music.volume;
+          const fadeOutInterval = setInterval(() => {
+              if (volume > 0.1) {
+                  volume -= 0.1;
+                  try {
+                    music.volume = volume;
+                  } catch (e) {
+                    // This can throw an error if the component is unmounted during the fade.
+                    // We can safely ignore it.
+                    clearInterval(fadeOutInterval);
+                  }
+              } else {
+                  clearInterval(fadeOutInterval);
+                  music.pause();
+                  music.currentTime = 0;
+                  music.volume = 1; // Reset volume
+              }
+          }, 50);
+      }
+    }
+  }, []);
 
   const playBuzzer = useCallback(() => {
+    if (soundMode === 'off') return;
     if (buzzerAudioRef.current) return; // Already playing
     const audio = new Audio(`/audio/buzzer.mp3`);
     audio.loop = true;
     audio.play().catch(e => console.error("Could not play buzzer sound.", e));
     buzzerAudioRef.current = audio;
-  }, []);
+  }, [soundMode]);
 
   const stopBuzzer = useCallback(() => {
       if (buzzerAudioRef.current) {
@@ -215,6 +263,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   }, [initializeGame]);
   
   const handleSpinEnd = useCallback((finalRotation: number) => {
+    stopMusic();
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
       tickTimeoutRef.current = null;
@@ -327,11 +376,12 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     } else {
         processResult(itemThatWon);
     }
-  }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound]);
+  }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound, stopMusic]);
 
   const handleSpinClick = useCallback((isFinalSpin = false) => {
     if (isSpinning || wheelItems.length === 0) return;
-
+    
+    playMusic();
     resultProcessed.current = false;
     setIsSpinning(true);
 
@@ -369,7 +419,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setTimeout(() => {
         handleSpinEnd(newRotation);
     }, duration);
-  }, [isSpinning, wheelItems.length, rotation, handleSpinEnd, playSound]);
+  }, [isSpinning, wheelItems.length, rotation, handleSpinEnd, playSound, playMusic]);
 
   // This effect handles processing the result after the modal closes.
   // It also now handles triggering the buzzer toast.
@@ -379,17 +429,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
         let finalWheelItems: WheelItem[] = wheelItems;
         if (result.evolution) {
-            setWheelItems(currentWheelItems => {
-                const indexToUpdate = currentWheelItems.findIndex(item => item.id === result.landed.id);
-                if (indexToUpdate === -1) {
-                    console.error("Landed item not found in wheel during update. Aborting update.", { landedItemId: result.landed.id });
-                    return currentWheelItems;
-                }
-                const newWheelItems = [...currentWheelItems];
-                newWheelItems[indexToUpdate] = result.evolution;
-                finalWheelItems = newWheelItems; // Store for end-game check
-                return newWheelItems;
-            });
+            finalWheelItems = wheelItems.map(item => item.id === result.landed.id ? result.evolution! : item);
+            setWheelItems(finalWheelItems);
         }
 
         if (result.landed.type === 'RULE') {
@@ -401,10 +442,11 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
             }
         }
         
+        const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
+
         // --- BUZZER LOGIC ---
         // After a turn, there is a chance for the buzzer to go off.
         const buzzerRule = activeRules.find(r => (r.isFlipped ? r.flipped : r.primary).special === 'BUZZER');
-        const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
 
         if (buzzerRule && hasPlayableCards && Math.random() < 0.33) {
             const delay = Math.random() * 2000 + 2000; // 2-4 second delay
@@ -458,15 +500,28 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         clearTimeout(tickTimeoutRef.current);
         tickTimeoutRef.current = null;
     }
+    stopMusic();
     stopBuzzer();
     onResetGame();
     setIsResetConfirmOpen(false);
-  }, [onResetGame, stopBuzzer]);
+  }, [onResetGame, stopBuzzer, stopMusic]);
 
   const handleWhistleClick = useCallback(() => {
     playSound('whistle');
     setIsRefereeModalOpen(true);
   }, [playSound]);
+
+  const handleSoundModeToggle = () => {
+    setSoundMode(current => {
+      const nextMode = current === 'on' ? 'sfx' : current === 'sfx' ? 'off' : 'on';
+      localStorage.setItem('sound_mode', nextMode);
+      // If toggling music off, stop it immediately.
+      if (nextMode !== 'on' && audioRefs.wheelMusic.current && !audioRefs.wheelMusic.current.paused) {
+          stopMusic();
+      }
+      return nextMode;
+    });
+  };
 
   // Keyboard Shortcuts
   useEffect(() => {
@@ -625,26 +680,39 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
                   New Game
               </Button>
               <TooltipProvider>
-                  <Tooltip>
-                      <TooltipTrigger asChild>
-                          <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
-                              <Keyboard className="h-5 w-5" />
-                              <span className="sr-only">Show Keyboard Shortcuts</span>
-                          </Button>
-                      </TooltipTrigger>
-                      <TooltipContent align="center" className="p-4 w-64">
-                          <h4 className="font-bold mb-2 text-center">Keyboard Shortcuts</h4>
-                          <ul className="space-y-1 text-sm">
-                              <li className="flex justify-between"><span>Add 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">1-8</span></li>
-                              <li className="flex justify-between"><span>Remove 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Shift + 1-8</span></li>
-                              <li className="flex justify-between"><span>Spin Wheel</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Space</span></li>
-                              <li className="flex justify-between"><span>Flip Sheet</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">C</span></li>
-                              <li className="flex justify-between"><span>Referee Whistle</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">W</span></li>
-                              <li className="flex justify-between"><span>New Game</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">R</span></li>
-                              <li className="flex justify-between"><span>Close Window</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Esc</span></li>
-                          </ul>
-                      </TooltipContent>
-                  </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground" onClick={handleSoundModeToggle}>
+                            {soundMode === 'on' && <Volume2 className="h-5 w-5" />}
+                            {soundMode === 'sfx' && <Volume1 className="h-5 w-5" />}
+                            {soundMode === 'off' && <VolumeX className="h-5 w-5" />}
+                            <span className="sr-only">Toggle Sound</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent align="center">
+                         <p>Sound Mode: {soundMode === 'on' ? 'All On' : soundMode === 'sfx' ? 'SFX Only' : 'All Off'}</p>
+                    </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                    <TooltipTrigger asChild>
+                        <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
+                            <Keyboard className="h-5 w-5" />
+                            <span className="sr-only">Show Keyboard Shortcuts</span>
+                        </Button>
+                    </TooltipTrigger>
+                    <TooltipContent align="center" className="p-4 w-64">
+                        <h4 className="font-bold mb-2 text-center">Keyboard Shortcuts</h4>
+                        <ul className="space-y-1 text-sm">
+                            <li className="flex justify-between"><span>Add 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">1-8</span></li>
+                            <li className="flex justify-between"><span>Remove 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Shift + 1-8</span></li>
+                            <li className="flex justify-between"><span>Spin Wheel</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Space</span></li>
+                            <li className="flex justify-between"><span>Flip Sheet</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">C</span></li>
+                            <li className="flex justify-between"><span>Referee Whistle</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">W</span></li>
+                            <li className="flex justify-between"><span>New Game</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">R</span></li>
+                            <li className="flex justify-between"><span>Close Window</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Esc</span></li>
+                        </ul>
+                    </TooltipContent>
+                </Tooltip>
               </TooltipProvider>
             </div>
         </div>
