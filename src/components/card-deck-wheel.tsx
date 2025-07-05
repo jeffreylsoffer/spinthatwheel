@@ -12,7 +12,7 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX } from 'lucide-react';
+import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX, MusicOff } from 'lucide-react';
 import { MdMusicOff } from "react-icons/md";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -668,7 +668,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       {/* Wheel Column */}
       <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
         <div 
-          className="relative w-full max-w-[12rem] lg:max-w-md mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-[12rem] lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -681,8 +681,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-1/3 flex flex-col gap-4 justify-start lg:justify-center relative z-10 bg-background lg:bg-transparent mt-[-6rem] lg:mt-0 pt-8 px-4 pb-4 lg:p-0 rounded-t-2xl lg:rounded-none border-t border-border lg:border-none">
-        <div className="max-w-xs mx-auto w-full flex flex-col gap-4">
+      <div className="flex-shrink-0 lg:w-1/3 flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
+        <div className="max-w-xs mx-auto w-full flex flex-col gap-4 bg-background pt-8 px-4 pb-4 rounded-t-2xl border-t border-border lg:bg-transparent lg:p-0 lg:rounded-none lg:border-none">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
