@@ -29,7 +29,7 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
           "absolute w-full h-full",
           // Use a custom cubic bezier for a strong ease-out effect.
           // This makes the wheel start fast and decelerate naturally.
-          isSpinning ? "ease-[cubic-bezier(0.25,1,0.5,1)]" : ""
+          isSpinning ? "ease-spin-ease" : ""
         )}
         style={{
           transformStyle: 'preserve-3d',
