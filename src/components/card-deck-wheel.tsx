@@ -102,6 +102,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       prompt: useRef<HTMLAudioElement | null>(null),
       rule: useRef<HTMLAudioElement | null>(null),
       modifier: useRef<HTMLAudioElement | null>(null),
+      flip: useRef<HTMLAudioElement | null>(null),
       end: useRef<HTMLAudioElement | null>(null),
       tick: useRef<HTMLAudioElement | null>(null),
       whistle: useRef<HTMLAudioElement | null>(null),
@@ -347,7 +348,14 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
           return;
       }
       
-      playSound((landedItem.type.toLowerCase() as any) || 'end');
+      const isFlipModifier = landedItem.type === 'MODIFIER' && (landedItem.data as Modifier).type === 'FLIP';
+      
+      if (isFlipModifier) {
+        playSound('modifier');
+        setTimeout(() => playSound('flip'), 400); 
+      } else {
+        playSound((landedItem.type.toLowerCase() as any) || 'end');
+      }
 
       let evolution: WheelItem | null = null;
       if (landedItem.type === 'RULE') {
@@ -406,19 +414,19 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     }
   }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound, stopMusic]);
 
-  const handleSpinClick = useCallback((isFinalSpin = false) => {
+  const handleSpinClick = useCallback(() => {
     if (isSpinning || wheelItems.length === 0) return;
     
     playMusic();
     resultProcessed.current = false;
     setIsSpinning(true);
 
-    const revolutions = (isFinalSpin ? 2 : 5) + Math.random() * (isFinalSpin ? 2 : 5);
+    const revolutions = 5 + Math.random() * 5;
     const totalRevolutions = revolutions * 360;
     const randomExtraAngle = Math.random() * 360;
     
     const newRotation = rotation - totalRevolutions - randomExtraAngle;
-    const duration = (isFinalSpin ? 3000 : 5000) + Math.random() * 2000;
+    const duration = 5000 + Math.random() * 2000;
     setSpinDuration(duration);
     setRotation(newRotation);
 
@@ -507,13 +515,14 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
         // --- END GAME LOGIC ---
         if (!hasPlayableCards) {
-            setTimeout(() => handleSpinClick(true), 1500);
+            playSound('end');
+            setIsGameOver(true);
         }
 
         // IMPORTANT: Clear the result so this effect doesn't run again with the same data
         setResult(null);
     }
-  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer, wheelItems, handleSpinClick]);
+  }, [result, isResultModalOpen, activeRules, buzzerCountdown, sessionRules, toast, playBuzzer, stopBuzzer, wheelItems, playSound]);
   
   const handleFlipRule = useCallback((ruleId: number) => {
     const ruleToFlip = sessionRules.find(r => r.id === ruleId);
@@ -668,7 +677,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       {/* Wheel Column */}
       <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
         <div 
-          className="relative w-full max-w-[12rem] lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-[calc(100%-4rem)] lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -681,8 +690,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-1/3 flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
-        <div className="max-w-sm mx-auto w-full flex flex-col gap-4 bg-background pt-8 px-4 pb-4 rounded-t-2xl border-t border-border lg:bg-transparent lg:p-0 lg:rounded-none lg:border-none">
+      <div className="flex-shrink-0 lg:w-1/3 flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0 p-4">
+        <div className="max-w-sm mx-auto w-full flex flex-col gap-4 bg-background pt-8 px-4 pb-4 rounded-2xl border border-border lg:bg-transparent lg:p-0 lg:rounded-none lg:border-none">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
