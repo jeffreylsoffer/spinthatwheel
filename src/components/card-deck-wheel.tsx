@@ -12,7 +12,7 @@ import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers a
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
 import type { Player } from '@/app/page';
-import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX, MusicOff } from 'lucide-react';
+import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX } from 'lucide-react';
 import { MdMusicOff } from "react-icons/md";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
@@ -132,6 +132,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
   const playSound = useCallback((sound: keyof Omit<typeof audioRefs, 'wheelMusic'>) => {
     if (soundMode === 'off') return;
+    if (soundMode === 'sfx' && sound === 'tick') return;
     
     const audio = audioRefs[sound]?.current;
     if (audio) {
@@ -310,33 +311,20 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     const hasActiveCards = wheelItems.some(item => item.type !== 'END');
     
     // --- Prevent invalid landings ---
-    // On the final automatic spin, land on any 'END' card.
-    if (itemThatWon.type !== 'END' && !hasActiveCards) {
-        const endIndices = wheelItems.reduce((acc, item, index) => {
-            if (item.type === 'END') acc.push(index);
-            return acc;
-        }, [] as number[]);
+    const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
+    const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
 
-        if (endIndices.length > 0) {
-            actualWinningIndex = endIndices[Math.floor(Math.random() * endIndices.length)];
-            itemThatWon = wheelItems[actualWinningIndex];
+    if (isInvalidEnd || isInvalidModifier) {
+      for (let i = 1; i < wheelItems.length; i++) {
+        const nextIndex = (winningIndex + i) % wheelItems.length;
+        const potentialWinner = wheelItems[nextIndex];
+        const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
+        if (isPotentialWinnerValid) {
+          itemThatWon = potentialWinner;
+          actualWinningIndex = nextIndex;
+          break;
         }
-    } else {
-        const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
-        const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
-
-        if (isInvalidEnd || isInvalidModifier) {
-          for (let i = 1; i < wheelItems.length; i++) {
-            const nextIndex = (winningIndex + i) % wheelItems.length;
-            const potentialWinner = wheelItems[nextIndex];
-            const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
-            if (isPotentialWinnerValid) {
-              itemThatWon = potentialWinner;
-              actualWinningIndex = nextIndex;
-              break;
-            }
-          }
-        }
+      }
     }
     
     const processResult = (landedItem: WheelItem) => {
@@ -690,8 +678,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-1/3 flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0 p-4">
-        <div className="max-w-sm mx-auto w-full flex flex-col gap-4 bg-background pt-8 px-4 pb-4 rounded-2xl border border-border lg:bg-transparent lg:p-0 lg:rounded-none lg:border-none">
+      <div className="flex-shrink-0 lg:w-[380px] flex flex-col justify-start lg:justify-center relative z-10 p-4 lg:p-0 mt-[-6rem] lg:mt-0">
+        <div className="w-full max-w-sm mx-auto flex flex-col gap-4">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
@@ -806,5 +794,3 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 };
 
 export default CardDeckWheel;
-
-    
