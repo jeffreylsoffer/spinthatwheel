@@ -89,6 +89,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const isSpinningRef = useRef(isSpinning);
   isSpinningRef.current = isSpinning;
 
+  const spinCountRef = useRef(0);
   const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
@@ -232,6 +233,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   }, []);
 
   const initializeGame = useCallback(() => {
+    spinCountRef.current = 0;
     const rules = createSessionDeck(gameData.rules);
     const items = populateWheel(rules);
     
@@ -307,22 +309,39 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     let itemThatWon = wheelItems[winningIndex];
     let actualWinningIndex = winningIndex;
     
-    const isFirstSpin = activeRules.length === 0;
-    const hasActiveCards = wheelItems.some(item => item.type !== 'END');
-    
-    // --- Prevent invalid landings ---
-    const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
-    const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
+    const mustBeRule = spinCountRef.current <= players.length && wheelItems.some(i => i.type === 'RULE');
 
-    if (isInvalidEnd || isInvalidModifier) {
-      for (let i = 1; i < wheelItems.length; i++) {
-        const nextIndex = (winningIndex + i) % wheelItems.length;
-        const potentialWinner = wheelItems[nextIndex];
-        const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
-        if (isPotentialWinnerValid) {
-          itemThatWon = potentialWinner;
-          actualWinningIndex = nextIndex;
-          break;
+    if (mustBeRule) {
+      // For the first spin for each player, force landing on a RULE
+      if (itemThatWon.type !== 'RULE') {
+        // Find the next available RULE card on the wheel
+        for (let i = 1; i < wheelItems.length; i++) {
+          const nextIndex = (winningIndex + i) % wheelItems.length;
+          const potentialWinner = wheelItems[nextIndex];
+          if (potentialWinner.type === 'RULE') {
+            itemThatWon = potentialWinner;
+            actualWinningIndex = nextIndex;
+            break;
+          }
+        }
+      }
+    } else {
+      // Regular logic for subsequent spins
+      const hasActiveCards = wheelItems.some(item => item.type !== 'END');
+      const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
+      const isFirstSpin = activeRules.length === 0; // Still relevant if players = 0
+      const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
+
+      if (isInvalidEnd || isInvalidModifier) {
+        for (let i = 1; i < wheelItems.length; i++) {
+          const nextIndex = (winningIndex + i) % wheelItems.length;
+          const potentialWinner = wheelItems[nextIndex];
+          const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
+          if (isPotentialWinnerValid) {
+            itemThatWon = potentialWinner;
+            actualWinningIndex = nextIndex;
+            break;
+          }
         }
       }
     }
@@ -340,7 +359,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       
       if (isFlipModifier) {
         playSound('modifier');
-        setTimeout(() => playSound('flip'), 400); 
+        setTimeout(() => playSound('flip'), 1200); 
       } else {
         playSound((landedItem.type.toLowerCase() as any) || 'end');
       }
@@ -400,11 +419,12 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     } else {
         processResult(itemThatWon);
     }
-  }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound, stopMusic]);
+  }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound, stopMusic, players]);
 
   const handleSpinClick = useCallback(() => {
     if (isSpinning || wheelItems.length === 0) return;
     
+    spinCountRef.current += 1;
     playMusic();
     resultProcessed.current = false;
     setIsSpinning(true);
