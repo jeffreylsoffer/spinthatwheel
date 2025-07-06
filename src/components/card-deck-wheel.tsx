@@ -685,7 +685,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       {/* Wheel Column */}
       <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
         <div 
-          className="relative w-full max-w-[calc(100%-4rem)] lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-full max-w-sm lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -698,8 +698,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-[380px] flex flex-col justify-start lg:justify-center relative z-10 p-4 lg:p-0 mt-[-6rem] lg:mt-0">
-        <div className="w-full max-w-sm mx-auto flex flex-col gap-4">
+      <div className="flex-shrink-0 lg:w-[380px] flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
+        <div className="w-full max-w-sm mx-auto flex flex-col gap-4 p-4 lg:p-0">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
