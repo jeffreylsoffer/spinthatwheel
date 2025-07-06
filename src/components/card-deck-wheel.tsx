@@ -682,7 +682,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
 
       {/* Scoreboard & Controls Column */}
       <div className="flex-shrink-0 lg:w-1/3 flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
-        <div className="max-w-xs mx-auto w-full flex flex-col gap-4 bg-background pt-8 px-4 pb-4 rounded-t-2xl border-t border-border lg:bg-transparent lg:p-0 lg:rounded-none lg:border-none">
+        <div className="max-w-sm mx-auto w-full flex flex-col gap-4 bg-background pt-8 px-4 pb-4 rounded-t-2xl border-t border-border lg:bg-transparent lg:p-0 lg:rounded-none lg:border-none">
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
