@@ -1,4 +1,3 @@
-
 "use client";
 
 import { useState } from 'react';
@@ -67,7 +66,7 @@ const Scoreboard = ({ players, onScoreChange, onNameChange }: ScoreboardProps) =
                   </>
                 ) : (
                   <>
-                    <span className="font-bold text-base sm:text-lg text-card-foreground">{player.name}</span>
+                    <span className="font-bold text-base sm:text-lg text-card-foreground break-all">{player.name}</span>
                     <Button variant="ghost" size="icon" className="w-8 h-8 shrink-0" onClick={() => handleEditClick(player)}>
                       <Pencil className="h-4 w-4" />
                     </Button>
