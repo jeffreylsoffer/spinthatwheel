@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, RefreshCcw, Share2 } from 'lucide-react';
+import { ChevronLeft, RefreshCcw, Share2, LoaderPinwheel } from 'lucide-react';
 import CmsForm from './cms-form';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -29,6 +29,7 @@ export default function AdminPage() {
     buzzerCountdown: defaultBuzzerCountdown,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const [isSharing, setIsSharing] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -56,7 +57,8 @@ export default function AdminPage() {
     window.location.reload();
   };
 
-  const handleShare = () => {
+  const handleShare = async () => {
+    setIsSharing(true);
     try {
       const rules = JSON.parse(localStorage.getItem('cms_rules') || 'null') || defaultRuleGroups;
       const prompts = JSON.parse(localStorage.getItem('cms_prompts') || 'null') || defaultPrompts;
@@ -72,9 +74,18 @@ export default function AdminPage() {
         buzzerCountdown,
       };
       
-      const jsonString = JSON.stringify(shareData);
-      const base64String = btoa(jsonString);
-      const shareUrl = `${window.location.origin}?share=${encodeURIComponent(base64String)}`;
+      const response = await fetch('/api/shares', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(shareData),
+      });
+
+      if (!response.ok) {
+        throw new Error('Failed to create share link on server.');
+      }
+
+      const { id } = await response.json();
+      const shareUrl = `${window.location.origin}?share=${id}`;
       
       navigator.clipboard.writeText(shareUrl);
 
@@ -88,8 +99,10 @@ export default function AdminPage() {
       toast({
         variant: "destructive",
         title: "Share Failed",
-        description: "Could not create a shareable link.",
+        description: "Could not create a shareable link. Please try again.",
       });
+    } finally {
+      setIsSharing(false);
     }
   };
 
@@ -114,8 +127,12 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-4xl lg:text-5xl">Manage Cards</h1>
         <div className="flex items-center gap-2">
-           <Button variant="outline" onClick={handleShare}>
-              <Share2 className="mr-2 h-4 w-4" />
+           <Button variant="outline" onClick={handleShare} disabled={isSharing}>
+              {isSharing ? (
+                <LoaderPinwheel className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Share2 className="mr-2 h-4 w-4" />
+              )}
               Share
             </Button>
            <AlertDialog>

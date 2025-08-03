@@ -8,9 +8,8 @@ import CheatSheetModal from './cheatsheet-modal';
 import GameOverModal from './game-over-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
-import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
 import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
-import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier } from '@/lib/types';
+import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier, RuleGroup } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX } from 'lucide-react';
 import { MdMusicOff } from "react-icons/md";
@@ -39,6 +38,12 @@ import {
 
 interface CardDeckWheelProps {
   players: Player[];
+  gameData: {
+    ruleGroups: RuleGroup[];
+    prompts: Prompt[];
+    modifiers: Modifier[];
+    buzzerCountdown: number;
+  };
   onScoreChange: (playerId: number, delta: number) => void;
   onNameChange: (playerId: number, newName: string) => void;
   onResetGame: () => void;
@@ -63,7 +68,7 @@ const musicTracks = [
   '/audio/wheelmusic4.mp3',
 ];
 
-const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: CardDeckWheelProps) => {
+const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onResetGame }: CardDeckWheelProps) => {
   const [sessionRules, setSessionRules] = useState<SessionRule[]>([]);
   const [activeRules, setActiveRules] = useState<SessionRule[]>([]);
   const [wheelItems, setWheelItems] = useState<WheelItem[]>([]);
@@ -75,16 +80,10 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
   const [isRefereeModalOpen, setIsRefereeModalOpen] = useState(false);
   const [isGameOver, setIsGameOver] = useState(false);
   const [spinDuration, setSpinDuration] = useState(0);
-  const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
+  const [buzzerCountdown, setBuzzerCountdown] = useState(gameData.buzzerCountdown);
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [evolutionDeck, setEvolutionDeck] = useState<(Prompt | Modifier)[]>([]);
   const [soundMode, setSoundMode] = useState<'on' | 'sfx' | 'off'>('on');
-
-  const [gameData, setGameData] = useState({
-    rules: defaultRuleGroups,
-    prompts: defaultPrompts,
-    modifiers: defaultModifiers,
-  });
 
   const isSpinningRef = useRef(isSpinning);
   isSpinningRef.current = isSpinning;
@@ -207,44 +206,27 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
       }
   }, []);
 
-  useEffect(() => {
-    const savedRulesJSON = localStorage.getItem('cms_rules');
-    const savedPromptsJSON = localStorage.getItem('cms_prompts');
-    const savedModifiersJSON = localStorage.getItem('cms_modifiers');
-    const savedIsBuzzerEnabledJSON = localStorage.getItem('cms_is_buzzer_enabled');
-    const savedBuzzerCountdownJSON = localStorage.getItem('cms_buzzer_countdown');
+  const initializeGame = useCallback(() => {
+    const { ruleGroups, prompts, modifiers } = gameData;
+    const isBuzzerEnabled = JSON.parse(localStorage.getItem('cms_is_buzzer_enabled') || 'true');
+    let finalRuleGroups = ruleGroups;
 
-    let ruleGroups = savedRulesJSON ? JSON.parse(savedRulesJSON) : defaultRuleGroups;
-    const prompts = savedPromptsJSON ? JSON.parse(savedPromptsJSON) : defaultPrompts;
-    const modifiers = savedModifiersJSON ? JSON.parse(savedModifiersJSON) : defaultModifiers;
-    const isBuzzerEnabled = savedIsBuzzerEnabledJSON ? JSON.parse(savedIsBuzzerEnabledJSON) : true;
-    const buzzerCountdownValue = savedBuzzerCountdownJSON ? JSON.parse(savedBuzzerCountdownJSON) : defaultBuzzerCountdown;
-    
     if (!isBuzzerEnabled) {
-      ruleGroups = ruleGroups.filter((rg: any) => rg.primary_rule.special !== 'BUZZER');
+      finalRuleGroups = ruleGroups.filter((rg: any) => rg.primary_rule.special !== 'BUZZER');
     }
 
-    setGameData({
-      rules: ruleGroups,
-      prompts: prompts,
-      modifiers: modifiers,
-    });
-    setBuzzerCountdown(buzzerCountdownValue);
-  }, []);
-
-  const initializeGame = useCallback(() => {
     spinCountRef.current = 0;
-    const rules = createSessionDeck(gameData.rules);
+    const rules = createSessionDeck(finalRuleGroups);
     const items = populateWheel(rules);
     
     // --- Create and shuffle a deck of evolution cards (new logic) ---
-    const numRules = gameData.rules.length;
+    const numRules = finalRuleGroups.length;
 
     // 1. Generate prompts (roughly 50% of the deck)
     const numPromptsToGenerate = Math.floor(numRules / 2);
     const generatedPrompts: Prompt[] = [];
-    if (gameData.prompts.length > 0) {
-      const availablePrompts = shuffle([...gameData.prompts]);
+    if (prompts.length > 0) {
+      const availablePrompts = shuffle([...prompts]);
       for (let i = 0; i < numPromptsToGenerate; i++) {
         generatedPrompts.push(availablePrompts[i % availablePrompts.length]);
       }
@@ -253,8 +235,8 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     // 2. Generate modifiers (the other 50%)
     const numModifiersToGenerate = numRules - numPromptsToGenerate;
     const generatedModifiers: Modifier[] = [];
-    if (gameData.modifiers.length > 0) {
-      const availableModifiers = [...gameData.modifiers];
+    if (modifiers.length > 0) {
+      const availableModifiers = [...modifiers];
       const flipModifier = availableModifiers.find(m => m.type === 'FLIP');
       
       if (flipModifier) {
@@ -271,7 +253,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
         }
       } else {
         // Fallback if no FLIP modifier exists: just cycle through available modifiers
-        const availableModifiersShuffled = shuffle([...gameData.modifiers]);
+        const availableModifiersShuffled = shuffle([...modifiers]);
         for (let i = 0; i < numModifiersToGenerate; i++) {
             generatedModifiers.push(availableModifiersShuffled[i % availableModifiersShuffled.length]);
         }
@@ -288,6 +270,7 @@ const CardDeckWheel = ({ players, onScoreChange, onNameChange, onResetGame }: Ca
     setResult(null);
     setActiveRules([]);
     setIsGameOver(false);
+    setBuzzerCountdown(gameData.buzzerCountdown);
   }, [gameData]);
 
   useEffect(() => {
