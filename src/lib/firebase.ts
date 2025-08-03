@@ -13,15 +13,7 @@ const firebaseConfig = {
 
 // This robust singleton pattern ensures Firebase is initialized only once,
 // whether on the client or in a serverless function environment.
-let app: FirebaseApp;
-let db: Firestore;
-
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
-}
-
-db = getFirestore(app);
+const app = getApps().length > 0 ? getApp() : initializeApp(firebaseConfig);
+const db = getFirestore(app);
 
 export { app, db };
