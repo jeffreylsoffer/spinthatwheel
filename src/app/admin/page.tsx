@@ -20,14 +20,15 @@ import {
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
 import { useToast } from '@/hooks/use-toast';
+import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
 
 export default function AdminPage() {
-  const [initialData, setInitialData] = useState({ 
-    ruleGroups: defaultRuleGroups, 
-    prompts: defaultPrompts, 
-    modifiers: defaultModifiers,
-    buzzerCountdown: defaultBuzzerCountdown,
-  });
+  const [rules, setRules] = useState<RuleGroup[]>(defaultRuleGroups);
+  const [prompts, setPrompts] = useState<Prompt[]>(defaultPrompts);
+  const [modifiers, setModifiers] = useState<Modifier[]>(defaultModifiers);
+  const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
+  const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
+
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
   const { toast } = useToast();
@@ -37,16 +38,38 @@ export default function AdminPage() {
     const savedPrompts = localStorage.getItem('cms_prompts');
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedBuzzerCountdown = localStorage.getItem('cms_buzzer_countdown');
-
-    setInitialData({
-        ruleGroups: savedRules ? JSON.parse(savedRules) : defaultRuleGroups,
-        prompts: savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts,
-        modifiers: savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers,
-        buzzerCountdown: savedBuzzerCountdown ? JSON.parse(savedBuzzerCountdown) : defaultBuzzerCountdown,
-    });
+    const savedIsBuzzerEnabled = localStorage.getItem('cms_is_buzzer_enabled');
     
+    setRules(savedRules ? JSON.parse(savedRules) : defaultRuleGroups);
+    setPrompts(savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts);
+    setModifiers(savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers);
+    setBuzzerCountdown(savedBuzzerCountdown ? JSON.parse(savedBuzzerCountdown) : defaultBuzzerCountdown);
+    setIsBuzzerRuleEnabled(savedIsBuzzerEnabled ? JSON.parse(savedIsBuzzerEnabled) : true);
+
     setIsLoading(false);
   }, []);
+
+  const handleSaveChanges = () => {
+    try {
+      localStorage.setItem('cms_rules', JSON.stringify(rules));
+      localStorage.setItem('cms_prompts', JSON.stringify(prompts));
+      localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
+      localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(isBuzzerRuleEnabled));
+      localStorage.setItem('cms_buzzer_countdown', JSON.stringify(buzzerCountdown));
+      
+      toast({
+        title: "Changes Saved!",
+        description: "Your new card and wheel configuration has been saved locally.",
+      });
+    } catch (error) {
+      console.error("Failed to save to localStorage", error);
+      toast({
+        variant: "destructive",
+        title: "Save Failed",
+        description: "Could not save changes to your browser's local storage.",
+      });
+    }
+  };
 
   const handleResetToDefaults = () => {
     localStorage.removeItem('cms_rules');
@@ -61,12 +84,6 @@ export default function AdminPage() {
     setIsSharing(true);
     console.log('[SHARE] Starting share process...');
     try {
-      const rules = JSON.parse(localStorage.getItem('cms_rules') || 'null') || defaultRuleGroups;
-      const prompts = JSON.parse(localStorage.getItem('cms_prompts') || 'null') || defaultPrompts;
-      const modifiers = JSON.parse(localStorage.getItem('cms_modifiers') || 'null') || defaultModifiers;
-      const isBuzzerEnabled = JSON.parse(localStorage.getItem('cms_is_buzzer_enabled') || 'true');
-      const buzzerCountdown = JSON.parse(localStorage.getItem('cms_buzzer_countdown') || `${defaultBuzzerCountdown}`);
-
       const shareData = {
         rules,
         prompts,
@@ -178,7 +195,17 @@ export default function AdminPage() {
       </p>
 
       <CmsForm 
-        initialData={initialData} 
+        rules={rules}
+        prompts={prompts}
+        modifiers={modifiers}
+        buzzerCountdown={buzzerCountdown}
+        isBuzzerRuleEnabled={isBuzzerRuleEnabled}
+        onRulesChange={setRules}
+        onPromptsChange={setPrompts}
+        onModifiersChange={setModifiers}
+        onBuzzerCountdownChange={setBuzzerCountdown}
+        onIsBuzzerRuleEnabledChange={setIsBuzzerRuleEnabled}
+        onSaveChanges={handleSaveChanges}
       />
     </main>
   );

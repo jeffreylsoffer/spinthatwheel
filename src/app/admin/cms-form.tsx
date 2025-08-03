@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import {
   Accordion,
   AccordionContent,
@@ -30,30 +30,35 @@ import { Slider } from '@/components/ui/slider';
 
 
 interface CmsFormProps {
-  initialData: {
-    ruleGroups: RuleGroup[];
-    prompts: Prompt[];
-    modifiers: Modifier[];
-    buzzerCountdown: number;
-  };
+  rules: RuleGroup[];
+  prompts: Prompt[];
+  modifiers: Modifier[];
+  buzzerCountdown: number;
+  isBuzzerRuleEnabled: boolean;
+  onRulesChange: (rules: RuleGroup[]) => void;
+  onPromptsChange: (prompts: Prompt[]) => void;
+  onModifiersChange: (modifiers: Modifier[]) => void;
+  onBuzzerCountdownChange: (value: number) => void;
+  onIsBuzzerRuleEnabledChange: (enabled: boolean) => void;
+  onSaveChanges: () => void;
 }
 
-export default function CmsForm({ initialData }: CmsFormProps) {
-  const [rules, setRules] = useState(initialData.ruleGroups);
-  const [prompts, setPrompts] = useState(initialData.prompts);
-  const [modifiers, setModifiers] = useState(initialData.modifiers);
-  const [buzzerCountdown, setBuzzerCountdown] = useState(initialData.buzzerCountdown);
+export default function CmsForm({ 
+  rules, 
+  prompts, 
+  modifiers, 
+  buzzerCountdown,
+  isBuzzerRuleEnabled,
+  onRulesChange,
+  onPromptsChange,
+  onModifiersChange,
+  onBuzzerCountdownChange,
+  onIsBuzzerRuleEnabledChange,
+  onSaveChanges,
+}: CmsFormProps) {
   const [aiPrompt, setAiPrompt] = useState('');
   const [isGenerating, setIsGenerating] = useState(false);
-  const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
   const { toast } = useToast();
-
-  useEffect(() => {
-    const savedBuzzerEnabled = localStorage.getItem('cms_is_buzzer_enabled');
-    if (savedBuzzerEnabled !== null) {
-      setIsBuzzerRuleEnabled(JSON.parse(savedBuzzerEnabled));
-    }
-  }, []);
 
   const buzzerRuleIndex = rules.findIndex(r => r.primary_rule.special === 'BUZZER');
   const buzzerRule = buzzerRuleIndex !== -1 ? rules[buzzerRuleIndex] : null;
@@ -72,11 +77,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
     }
     setIsGenerating(true);
     try {
-      // ALWAYS use the hardcoded default rules as the template, not the current state.
       const defaultRegularRules = defaultRuleGroups.filter(r => r.primary_rule.special !== 'BUZZER');
-
-      // Sanitize potentially problematic rule examples before sending them to the AI
-      // This is to avoid triggering overzealous safety filters.
       const sanitizedRules = defaultRegularRules.map(group => {
         if (group.primary_rule.name === 'Sexily') {
           return {
@@ -91,21 +92,17 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       const result: GenerateCardsOutput = await generateCards({
         theme: aiPrompt,
         existingRules: sanitizedRules,
-        existingPrompts: defaultPrompts, // ALWAYS use default prompts
+        existingPrompts: defaultPrompts,
       });
       
       const newRules = [...result.ruleGroups];
-      if (buzzerRule) {
-        // Re-insert the buzzer rule at its original position to maintain it
-        const originalBuzzerRule = rules[buzzerRuleIndex];
-        const newRulesWithBuzzer = [...result.ruleGroups];
-        newRulesWithBuzzer.splice(buzzerRuleIndex, 0, originalBuzzerRule);
-        setRules(newRulesWithBuzzer);
-      } else {
-        setRules(result.ruleGroups);
+      const originalBuzzerRule = defaultRuleGroups.find(r => r.primary_rule.special === 'BUZZER');
+      if (originalBuzzerRule) {
+        newRules.splice(buzzerRuleIndex, 0, originalBuzzerRule);
       }
-
-      setPrompts(result.prompts);
+      
+      onRulesChange(newRules);
+      onPromptsChange(result.prompts);
       
       toast({
         title: 'AI Generation Complete!',
@@ -134,19 +131,19 @@ export default function CmsForm({ initialData }: CmsFormProps) {
     } else {
       ruleToUpdate.flipped_rule[field] = value;
     }
-    setRules(newRules);
+    onRulesChange(newRules);
   };
   
   const handlePromptChange = (promptIdx: number, value: string) => {
     const newPrompts = [...prompts];
     newPrompts[promptIdx].text = value;
-    setPrompts(newPrompts);
+    onPromptsChange(newPrompts);
   };
 
   const handleModifierChange = (modIdx: number, field: 'name' | 'description', value: string) => {
     const newModifiers = [...modifiers];
     newModifiers[modIdx][field] = value;
-    setModifiers(newModifiers);
+    onModifiersChange(newModifiers);
   };
 
 
@@ -161,50 +158,27 @@ export default function CmsForm({ initialData }: CmsFormProps) {
     };
     const regularRulesWithNew = [...regularRules, newRuleGroup];
     const newRules = buzzerRule ? [...regularRulesWithNew.slice(0, buzzerRuleIndex), buzzerRule, ...regularRulesWithNew.slice(buzzerRuleIndex)] : regularRulesWithNew;
-    setRules(newRules);
+    onRulesChange(newRules);
   };
 
   const handleDeleteRule = (groupId: number) => {
-    setRules(rules.filter((r) => r.id !== groupId));
+    onRulesChange(rules.filter((r) => r.id !== groupId));
   };
 
   const handleAddNewPrompt = () => {
-    setPrompts([...prompts, { id: Date.now(), text: '' }]);
+    onPromptsChange([...prompts, { id: Date.now(), text: '' }]);
   };
   
   const handleDeletePrompt = (index: number) => {
-    setPrompts(prompts.filter((_, i) => i !== index));
+    onPromptsChange(prompts.filter((_, i) => i !== index));
   };
 
   const handleAddNewModifier = () => {
-    setModifiers([...modifiers, { id: Date.now(), type: 'FLIP', name: '', description: '' }]);
+    onModifiersChange([...modifiers, { id: Date.now(), type: 'FLIP', name: '', description: '' }]);
   };
 
   const handleDeleteModifier = (index: number) => {
-    setModifiers(modifiers.filter((_, i) => i !== index));
-  };
-
-  // --- Save Handler ---
-  const handleSaveChanges = () => {
-    try {
-      localStorage.setItem('cms_rules', JSON.stringify(rules));
-      localStorage.setItem('cms_prompts', JSON.stringify(prompts));
-      localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
-      localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(isBuzzerRuleEnabled));
-      localStorage.setItem('cms_buzzer_countdown', JSON.stringify(buzzerCountdown));
-      
-      toast({
-        title: "Changes Saved!",
-        description: "Your new card and wheel configuration has been saved locally.",
-      });
-    } catch (error) {
-      console.error("Failed to save to localStorage", error);
-      toast({
-        variant: "destructive",
-        title: "Save Failed",
-        description: "Could not save changes to your browser's local storage.",
-      });
-    }
+    onModifiersChange(modifiers.filter((_, i) => i !== index));
   };
 
   return (
@@ -256,7 +230,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
           <AccordionTrigger className="text-2xl font-headline">Rules ({regularRules.length})</AccordionTrigger>
           <AccordionContent className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              {regularRules.map((group, groupIdx) => {
+              {regularRules.map((group) => {
                   const originalIndex = rules.findIndex(r => r.id === group.id);
                   return (
                     <Card key={group.id} className="bg-card/50 relative group">
@@ -333,7 +307,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
                         <Switch
                           id="buzzer-switch"
                           checked={isBuzzerRuleEnabled}
-                          onCheckedChange={setIsBuzzerRuleEnabled}
+                          onCheckedChange={onIsBuzzerRuleEnabledChange}
                         />
                       </div>
                       <TooltipProvider>
@@ -357,7 +331,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
                         <Slider
                             id="buzzer-countdown"
                             value={[buzzerCountdown]}
-                            onValueChange={(value) => setBuzzerCountdown(value[0])}
+                            onValueChange={(value) => onBuzzerCountdownChange(value[0])}
                             min={1}
                             max={60}
                             step={1}
@@ -486,7 +460,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
       </Accordion>
 
       <div className="flex justify-end pt-8">
-        <Button size="lg" onClick={handleSaveChanges}>
+        <Button size="lg" onClick={onSaveChanges}>
           <Save className="mr-2 h-5 w-5" />
           Save Changes
         </Button>
