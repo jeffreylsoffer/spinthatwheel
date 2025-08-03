@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, RefreshCcw } from 'lucide-react';
+import { ChevronLeft, RefreshCcw, Share2 } from 'lucide-react';
 import CmsForm from './cms-form';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -19,6 +19,7 @@ import {
   AlertDialogTitle,
   AlertDialogTrigger,
 } from "@/components/ui/alert-dialog"
+import { useToast } from '@/hooks/use-toast';
 
 export default function AdminPage() {
   const [initialData, setInitialData] = useState({ 
@@ -28,6 +29,7 @@ export default function AdminPage() {
     buzzerCountdown: defaultBuzzerCountdown,
   });
   const [isLoading, setIsLoading] = useState(true);
+  const { toast } = useToast();
 
   useEffect(() => {
     const savedRules = localStorage.getItem('cms_rules');
@@ -54,6 +56,43 @@ export default function AdminPage() {
     window.location.reload();
   };
 
+  const handleShare = () => {
+    try {
+      const rules = JSON.parse(localStorage.getItem('cms_rules') || 'null') || defaultRuleGroups;
+      const prompts = JSON.parse(localStorage.getItem('cms_prompts') || 'null') || defaultPrompts;
+      const modifiers = JSON.parse(localStorage.getItem('cms_modifiers') || 'null') || defaultModifiers;
+      const isBuzzerEnabled = JSON.parse(localStorage.getItem('cms_is_buzzer_enabled') || 'true');
+      const buzzerCountdown = JSON.parse(localStorage.getItem('cms_buzzer_countdown') || `${defaultBuzzerCountdown}`);
+
+      const shareData = {
+        rules,
+        prompts,
+        modifiers,
+        isBuzzerEnabled,
+        buzzerCountdown,
+      };
+      
+      const jsonString = JSON.stringify(shareData);
+      const base64String = btoa(jsonString);
+      const shareUrl = `${window.location.origin}?share=${encodeURIComponent(base64String)}`;
+      
+      navigator.clipboard.writeText(shareUrl);
+
+      toast({
+        title: "Link Copied!",
+        description: "A shareable link has been copied to your clipboard.",
+      });
+
+    } catch (error) {
+      console.error("Failed to generate share link", error);
+      toast({
+        variant: "destructive",
+        title: "Share Failed",
+        description: "Could not create a shareable link.",
+      });
+    }
+  };
+
   if (isLoading) {
     return (
       <main className="container mx-auto p-8">
@@ -75,6 +114,10 @@ export default function AdminPage() {
       <div className="flex items-center justify-between mb-8">
         <h1 className="font-headline text-4xl lg:text-5xl">Manage Cards</h1>
         <div className="flex items-center gap-2">
+           <Button variant="outline" onClick={handleShare}>
+              <Share2 className="mr-2 h-4 w-4" />
+              Share
+            </Button>
            <AlertDialog>
             <AlertDialogTrigger asChild>
                 <Button variant="destructive-outline">
