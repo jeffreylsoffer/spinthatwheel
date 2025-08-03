@@ -97,7 +97,7 @@ export default function CmsForm({
       
       const newRules = [...result.ruleGroups];
       const originalBuzzerRule = defaultRuleGroups.find(r => r.primary_rule.special === 'BUZZER');
-      if (originalBuzzerRule) {
+      if (originalBuzzerRule && buzzerRuleIndex !== -1) {
         newRules.splice(buzzerRuleIndex, 0, originalBuzzerRule);
       }
       
@@ -157,8 +157,15 @@ export default function CmsForm({
       flipped_rule: { id: newId + 2, name: '', description: '' },
     };
     const regularRulesWithNew = [...regularRules, newRuleGroup];
-    const newRules = buzzerRule ? [...regularRulesWithNew.slice(0, buzzerRuleIndex), buzzerRule, ...regularRulesWithNew.slice(buzzerRuleIndex)] : regularRulesWithNew;
-    onRulesChange(newRules);
+    let finalRules;
+    if (buzzerRule && buzzerRuleIndex !== -1) {
+        const rulesCopy = [...regularRulesWithNew];
+        rulesCopy.splice(buzzerRuleIndex, 0, buzzerRule);
+        finalRules = rulesCopy;
+    } else {
+        finalRules = regularRulesWithNew;
+    }
+    onRulesChange(finalRules);
   };
 
   const handleDeleteRule = (groupId: number) => {
@@ -400,9 +407,9 @@ export default function CmsForm({
                     <Trash2 className="h-5 w-5" />
                   </Button>
                    <CardContent className="pt-6">
-                      <Label htmlFor={`prompt-${prompt.id}`}>Prompt Text</Label>
+                      <Label htmlFor={`prompt-${prompt.id}-${promptIdx}`}>Prompt Text</Label>
                       <Textarea
-                        id={`prompt-${prompt.id}`}
+                        id={`prompt-${prompt.id}-${promptIdx}`}
                         value={prompt.text}
                         onChange={(e) => handlePromptChange(promptIdx, e.target.value)}
                         rows={4}
@@ -425,7 +432,7 @@ export default function CmsForm({
           <AccordionContent className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {modifiers.map((mod, modIdx) => (
-                <Card key={mod.id} className="bg-card/50 relative group">
+                <Card key={`${mod.id}-${modIdx}`} className="bg-card/50 relative group">
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeleteModifier(modIdx)}>
                     <Trash2 className="h-5 w-5" />
                   </Button>

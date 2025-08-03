@@ -23,9 +23,9 @@ import { useToast } from '@/hooks/use-toast';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
 
 export default function AdminPage() {
-  const [rules, setRules] = useState<RuleGroup[]>(defaultRuleGroups);
-  const [prompts, setPrompts] = useState<Prompt[]>(defaultPrompts);
-  const [modifiers, setModifiers] = useState<Modifier[]>(defaultModifiers);
+  const [rules, setRules] = useState<RuleGroup[]>([]);
+  const [prompts, setPrompts] = useState<Prompt[]>([]);
+  const [modifiers, setModifiers] = useState<Modifier[]>([]);
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
   const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
 
@@ -82,34 +82,38 @@ export default function AdminPage() {
 
   const handleShare = async () => {
     setIsSharing(true);
-    console.log('[SHARE] Starting share process...');
+    // Use the current state directly, not what's in localStorage
+    const shareData = {
+      rules,
+      prompts,
+      modifiers,
+      isBuzzerEnabled: isBuzzerRuleEnabled,
+      buzzerCountdown,
+    };
+    
     try {
-      const shareData = {
-        rules,
-        prompts,
-        modifiers,
-        isBuzzerEnabled,
-        buzzerCountdown,
-      };
-      
-      console.log('[SHARE] Preparing to send data to server:', shareData);
-
       const response = await fetch('/api/shares', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(shareData),
       });
 
-      console.log(`[SHARE] Received response from server with status: ${response.status}`);
-
       if (!response.ok) {
         const errorBody = await response.text();
         console.error('[SHARE] Server returned an error:', errorBody);
-        throw new Error('Failed to create share link on server.');
+        let readableError = 'Failed to create share link on server.';
+        try {
+          const errorJson = JSON.parse(errorBody);
+          if (errorJson.error) {
+             readableError = errorJson.details ? `${errorJson.error} ${errorJson.details}` : errorJson.error;
+          }
+        } catch (e) {
+          // It wasn't JSON, do nothing and use the default message
+        }
+        throw new Error(readableError);
       }
 
       const { id } = await response.json();
-      console.log(`[SHARE] Successfully created share link with ID: ${id}`);
       const shareUrl = `${window.location.origin}?share=${id}`;
       
       navigator.clipboard.writeText(shareUrl);
@@ -119,15 +123,14 @@ export default function AdminPage() {
         description: "A shareable link has been copied to your clipboard.",
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("[SHARE] Failed to generate share link", error);
       toast({
         variant: "destructive",
         title: "Share Failed",
-        description: "Could not create a shareable link. Please check the console for details.",
+        description: error.message || "Could not create a shareable link. Please check the console for details.",
       });
     } finally {
-      console.log('[SHARE] Ending share process.');
       setIsSharing(false);
     }
   };
