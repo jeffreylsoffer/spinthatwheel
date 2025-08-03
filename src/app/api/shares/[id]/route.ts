@@ -1,7 +1,5 @@
-
 import { NextResponse } from 'next/server';
-import { doc, getDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase';
 
 export async function GET(
   request: Request,
@@ -13,10 +11,10 @@ export async function GET(
       return NextResponse.json({ error: 'No ID provided.' }, { status: 400 });
     }
 
-    const docRef = doc(db, 'shares', id);
-    const docSnap = await getDoc(docRef);
+    const docRef = adminDb.collection('shares').doc(id);
+    const docSnap = await docRef.get();
 
-    if (!docSnap.exists()) {
+    if (!docSnap.exists) {
       return NextResponse.json({ error: 'Share link not found.' }, { status: 404 });
     }
 

@@ -1,7 +1,5 @@
-
 import { NextResponse } from 'next/server';
-import { collection, addDoc } from 'firebase/firestore';
-import { db } from '@/lib/firebase';
+import { adminDb } from '@/lib/firebase';
 
 export async function POST(request: Request) {
   console.log('[API] POST /api/shares endpoint hit.');
@@ -15,8 +13,8 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid share data provided.' }, { status: 400 });
     }
 
-    console.log('[API] Attempting to add document to Firestore...');
-    const docRef = await addDoc(collection(db, 'shares'), data);
+    console.log('[API] Attempting to add document to Firestore using Admin SDK...');
+    const docRef = await adminDb.collection('shares').add(data);
     console.log(`[API] Successfully created document in Firestore with ID: ${docRef.id}`);
     
     return NextResponse.json({ id: docRef.id }, { status: 201 });

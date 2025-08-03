@@ -1,8 +1,9 @@
+import { initializeApp, getApps, getApp, FirebaseOptions } from 'firebase/app';
+import { getFirestore } from 'firebase/firestore';
+import admin from 'firebase-admin';
 
-import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore } from "firebase/firestore";
-
-const firebaseConfig = {
+// Client-side Firebase configuration
+const clientFirebaseConfig: FirebaseOptions = {
   projectId: "card-deck-wheel",
   appId: "1:357412366942:web:bbca4bc90ff0a6e91c62cf",
   storageBucket: "card-deck-wheel.firebasestorage.app",
@@ -11,14 +12,21 @@ const firebaseConfig = {
   messagingSenderId: "357412366942",
 };
 
-// Robust singleton pattern for Firebase initialization.
-let app;
-if (getApps().length === 0) {
-  app = initializeApp(firebaseConfig);
-} else {
-  app = getApp();
+// Initialize Client-side App
+const clientApp = getApps().length ? getApp() : initializeApp(clientFirebaseConfig);
+const db = getFirestore(clientApp);
+
+// --- Admin SDK Initialization (Server-side only) ---
+const serviceAccount = process.env.FIREBASE_SERVICE_ACCOUNT_KEY
+  ? JSON.parse(process.env.FIREBASE_SERVICE_ACCOUNT_KEY)
+  : null;
+
+if (!admin.apps.length && serviceAccount) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
 }
 
-const db = getFirestore(app);
+const adminDb = admin.firestore();
 
-export { app, db };
+export { clientApp, db, adminDb };
