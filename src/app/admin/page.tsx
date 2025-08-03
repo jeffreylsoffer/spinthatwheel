@@ -82,7 +82,10 @@ export default function AdminPage() {
 
   const handleShare = async () => {
     setIsSharing(true);
-    // Use the current state directly, not what's in localStorage
+    
+    // First, save any pending changes and show the toast.
+    handleSaveChanges();
+
     const shareData = {
       rules,
       prompts,
