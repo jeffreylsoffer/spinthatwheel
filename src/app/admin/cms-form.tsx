@@ -421,7 +421,7 @@ export default function CmsForm({ initialData }: CmsFormProps) {
           <AccordionContent className="pt-4">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
               {prompts.map((prompt, promptIdx) => (
-                <Card key={prompt.id} className="bg-card/50 relative group">
+                <Card key={`${prompt.id}-${promptIdx}`} className="bg-card/50 relative group">
                   <Button variant="ghost" size="icon" className="absolute top-2 right-2 text-destructive/50 opacity-0 group-hover:opacity-100 hover:text-destructive hover:bg-destructive/10" onClick={() => handleDeletePrompt(promptIdx)}>
                     <Trash2 className="h-5 w-5" />
                   </Button>
