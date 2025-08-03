@@ -59,6 +59,7 @@ export default function AdminPage() {
 
   const handleShare = async () => {
     setIsSharing(true);
+    console.log('[SHARE] Starting share process...');
     try {
       const rules = JSON.parse(localStorage.getItem('cms_rules') || 'null') || defaultRuleGroups;
       const prompts = JSON.parse(localStorage.getItem('cms_prompts') || 'null') || defaultPrompts;
@@ -74,17 +75,24 @@ export default function AdminPage() {
         buzzerCountdown,
       };
       
+      console.log('[SHARE] Preparing to send data to server:', shareData);
+
       const response = await fetch('/api/shares', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(shareData),
       });
 
+      console.log(`[SHARE] Received response from server with status: ${response.status}`);
+
       if (!response.ok) {
+        const errorBody = await response.text();
+        console.error('[SHARE] Server returned an error:', errorBody);
         throw new Error('Failed to create share link on server.');
       }
 
       const { id } = await response.json();
+      console.log(`[SHARE] Successfully created share link with ID: ${id}`);
       const shareUrl = `${window.location.origin}?share=${id}`;
       
       navigator.clipboard.writeText(shareUrl);
@@ -95,13 +103,14 @@ export default function AdminPage() {
       });
 
     } catch (error) {
-      console.error("Failed to generate share link", error);
+      console.error("[SHARE] Failed to generate share link", error);
       toast({
         variant: "destructive",
         title: "Share Failed",
-        description: "Could not create a shareable link. Please try again.",
+        description: "Could not create a shareable link. Please check the console for details.",
       });
     } finally {
+      console.log('[SHARE] Ending share process.');
       setIsSharing(false);
     }
   };
