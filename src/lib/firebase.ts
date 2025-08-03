@@ -18,31 +18,20 @@ const clientApp = getApps().length ? getApp() : initializeApp(clientFirebaseConf
 const db = getFirestore(clientApp);
 
 // --- Admin SDK Initialization (Server-side only) ---
-let adminDb: admin.firestore.Firestore;
-
-try {
-  const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
-  if (!serviceAccountKey) {
-    throw new Error('Firebase service account key environment variable not found.');
-  }
-
-  const serviceAccount = JSON.parse(serviceAccountKey);
-
-  if (!admin.apps.length) {
-    admin.initializeApp({
-      credential: admin.credential.cert(serviceAccount),
-    });
-  }
-  
-  adminDb = admin.firestore();
-
-} catch (error) {
-  console.error("Firebase Admin SDK initialization error:", (error as Error).message);
-  // Set adminDb to a mock/dummy object in case of failure
-  // This prevents the app from crashing on import if the admin SDK fails to initialize.
-  // API routes that depend on it will fail gracefully.
-  adminDb = {} as admin.firestore.Firestore;
+const serviceAccountKey = process.env.FIREBASE_SERVICE_ACCOUNT_KEY;
+if (!serviceAccountKey) {
+  throw new Error('Firebase service account key environment variable not found. Please set FIREBASE_SERVICE_ACCOUNT_KEY in your .env.local file.');
 }
+
+const serviceAccount = JSON.parse(serviceAccountKey);
+
+if (!admin.apps.length) {
+  admin.initializeApp({
+    credential: admin.credential.cert(serviceAccount),
+  });
+}
+  
+const adminDb = admin.firestore();
 
 
 export { clientApp, db, adminDb };
