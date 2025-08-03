@@ -1,6 +1,6 @@
 
-import { initializeApp, getApps, getApp, FirebaseApp } from "firebase/app";
-import { getFirestore, Firestore } from "firebase/firestore";
+import { initializeApp, getApps, getApp } from "firebase/app";
+import { getFirestore } from "firebase/firestore";
 
 const firebaseConfig = {
   projectId: "card-deck-wheel",
@@ -11,9 +11,14 @@ const firebaseConfig = {
   messagingSenderId: "357412366942",
 };
 
-// This robust singleton pattern ensures Firebase is initialized only once,
-// whether on the client or in a serverless function environment.
-const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+// Robust singleton pattern for Firebase initialization.
+let app;
+if (getApps().length === 0) {
+  app = initializeApp(firebaseConfig);
+} else {
+  app = getApp();
+}
+
 const db = getFirestore(app);
 
 export { app, db };
