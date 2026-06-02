@@ -16,6 +16,8 @@ import { MdMusicOff } from "react-icons/md";
 import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
+import GoldenRuleModal from './golden-rule-modal';
+import GoldenRuleCard from './golden-rule-card';
 import { useToast } from '@/hooks/use-toast';
 import { BuzzerToast } from './buzzer-toast';
 import { ToastAction } from "@/components/ui/toast";
@@ -43,6 +45,7 @@ interface CardDeckWheelProps {
     prompts: Prompt[];
     modifiers: Modifier[];
     buzzerCountdown: number;
+    goldenRule: RuleGroup | null;
   };
   onScoreChange: (playerId: number, delta: number) => void;
   onNameChange: (playerId: number, newName: string) => void;
@@ -84,6 +87,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   const [isResetConfirmOpen, setIsResetConfirmOpen] = useState(false);
   const [evolutionDeck, setEvolutionDeck] = useState<(Prompt | Modifier)[]>([]);
   const [soundMode, setSoundMode] = useState<'on' | 'sfx' | 'off'>('on');
+  const [goldenRule, setGoldenRule] = useState<SessionRule | null>(null);
+  const [isGoldenRuleModalOpen, setIsGoldenRuleModalOpen] = useState(false);
 
   const isSpinningRef = useRef(isSpinning);
   isSpinningRef.current = isSpinning;
@@ -218,6 +223,19 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     spinCountRef.current = 0;
     const rules = createSessionDeck(finalRuleGroups);
     const items = populateWheel(rules);
+
+    // --- Golden Rule Initialization ---
+    if (gameData.goldenRule) {
+      setGoldenRule({
+        id: gameData.goldenRule.id,
+        groupName: gameData.goldenRule.name,
+        primary: gameData.goldenRule.primary_rule,
+        flipped: gameData.goldenRule.flipped_rule,
+        isFlipped: false,
+      });
+    } else {
+      setGoldenRule(null);
+    }
     
     // --- Create and shuffle a deck of evolution cards (new logic) ---
     const numRules = finalRuleGroups.length;
@@ -468,6 +486,21 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                 setActiveRules(prev => [...prev, ruleWithColor]);
             }
         }
+
+        // --- AUSTRALIA: flip everything with a cascading animation ---
+        if (result.landed.type === 'MODIFIER' && (result.landed.data as Modifier).type === 'AUSTRALIA') {
+            setIsCheatSheetModalOpen(true);
+            // Flip the golden rule first, then cascade through the active rules.
+            setTimeout(() => {
+                setGoldenRule(prev => prev ? { ...prev, isFlipped: !prev.isFlipped } : null);
+            }, 500);
+            activeRules.forEach((r, i) => {
+                setTimeout(() => {
+                    setActiveRules(prev => prev.map(ar => ar.id === r.id ? { ...ar, isFlipped: !ar.isFlipped } : ar));
+                    setSessionRules(prev => prev.map(sr => sr.id === r.id ? { ...sr, isFlipped: !sr.isFlipped } : sr));
+                }, 700 + i * 180);
+            });
+        }
         
         const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
 
@@ -523,6 +556,27 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     setSessionRules(prev => prev.map(r => r.id === ruleId ? { ...r, isFlipped: !r.isFlipped } : r));
     setActiveRules(prev => prev.map(ar => ar.id === ruleId ? { ...ar, isFlipped: !ar.isFlipped } : ar));
   }, [sessionRules]);
+
+  const handleFlipGoldenRule = useCallback(() => {
+    setGoldenRule(prev => prev ? { ...prev, isFlipped: !prev.isFlipped } : null);
+  }, []);
+
+  const handleSwapWithGoldenRule = useCallback((ruleId: number) => {
+    if (!goldenRule) return;
+    const playerRule = activeRules.find(r => r.id === ruleId);
+    if (!playerRule) return;
+
+    // The player's rule becomes the new golden rule
+    setGoldenRule({ ...playerRule, isFlipped: false });
+    // The old golden rule becomes the player's personal rule
+    const newPersonalRule: SessionRule = {
+      ...goldenRule,
+      isFlipped: false,
+      color: playerRule.color,
+    };
+    setActiveRules(prev => prev.map(ar => ar.id === ruleId ? newPersonalRule : ar));
+    setSessionRules(prev => prev.map(sr => sr.id === ruleId ? newPersonalRule : sr));
+  }, [goldenRule, activeRules]);
 
   const handleReset = useCallback(() => {
     if (tickTimeoutRef.current) {
@@ -683,6 +737,14 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
       {/* Scoreboard & Controls Column */}
       <div className="flex-shrink-0 lg:w-[380px] flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
         <div className="w-full max-w-sm mx-auto flex flex-col gap-4 p-4 lg:p-0">
+            {goldenRule && (
+              <GoldenRuleCard
+                name={goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
+                bg={goldenRule.isFlipped ? '#000000' : goldenRule.color?.labelBg}
+                textColor={goldenRule.isFlipped ? (goldenRule.color?.labelBg || '#e8835f') : goldenRule.color?.labelColor}
+                onClick={() => setIsGoldenRuleModalOpen(true)}
+              />
+            )}
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
              <div className="grid grid-cols-2 gap-4">
                <Button 
@@ -762,6 +824,17 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
         onOpenChange={setIsCheatSheetModalOpen}
         rules={activeRules}
         onFlipRule={handleFlipRule}
+        goldenRule={goldenRule}
+        onFlipGoldenRule={handleFlipGoldenRule}
+        onSwapWithGoldenRule={handleSwapWithGoldenRule}
+      />
+      <GoldenRuleModal
+        isOpen={isGoldenRuleModalOpen}
+        onOpenChange={setIsGoldenRuleModalOpen}
+        goldenRule={goldenRule}
+        activeRules={activeRules}
+        onSwapWithGoldenRule={handleSwapWithGoldenRule}
+        onFlipGoldenRule={handleFlipGoldenRule}
       />
       <GameOverModal
         isOpen={isGameOver}

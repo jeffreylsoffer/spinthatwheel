@@ -35,11 +35,15 @@ interface CmsFormProps {
   modifiers: Modifier[];
   buzzerCountdown: number;
   isBuzzerRuleEnabled: boolean;
+  isGoldenRuleEnabled: boolean;
+  goldenRule: RuleGroup;
   onRulesChange: (rules: RuleGroup[]) => void;
   onPromptsChange: (prompts: Prompt[]) => void;
   onModifiersChange: (modifiers: Modifier[]) => void;
   onBuzzerCountdownChange: (value: number) => void;
   onIsBuzzerRuleEnabledChange: (enabled: boolean) => void;
+  onIsGoldenRuleEnabledChange: (enabled: boolean) => void;
+  onGoldenRuleChange: (rule: RuleGroup) => void;
   onSaveChanges: () => void;
 }
 
@@ -49,11 +53,15 @@ export default function CmsForm({
   modifiers, 
   buzzerCountdown,
   isBuzzerRuleEnabled,
+  isGoldenRuleEnabled,
+  goldenRule,
   onRulesChange,
   onPromptsChange,
   onModifiersChange,
   onBuzzerCountdownChange,
   onIsBuzzerRuleEnabledChange,
+  onIsGoldenRuleEnabledChange,
+  onGoldenRuleChange,
   onSaveChanges,
 }: CmsFormProps) {
   const [aiPrompt, setAiPrompt] = useState('');
@@ -395,6 +403,84 @@ export default function CmsForm({
           </AccordionItem>
         </Accordion>
       )}
+
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-golden">
+        <AccordionItem value="item-golden">
+          <AccordionTrigger className="text-2xl font-headline text-yellow-500">Golden Rule</AccordionTrigger>
+          <AccordionContent className="pt-4">
+            <Card className="bg-card/50 border-2 border-yellow-500/50 shadow-yellow-500/10 shadow-lg">
+              <CardHeader>
+                <div className="flex justify-between items-center">
+                  <div className="flex items-center gap-4">
+                    <Label htmlFor="golden-rule-switch" className="text-lg font-medium">Enable Golden Rule</Label>
+                    <Switch
+                      id="golden-rule-switch"
+                      checked={isGoldenRuleEnabled}
+                      onCheckedChange={onIsGoldenRuleEnabledChange}
+                    />
+                  </div>
+                  <TooltipProvider>
+                    <Tooltip>
+                      <TooltipTrigger asChild>
+                        <Info className="h-5 w-5 text-muted-foreground" />
+                      </TooltipTrigger>
+                      <TooltipContent>
+                        <p className="max-w-xs">The Golden Rule applies to ALL players for the entire game. It can be swapped or flipped via modifiers.</p>
+                      </TooltipContent>
+                    </Tooltip>
+                  </TooltipProvider>
+                </div>
+              </CardHeader>
+              <CardContent className={cn("space-y-6 pt-6 transition-opacity", !isGoldenRuleEnabled && "opacity-50")}>
+                <div className="space-y-4 p-4 border rounded-md">
+                  <h4 className="font-bold text-lg">Rule</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="golden-rule-name">Name</Label>
+                    <Input
+                      id="golden-rule-name"
+                      value={goldenRule.primary_rule.name}
+                      onChange={(e) => onGoldenRuleChange({ ...goldenRule, primary_rule: { ...goldenRule.primary_rule, name: e.target.value } })}
+                      disabled={!isGoldenRuleEnabled}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="golden-rule-desc">Description</Label>
+                    <Textarea
+                      id="golden-rule-desc"
+                      value={goldenRule.primary_rule.description}
+                      onChange={(e) => onGoldenRuleChange({ ...goldenRule, primary_rule: { ...goldenRule.primary_rule, description: e.target.value } })}
+                      rows={2}
+                      disabled={!isGoldenRuleEnabled}
+                    />
+                  </div>
+                </div>
+                <div className="space-y-4 p-4 border rounded-md bg-black/20">
+                  <h4 className="font-bold text-lg">Flipped Rule</h4>
+                  <div className="space-y-2">
+                    <Label htmlFor="golden-rule-flipped-name">Name</Label>
+                    <Input
+                      id="golden-rule-flipped-name"
+                      value={goldenRule.flipped_rule.name}
+                      onChange={(e) => onGoldenRuleChange({ ...goldenRule, flipped_rule: { ...goldenRule.flipped_rule, name: e.target.value } })}
+                      disabled={!isGoldenRuleEnabled}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="golden-rule-flipped-desc">Description</Label>
+                    <Textarea
+                      id="golden-rule-flipped-desc"
+                      value={goldenRule.flipped_rule.description}
+                      onChange={(e) => onGoldenRuleChange({ ...goldenRule, flipped_rule: { ...goldenRule.flipped_rule, description: e.target.value } })}
+                      rows={2}
+                      disabled={!isGoldenRuleEnabled}
+                    />
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
 
       <Accordion type="single" collapsible className="w-full" defaultValue="item-2">
         <AccordionItem value="item-2">

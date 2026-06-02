@@ -6,7 +6,7 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ChevronLeft, RefreshCcw, Share2, LoaderPinwheel } from 'lucide-react';
 import CmsForm from './cms-form';
-import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown } from '@/lib/data';
+import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown, defaultGoldenRule } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
 import {
   AlertDialog,
@@ -28,6 +28,8 @@ export default function AdminPage() {
   const [modifiers, setModifiers] = useState<Modifier[]>([]);
   const [buzzerCountdown, setBuzzerCountdown] = useState(defaultBuzzerCountdown);
   const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
+  const [isGoldenRuleEnabled, setIsGoldenRuleEnabled] = useState(true);
+  const [goldenRule, setGoldenRule] = useState<RuleGroup>(defaultGoldenRule);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
@@ -39,12 +41,16 @@ export default function AdminPage() {
     const savedModifiers = localStorage.getItem('cms_modifiers');
     const savedBuzzerCountdown = localStorage.getItem('cms_buzzer_countdown');
     const savedIsBuzzerEnabled = localStorage.getItem('cms_is_buzzer_enabled');
+    const savedIsGoldenRuleEnabled = localStorage.getItem('cms_is_golden_rule_enabled');
+    const savedGoldenRule = localStorage.getItem('cms_golden_rule');
     
     setRules(savedRules ? JSON.parse(savedRules) : defaultRuleGroups);
     setPrompts(savedPrompts ? JSON.parse(savedPrompts) : defaultPrompts);
     setModifiers(savedModifiers ? JSON.parse(savedModifiers) : defaultModifiers);
     setBuzzerCountdown(savedBuzzerCountdown ? JSON.parse(savedBuzzerCountdown) : defaultBuzzerCountdown);
     setIsBuzzerRuleEnabled(savedIsBuzzerEnabled ? JSON.parse(savedIsBuzzerEnabled) : true);
+    setIsGoldenRuleEnabled(savedIsGoldenRuleEnabled ? JSON.parse(savedIsGoldenRuleEnabled) : true);
+    setGoldenRule(savedGoldenRule ? JSON.parse(savedGoldenRule) : defaultGoldenRule);
 
     setIsLoading(false);
   }, []);
@@ -56,6 +62,8 @@ export default function AdminPage() {
       localStorage.setItem('cms_modifiers', JSON.stringify(modifiers));
       localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(isBuzzerRuleEnabled));
       localStorage.setItem('cms_buzzer_countdown', JSON.stringify(buzzerCountdown));
+      localStorage.setItem('cms_is_golden_rule_enabled', JSON.stringify(isGoldenRuleEnabled));
+      localStorage.setItem('cms_golden_rule', JSON.stringify(goldenRule));
       
       toast({
         title: "Changes Saved!",
@@ -77,6 +85,8 @@ export default function AdminPage() {
     localStorage.removeItem('cms_modifiers');
     localStorage.removeItem('cms_is_buzzer_enabled');
     localStorage.removeItem('cms_buzzer_countdown');
+    localStorage.removeItem('cms_is_golden_rule_enabled');
+    localStorage.removeItem('cms_golden_rule');
     window.location.reload();
   };
 
@@ -206,11 +216,15 @@ export default function AdminPage() {
         modifiers={modifiers}
         buzzerCountdown={buzzerCountdown}
         isBuzzerRuleEnabled={isBuzzerRuleEnabled}
+        isGoldenRuleEnabled={isGoldenRuleEnabled}
+        goldenRule={goldenRule}
         onRulesChange={setRules}
         onPromptsChange={setPrompts}
         onModifiersChange={setModifiers}
         onBuzzerCountdownChange={setBuzzerCountdown}
         onIsBuzzerRuleEnabledChange={setIsBuzzerRuleEnabled}
+        onIsGoldenRuleEnabledChange={setIsGoldenRuleEnabled}
+        onGoldenRuleChange={setGoldenRule}
         onSaveChanges={handleSaveChanges}
       />
     </main>

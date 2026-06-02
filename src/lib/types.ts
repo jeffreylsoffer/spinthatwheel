@@ -18,7 +18,7 @@ export interface Prompt {
   text: string;
 }
 
-export type ModifierType = 'LEFT' | 'RIGHT' | 'FLIP' | 'CLONE' | 'SWAP';
+export type ModifierType = 'LEFT' | 'RIGHT' | 'FLIP' | 'CLONE' | 'SWAP' | 'AUSTRALIA';
 
 export interface Modifier {
   id: number;

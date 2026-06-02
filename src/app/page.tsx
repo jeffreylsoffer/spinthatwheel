@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect } from 'react';
 import CardDeckWheel from '@/components/card-deck-wheel';
 import StartScreen from '@/components/start-screen';
 import { useToast } from '@/hooks/use-toast';
-import { ruleGroups, prompts, modifiers, defaultBuzzerCountdown } from '@/lib/data';
+import { ruleGroups, prompts, modifiers, defaultBuzzerCountdown, defaultGoldenRule } from '@/lib/data';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
 
 export interface Player {
@@ -19,6 +19,7 @@ interface GameData {
   prompts: Prompt[];
   modifiers: Modifier[];
   buzzerCountdown: number;
+  goldenRule: RuleGroup | null;
 }
 
 export default function Home() {
@@ -36,6 +37,7 @@ export default function Home() {
       prompts: prompts,
       modifiers: modifiers,
       buzzerCountdown: defaultBuzzerCountdown,
+      goldenRule: null,
     };
 
     if (shareId) {
@@ -97,6 +99,13 @@ export default function Home() {
       finalData.modifiers = savedModifiers ? JSON.parse(savedModifiers) : modifiers;
       finalData.buzzerCountdown = savedBuzzerCountdown ? JSON.parse(savedBuzzerCountdown) : defaultBuzzerCountdown;
     }
+    // --- Golden Rule ---
+    const isGoldenRuleEnabled = JSON.parse(localStorage.getItem('cms_is_golden_rule_enabled') || 'true');
+    if (isGoldenRuleEnabled) {
+      const savedGoldenRule = localStorage.getItem('cms_golden_rule');
+      finalData.goldenRule = savedGoldenRule ? JSON.parse(savedGoldenRule) : defaultGoldenRule;
+    }
+
     setGameData(finalData);
   }, [toast]);
 

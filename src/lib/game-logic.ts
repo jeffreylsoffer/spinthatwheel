@@ -55,6 +55,15 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
+const PROMPT_COLORS = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'white', 'black', 'brown'];
+
+// Replaces [color] and [letter] placeholders in a prompt with random values
+export function resolvePromptText(text: string): string {
+  return text
+    .replace(/\[color\]/gi, () => PROMPT_COLORS[Math.floor(Math.random() * PROMPT_COLORS.length)])
+    .replace(/\[letter\]/gi, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)));
+}
+
 // Populates the wheel with an initial set of Rule items
 export function populateWheel(
   sessionRules: SessionRule[]

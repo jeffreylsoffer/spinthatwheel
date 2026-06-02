@@ -39,3 +39,6 @@
 npm-debug.log*
 yarn-debug.log*
 yarn-error.log*
+
+# Firestore migration export (one-time data)
+shares-export.json

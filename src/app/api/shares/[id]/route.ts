@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { adminDb } from '@/lib/firebase';
+import { redis } from '@/lib/redis';
 
 export async function GET(
   request: Request,
@@ -11,17 +11,15 @@ export async function GET(
       return NextResponse.json({ error: 'No ID provided.' }, { status: 400 });
     }
 
-    const docRef = adminDb.collection('shares').doc(id);
-    const docSnap = await docRef.get();
-
-    if (!docSnap.exists) {
+    const data = await redis.get(`share:${id}`);
+    if (!data) {
       return NextResponse.json({ error: 'Share link not found.' }, { status: 404 });
     }
 
-    return NextResponse.json(docSnap.data(), { status: 200 });
-
-  } catch (error) {
-    console.error(`Error fetching share document with ID: ${params.id}`, error);
-    return NextResponse.json({ error: 'Failed to fetch share data from server.' }, { status: 500 });
+    const parsed = typeof data === 'string' ? JSON.parse(data) : data;
+    return NextResponse.json(parsed, { status: 200 });
+  } catch (error: any) {
+    console.error(`Error fetching share ${params.id}:`, error);
+    return NextResponse.json({ error: 'Failed to fetch share data.' }, { status: 500 });
   }
 }

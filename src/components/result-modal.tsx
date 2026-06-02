@@ -14,6 +14,7 @@ import type { WheelItem, Modifier, Rule } from "@/lib/types";
 import { cn } from "@/lib/utils";
 import { Button } from "./ui/button";
 import { RefreshCw, X, Timer, CheckCircle2, XCircle } from "lucide-react";
+import AustraliaSilhouette from "./australia-silhouette";
 
 interface ResultModalProps {
   isOpen: boolean;
@@ -162,6 +163,19 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
           </div>
         );
       case 'MODIFIER':
+        if ((landedItem.data as Modifier).type === 'AUSTRALIA') {
+          return (
+            <div className="relative w-full h-full flex flex-col items-center justify-center animate-in fade-in">
+              <AustraliaSilhouette className="absolute inset-0 m-auto w-[90%] h-[90%] opacity-30" />
+              <h2 className="font-headline uppercase break-words text-5xl sm:text-6xl md:text-8xl relative tracking-wide">
+                Australia
+              </h2>
+              <p className="text-xs sm:text-sm md:text-base mt-3 font-body normal-case max-w-md relative opacity-90">
+                {(landedItem.data as Modifier).description}
+              </p>
+            </div>
+          );
+        }
         return (
           <div className="animate-in fade-in">
             <h2 className={cn(
