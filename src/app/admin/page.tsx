@@ -114,6 +114,8 @@ export default function AdminPage() {
       buzzerCountdown,
       promptScoring,
       wheelRuleCount,
+      isGoldenRuleEnabled,
+      goldenRule,
     };
     
     try {

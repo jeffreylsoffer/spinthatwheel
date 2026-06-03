@@ -63,6 +63,9 @@ export default function Home() {
         localStorage.setItem('cms_buzzer_countdown', JSON.stringify(finalData.buzzerCountdown));
         localStorage.setItem('cms_prompt_scoring', JSON.stringify(data.promptScoring ?? 'flat'));
         localStorage.setItem('cms_wheel_rule_count', JSON.stringify(data.wheelRuleCount ?? 0));
+        // Golden Rule is newer than most links — legacy shares (no field) default to OFF.
+        localStorage.setItem('cms_is_golden_rule_enabled', JSON.stringify(data.isGoldenRuleEnabled ?? false));
+        if (data.goldenRule) localStorage.setItem('cms_golden_rule', JSON.stringify(data.goldenRule));
 
         toast({
           title: "Shared Content Loaded!",
