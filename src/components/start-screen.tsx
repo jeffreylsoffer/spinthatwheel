@@ -23,7 +23,11 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-12 gap-8">
-      
+
+      <div className="rounded-full bg-accent/15 border border-accent/40 px-5 py-2 text-accent font-semibold text-sm sm:text-base text-center shadow-[0_0_20px_hsl(var(--accent)/0.25)]">
+        🃏 Now updated based on <a href="https://watch.dropout.tv/videos/rulette-2" target="_blank" rel="noopener noreferrer" className="underline hover:text-primary">Rulette 2</a>!
+      </div>
+
       <div className="text-center">
         <h1 className="font-headline text-5xl lg:text-7xl tracking-wider">SPIN THAT WHEEL</h1>
         <p className="text-lg text-muted-foreground mt-2">
