@@ -47,7 +47,3 @@ Without the Upstash variables the app still runs, but creating and loading share
 ## Scripts
 
 The `scripts/` folder is git-ignored and local-only (e.g., one-off migration/maintenance tools). Nothing in it ships with the app.
-
-## Deployment
-
-Pushing to `master` triggers an automatic production deploy on Vercel.
