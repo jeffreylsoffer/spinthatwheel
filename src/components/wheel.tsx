@@ -58,23 +58,25 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
                 height: `${segmentHeight}px`,
                 transform: `rotateX(${angle}deg) translateZ(${radius}px)`,
                 backgroundColor: segmentColor,
+                backgroundImage: 'linear-gradient(90deg, rgba(0,0,0,0.18), rgba(255,255,255,0.10) 50%, rgba(0,0,0,0.18))',
                 backfaceVisibility: 'hidden',
                 border: `8px solid ${borderColor}`,
               }}
             >
               <div 
                 className={cn(
-                  "aspect-video rounded-2xl flex items-center justify-center shadow-lg",
+                  "relative aspect-video rounded-2xl flex items-center justify-center shadow-lg overflow-hidden",
                   segmentHeight < 150 ? 'h-[70%] px-2' : 'h-[80%] px-4'
                 )}
                 style={{
                   backgroundColor: item.color.labelBg,
                   color: item.color.labelColor,
+                  boxShadow: '0 6px 14px rgba(0,0,0,0.35), inset 0 2px 0 rgba(255,255,255,0.25)',
                 }}
               >
                 <span 
                   className={cn(
-                    "font-headline font-bold tracking-wider",
+                    "relative font-headline font-bold tracking-wider",
                     segmentHeight < 150 ? 'text-3xl' : 'text-5xl'
                   )}
                   style={{

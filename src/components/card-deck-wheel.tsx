@@ -487,20 +487,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
             }
         }
 
-        // --- AUSTRALIA: flip everything with a cascading animation ---
-        if (result.landed.type === 'MODIFIER' && (result.landed.data as Modifier).type === 'AUSTRALIA') {
-            setIsCheatSheetModalOpen(true);
-            // Flip the golden rule first, then cascade through the active rules.
-            setTimeout(() => {
-                setGoldenRule(prev => prev ? { ...prev, isFlipped: !prev.isFlipped } : null);
-            }, 500);
-            activeRules.forEach((r, i) => {
-                setTimeout(() => {
-                    setActiveRules(prev => prev.map(ar => ar.id === r.id ? { ...ar, isFlipped: !ar.isFlipped } : ar));
-                    setSessionRules(prev => prev.map(sr => sr.id === r.id ? { ...sr, isFlipped: !sr.isFlipped } : sr));
-                }, 700 + i * 180);
-            });
-        }
+        // --- AUSTRALIA: flip is now triggered by a button in the result modal ---
         
         const hasPlayableCards = finalWheelItems.some(item => item.type !== 'END');
 
@@ -560,6 +547,23 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   const handleFlipGoldenRule = useCallback(() => {
     setGoldenRule(prev => prev ? { ...prev, isFlipped: !prev.isFlipped } : null);
   }, []);
+
+  const handleAustralia = useCallback(() => {
+    // Close the result modal, open the flip sheet, then cascade-flip everything.
+    setIsResultModalOpen(false);
+    setTimeout(() => {
+      setIsCheatSheetModalOpen(true);
+      setTimeout(() => {
+        setGoldenRule(prev => prev ? { ...prev, isFlipped: !prev.isFlipped } : null);
+      }, 400);
+      activeRules.forEach((r, i) => {
+        setTimeout(() => {
+          setActiveRules(prev => prev.map(ar => ar.id === r.id ? { ...ar, isFlipped: !ar.isFlipped } : ar));
+          setSessionRules(prev => prev.map(sr => sr.id === r.id ? { ...sr, isFlipped: !sr.isFlipped } : sr));
+        }, 600 + i * 180);
+      });
+    }, 200);
+  }, [activeRules]);
 
   const handleSwapWithGoldenRule = useCallback((ruleId: number) => {
     if (!goldenRule) return;
@@ -717,10 +721,10 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   };
   
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen lg:p-8 lg:gap-8">
+    <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden lg:p-8 lg:gap-8">
       
       {/* Wheel Column */}
-      <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0">
+      <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0 overflow-hidden">
         <div 
           className="relative w-full max-w-sm lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
@@ -732,11 +736,20 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} spinDuration={spinDuration} segmentHeight={segmentHeight} />
           <WheelPointer />
         </div>
+        {/* graduated out-of-focus + fade to background at the top/bottom edges */}
+        <div
+          className="pointer-events-none absolute inset-x-0 top-0 h-[22%] z-10"
+          style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', background: 'linear-gradient(to bottom, hsl(var(--background)), transparent)', WebkitMaskImage: 'linear-gradient(to top, transparent, #000)', maskImage: 'linear-gradient(to top, transparent, #000)' }}
+        />
+        <div
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] z-10"
+          style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', background: 'linear-gradient(to top, hsl(var(--background)), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000)', maskImage: 'linear-gradient(to bottom, transparent, #000)' }}
+        />
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-[380px] flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
-        <div className="w-full max-w-sm mx-auto flex flex-col gap-4 p-4 lg:p-0">
+      <div className="flex-shrink-0 lg:w-[500px] flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
+        <div className="w-full max-w-sm mx-auto lg:ml-0 lg:mr-auto flex flex-col gap-5 p-4 lg:p-0">
             {goldenRule && (
               <GoldenRuleCard
                 name={goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
@@ -746,12 +759,12 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
               />
             )}
             <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
-             <div className="grid grid-cols-2 gap-4">
+             <div className="grid grid-cols-2 gap-3">
                <Button 
                 variant="outline"
                 size="lg"
                 onClick={() => setIsCheatSheetModalOpen(true)}
-                className="w-full"
+                className="w-full h-12 rounded-xl border-white/15 bg-white/5 hover:bg-white/10 active:scale-[0.98] transition shadow-lg shadow-black/30"
               >
                 <BookOpen className="mr-2 h-5 w-5" />
                 Flip Sheet
@@ -760,14 +773,14 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                 variant="destructive"
                 size="lg"
                 onClick={handleWhistleClick}
-                className="w-full"
+                className="w-full h-12 rounded-xl font-headline tracking-wider text-lg bg-gradient-to-b from-red-500 to-red-600 hover:from-red-500 hover:to-red-700 active:scale-[0.98] transition shadow-lg shadow-red-600/40"
               >
                 <Megaphone className="mr-2 h-5 w-5" />
                 WHISTLE!
               </Button>
             </div>
-            <div className="flex items-center justify-center gap-2">
-              <Button variant="ghost" onClick={() => setIsResetConfirmOpen(true)} className="self-center">
+            <div className="flex items-center justify-center gap-1 pt-1 border-t border-white/10 mt-1">
+              <Button variant="ghost" onClick={() => setIsResetConfirmOpen(true)} className="self-center text-muted-foreground hover:text-foreground rounded-lg">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   New Game
               </Button>
@@ -818,6 +831,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
           setIsResultModalOpen(false);
           setTimeout(() => setIsCheatSheetModalOpen(true), 150);
         }}
+        onAustralia={handleAustralia}
       />
       <CheatSheetModal 
         isOpen={isCheatSheetModalOpen} 
@@ -826,7 +840,6 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
         onFlipRule={handleFlipRule}
         goldenRule={goldenRule}
         onFlipGoldenRule={handleFlipGoldenRule}
-        onSwapWithGoldenRule={handleSwapWithGoldenRule}
       />
       <GoldenRuleModal
         isOpen={isGoldenRuleModalOpen}

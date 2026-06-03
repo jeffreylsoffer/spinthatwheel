@@ -21,9 +21,10 @@ interface ResultModalProps {
   onOpenChange: (open: boolean) => void;
   result: { landed: WheelItem; evolution: WheelItem | null } | null;
   onOpenCheatSheet: () => void;
+  onAustralia: () => void;
 }
 
-const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultModalProps) => {
+const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustralia }: ResultModalProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
   // New state for prompt logic
@@ -91,6 +92,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
   
   const initialLabel = landedItem.label;
   const isFlipModifier = landedItem.type === 'MODIFIER' && (landedItem.data as Modifier).type === 'FLIP';
+  const isAustralia = landedItem.type === 'MODIFIER' && (landedItem.data as Modifier).type === 'AUSTRALIA';
   
   const closeButtonColor = landedItem.color.labelColor === '#1F2937' ? 'text-black' : 'text-white';
   
@@ -231,6 +233,12 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet }: ResultM
               <Button onClick={onOpenCheatSheet} className="w-full">
                 <RefreshCw className="mr-2 h-4 w-4" />
                 Open Flip Sheet
+              </Button>
+            )}
+            {isAustralia && (
+              <Button onClick={onAustralia} className="w-full bg-accent text-accent-foreground hover:bg-accent/90">
+                <RefreshCw className="mr-2 h-4 w-4" />
+                Flip Everything!
               </Button>
             )}
             {showTimerButton && (

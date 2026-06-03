@@ -10,7 +10,7 @@ import {
   DialogClose,
 } from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
-import { RefreshCw, X, ArrowLeftRight } from "lucide-react";
+import { RefreshCw, X } from "lucide-react";
 import type { SessionRule } from "@/lib/types";
 import { cn } from "@/lib/utils";
 
@@ -21,10 +21,9 @@ interface CheatSheetModalProps {
   onFlipRule: (ruleId: number) => void;
   goldenRule: SessionRule | null;
   onFlipGoldenRule: () => void;
-  onSwapWithGoldenRule: (ruleId: number) => void;
 }
 
-const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, onFlipGoldenRule, onSwapWithGoldenRule }: CheatSheetModalProps) => {
+const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, onFlipGoldenRule }: CheatSheetModalProps) => {
 
   return (
     <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -112,13 +111,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                         className="w-full h-full flex flex-col p-4 rounded-lg"
                         style={ruleCardStyle}
                       >
-                        <div className="flex justify-end items-start gap-2">
-                          {goldenRule && (
-                            <Button variant="ghost" size="sm" onClick={() => onSwapWithGoldenRule(rule.id)} className="bg-yellow-500/20 text-yellow-600 hover:bg-yellow-500/30">
-                              <ArrowLeftRight className="h-4 w-4 mr-2" />
-                              Swap
-                            </Button>
-                          )}
+                        <div className="flex justify-end items-start">
                           <Button variant="ghost" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-black text-white hover:bg-zinc-800">
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Flip
@@ -136,13 +129,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                         className="w-full h-full flex flex-col p-4 rounded-lg"
                         style={flippedRuleCardStyle}
                       >
-                        <div className="flex justify-end items-start gap-2">
-                          {goldenRule && (
-                            <Button variant="ghost" size="sm" onClick={() => onSwapWithGoldenRule(rule.id)} className="bg-yellow-500/20 text-yellow-600 hover:bg-yellow-500/30 border border-yellow-500/30">
-                              <ArrowLeftRight className="h-4 w-4 mr-2" />
-                              Swap
-                            </Button>
-                          )}
+                        <div className="flex justify-end items-start">
                            <Button variant="ghost" size="sm" onClick={() => onFlipRule(rule.id)} className="bg-black text-white border border-white/30 hover:bg-zinc-800">
                             <RefreshCw className="h-4 w-4 mr-2" />
                             Flip

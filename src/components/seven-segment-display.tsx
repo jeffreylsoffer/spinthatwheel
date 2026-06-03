@@ -2,17 +2,23 @@
 import React from 'react';
 
 const SevenSegmentDisplayComponent = ({ score }: { score: number }) => {
-  // Clamp score to fit within the display
   const clampedScore = Math.max(-99, Math.min(score, 99));
-  // Pad with a non-breaking space to help alignment
-  const scoreStr = String(clampedScore).padStart(3, ' '); 
+  const scoreStr = String(clampedScore).padStart(3, ' ');
 
   return (
-    <div 
-      className="flex items-center justify-end p-2 bg-black/50 rounded-lg border border-white/10 h-14 w-24 font-digital-7 text-primary text-5xl" 
-      style={{ textShadow: '0 0 5px hsl(var(--primary) / 0.7)'}}
+    <div
+      className="relative flex items-center justify-end px-3 rounded-md h-12 w-[84px] font-digital-7 text-4xl overflow-hidden"
+      style={{
+        background: 'radial-gradient(circle at 50% 30%, #1a0606, #000)',
+        boxShadow: 'inset 0 2px 6px rgba(0,0,0,0.9), inset 0 0 0 1px rgba(255,255,255,0.06), 0 1px 0 rgba(255,255,255,0.05)',
+      }}
     >
-      <span className="tracking-[.1em]">{scoreStr}</span>
+      {/* ghosted "off" segments */}
+      <span className="absolute right-3 tracking-[.1em] text-primary/15 select-none">888</span>
+      {/* lit value */}
+      <span className="relative tracking-[.1em] text-primary" style={{ textShadow: '0 0 8px hsl(var(--primary) / 0.9), 0 0 2px hsl(var(--primary))' }}>
+        {scoreStr}
+      </span>
     </div>
   );
 };
