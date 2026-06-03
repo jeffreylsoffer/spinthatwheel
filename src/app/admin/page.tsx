@@ -4,7 +4,7 @@
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
-import { ChevronLeft, RefreshCcw, Share2, LoaderPinwheel } from 'lucide-react';
+import { ChevronLeft, RefreshCcw, Share2, LoaderPinwheel, Save } from 'lucide-react';
 import CmsForm from './cms-form';
 import { ruleGroups as defaultRuleGroups, prompts as defaultPrompts, modifiers as defaultModifiers, defaultBuzzerCountdown, defaultGoldenRule } from '@/lib/data';
 import { Skeleton } from '@/components/ui/skeleton';
@@ -35,6 +35,7 @@ export default function AdminPage() {
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
+  const [dirty, setDirty] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -73,6 +74,7 @@ export default function AdminPage() {
       localStorage.setItem('cms_prompt_scoring', JSON.stringify(promptScoring));
       localStorage.setItem('cms_wheel_rule_count', JSON.stringify(wheelRuleCount));
       
+      setDirty(false);
       toast({
         title: "Changes Saved!",
         description: "Your new card and wheel configuration has been saved locally.",
@@ -232,19 +234,35 @@ export default function AdminPage() {
         isBuzzerRuleEnabled={isBuzzerRuleEnabled}
         isGoldenRuleEnabled={isGoldenRuleEnabled}
         goldenRule={goldenRule}
-        onRulesChange={setRules}
-        onPromptsChange={setPrompts}
-        onModifiersChange={setModifiers}
-        onBuzzerCountdownChange={setBuzzerCountdown}
-        onIsBuzzerRuleEnabledChange={setIsBuzzerRuleEnabled}
-        onIsGoldenRuleEnabledChange={setIsGoldenRuleEnabled}
-        onGoldenRuleChange={setGoldenRule}
+        onRulesChange={(v) => { setRules(v); setDirty(true); }}
+        onPromptsChange={(v) => { setPrompts(v); setDirty(true); }}
+        onModifiersChange={(v) => { setModifiers(v); setDirty(true); }}
+        onBuzzerCountdownChange={(v) => { setBuzzerCountdown(v); setDirty(true); }}
+        onIsBuzzerRuleEnabledChange={(v) => { setIsBuzzerRuleEnabled(v); setDirty(true); }}
+        onIsGoldenRuleEnabledChange={(v) => { setIsGoldenRuleEnabled(v); setDirty(true); }}
+        onGoldenRuleChange={(v) => { setGoldenRule(v); setDirty(true); }}
         promptScoring={promptScoring}
-        onPromptScoringChange={setPromptScoring}
+        onPromptScoringChange={(v) => { setPromptScoring(v); setDirty(true); }}
         wheelRuleCount={wheelRuleCount}
-        onWheelRuleCountChange={setWheelRuleCount}
+        onWheelRuleCountChange={(v) => { setWheelRuleCount(v); setDirty(true); }}
         onSaveChanges={handleSaveChanges}
       />
+
+      {/* Sticky save bar */}
+      <div className="sticky bottom-0 z-20 mx-4 mt-10 rounded-t-lg border-t border-border/60 bg-background/80 py-3 backdrop-blur">
+        <div className="flex items-center justify-center gap-4">
+          {dirty && (
+            <span className="flex items-center gap-2 text-sm text-muted-foreground">
+              <span className="h-2 w-2 rounded-full bg-accent" />
+              Unsaved changes
+            </span>
+          )}
+          <Button size="lg" onClick={handleSaveChanges} disabled={!dirty}>
+            <Save className="mr-2 h-5 w-5" />
+            Save Changes
+          </Button>
+        </div>
+      </div>
     </main>
   );
 }
