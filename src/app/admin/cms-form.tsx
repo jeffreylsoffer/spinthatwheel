@@ -44,6 +44,8 @@ interface CmsFormProps {
   onIsBuzzerRuleEnabledChange: (enabled: boolean) => void;
   onIsGoldenRuleEnabledChange: (enabled: boolean) => void;
   onGoldenRuleChange: (rule: RuleGroup) => void;
+  promptScoring: 'flat' | 'perRule';
+  onPromptScoringChange: (v: 'flat' | 'perRule') => void;
   onSaveChanges: () => void;
 }
 
@@ -62,6 +64,8 @@ export default function CmsForm({
   onIsBuzzerRuleEnabledChange,
   onIsGoldenRuleEnabledChange,
   onGoldenRuleChange,
+  promptScoring,
+  onPromptScoringChange,
   onSaveChanges,
 }: CmsFormProps) {
   const [aiPrompt, setAiPrompt] = useState('');
@@ -475,6 +479,23 @@ export default function CmsForm({
                       disabled={!isGoldenRuleEnabled}
                     />
                   </div>
+                </div>
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+      </Accordion>
+
+      <Accordion type="single" collapsible className="w-full" defaultValue="item-scoring">
+        <AccordionItem value="item-scoring">
+          <AccordionTrigger className="text-2xl font-headline">Prompt Scoring</AccordionTrigger>
+          <AccordionContent className="pt-4">
+            <Card className="bg-card/50">
+              <CardContent className="pt-6 space-y-3">
+                <p className="text-sm text-muted-foreground">Points awarded when a player completes a prompt successfully.</p>
+                <div className="flex gap-3">
+                  <Button type="button" variant={promptScoring === 'flat' ? 'default' : 'outline'} onClick={() => onPromptScoringChange('flat')} className="flex-1">+2 points (flat)</Button>
+                  <Button type="button" variant={promptScoring === 'perRule' ? 'default' : 'outline'} onClick={() => onPromptScoringChange('perRule')} className="flex-1">+1 per active rule</Button>
                 </div>
               </CardContent>
             </Card>

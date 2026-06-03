@@ -8,7 +8,7 @@ import CheatSheetModal from './cheatsheet-modal';
 import GameOverModal from './game-over-modal';
 import Scoreboard from './scoreboard';
 import { Button } from '@/components/ui/button';
-import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS } from '@/lib/game-logic';
+import { createSessionDeck, populateWheel, CARD_STYLES, MODIFIER_CARD_COLORS, resolvePromptText } from '@/lib/game-logic';
 import type { SessionRule, WheelItem, Rule, WheelItemType, Prompt, Modifier, RuleGroup } from '@/lib/types';
 import type { Player } from '@/app/page';
 import { RefreshCw, BookOpen, Megaphone, Check, Keyboard, Volume2, VolumeX } from 'lucide-react';
@@ -89,6 +89,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   const [soundMode, setSoundMode] = useState<'on' | 'sfx' | 'off'>('on');
   const [goldenRule, setGoldenRule] = useState<SessionRule | null>(null);
   const [isGoldenRuleModalOpen, setIsGoldenRuleModalOpen] = useState(false);
+  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('flat');
+  const [mobileView, setMobileView] = useState<'scoreboard' | 'golden'>('scoreboard');
 
   const isSpinningRef = useRef(isSpinning);
   isSpinningRef.current = isSpinning;
@@ -97,6 +99,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   const { toast } = useToast();
   const dragStartRef = useRef<{ y: number | null, time: number | null }>({ y: null, time: null });
   const tickTimeoutRef = useRef<NodeJS.Timeout | null>(null);
+  const tickRafRef = useRef<number | null>(null);
+  const flapRef = useRef<SVGGElement>(null);
   const resultProcessed = useRef(false);
   const buzzerAudioRef = useRef<HTMLAudioElement | null>(null);
   const musicAudioRefs = useRef<HTMLAudioElement[]>([]);
@@ -121,6 +125,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     if (savedMode) {
       setSoundMode(savedMode);
     }
+    const savedScoring = localStorage.getItem('cms_prompt_scoring');
+    if (savedScoring) setPromptScoring(JSON.parse(savedScoring));
     // Preload audio
     if (typeof window !== "undefined") {
         (Object.keys(audioRefs) as Array<keyof typeof audioRefs>).forEach(sound => {
@@ -246,7 +252,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     if (prompts.length > 0) {
       const availablePrompts = shuffle([...prompts]);
       for (let i = 0; i < numPromptsToGenerate; i++) {
-        generatedPrompts.push(availablePrompts[i % availablePrompts.length]);
+        const p = availablePrompts[i % availablePrompts.length];
+        generatedPrompts.push({ ...p, text: resolvePromptText(p.text) });
       }
     }
 
@@ -297,6 +304,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   
   const handleSpinEnd = useCallback((finalRotation: number) => {
     stopMusic();
+    if (tickRafRef.current) { cancelAnimationFrame(tickRafRef.current); tickRafRef.current = null; }
     if (tickTimeoutRef.current) {
       clearTimeout(tickTimeoutRef.current);
       tickTimeoutRef.current = null;
@@ -439,27 +447,36 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     setSpinDuration(duration);
     setRotation(newRotation);
 
-    if (tickTimeoutRef.current) clearTimeout(tickTimeoutRef.current);
-    const scheduleTicks = () => {
-      let elapsed = 0;
-      const minDelay = 20;
-      const maxDelay = 250; 
-      function tick() {
-        if (elapsed >= duration) {
-          clearTimeout(tickTimeoutRef.current!);
-          tickTimeoutRef.current = null;
-          return;
-        }
-        playSound('tick');
-        const progress = elapsed / duration;
-        const easeOutQuart = (x: number): number => 1 - Math.pow(1 - x, 4);
-        const currentDelay = minDelay + (maxDelay - minDelay) * easeOutQuart(progress);
-        elapsed += currentDelay;
-        tickTimeoutRef.current = setTimeout(tick, currentDelay);
-      }
-      tick();
+    if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
+    // Compute the exact time each segment boundary (peg) passes the pointer,
+    // using the spin's easing — so we get one tick + flap flick per peg.
+    const segCount = wheelItems.length;
+    const segAngle = 360 / segCount;
+    const delta = totalRevolutions + randomExtraAngle;
+    const bez = (a: number, b: number, s: number) => { const mt = 1 - s; return 3 * mt * mt * s * a + 3 * mt * s * s * b + s * s * s; };
+    const bezX = (s: number) => bez(0.25, 0.5, s); // cubic-bezier(0.25, 1, 0.5, 1)
+    const bezY = (s: number) => bez(1, 1, s);
+    const tickTimes: number[] = [];
+    const pegCount = Math.floor(delta / segAngle);
+    for (let k = 1; k <= pegCount; k++) {
+      const yv = (k * segAngle) / delta; // output (rotation) fraction, 0..1
+      let lo = 0, hi = 1;
+      for (let i = 0; i < 22; i++) { const mid = (lo + hi) / 2; if (bezY(mid) < yv) lo = mid; else hi = mid; }
+      tickTimes.push(bezX((lo + hi) / 2) * duration);
+    }
+    let fired = 0;
+    const startTs = performance.now();
+    const flick = () => flapRef.current?.animate(
+      [{ transform: 'rotate(0deg)' }, { transform: 'rotate(26deg)', offset: 0.3 }, { transform: 'rotate(0deg)' }],
+      { duration: 220, easing: 'cubic-bezier(0.2, 1.5, 0.5, 1)' }
+    );
+    const tickLoop = () => {
+      const el = performance.now() - startTs;
+      while (fired < tickTimes.length && tickTimes[fired] <= el) { playSound('tick'); flick(); fired++; }
+      if (el < duration) tickRafRef.current = requestAnimationFrame(tickLoop);
+      else tickRafRef.current = null;
     };
-    scheduleTicks();
+    tickRafRef.current = requestAnimationFrame(tickLoop);
 
     setTimeout(() => {
         handleSpinEnd(newRotation);
@@ -583,6 +600,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   }, [goldenRule, activeRules]);
 
   const handleReset = useCallback(() => {
+    if (tickRafRef.current) { cancelAnimationFrame(tickRafRef.current); tickRafRef.current = null; }
     if (tickTimeoutRef.current) {
         clearTimeout(tickTimeoutRef.current);
         tickTimeoutRef.current = null;
@@ -721,12 +739,15 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   };
   
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden lg:p-8 lg:gap-8">
+    <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden lg:p-8 lg:gap-8 lg:justify-center">
       
       {/* Wheel Column */}
-      <div className="lg:w-2/3 flex-1 lg:flex-auto flex items-center justify-center relative pt-16 lg:pt-0 overflow-hidden">
+      <div
+        className="flex-1 lg:flex-none lg:w-[clamp(420px,44vw,600px)] flex items-center justify-center lg:justify-start relative pt-16 lg:pt-0 overflow-hidden"
+        style={{ WebkitMaskImage: 'linear-gradient(to bottom, transparent 0%, #000 13%, #000 87%, transparent 100%)', maskImage: 'linear-gradient(to bottom, transparent 0%, #000 13%, #000 87%, transparent 100%)' }}
+      >
         <div 
-          className="relative w-full max-w-sm lg:max-w-[calc(100%-16rem)] mx-auto cursor-grab active:cursor-grabbing touch-none select-none"
+          className="relative w-[calc(100%-4rem)] max-w-[20rem] mx-auto -translate-x-8 lg:max-w-none lg:w-[calc(100%-5rem)] lg:mx-0 lg:translate-x-0 cursor-grab active:cursor-grabbing touch-none select-none"
           style={{ height: `${segmentHeight}px` }}
           onPointerDown={handlePointerDown}
           onPointerMove={handlePointerMove}
@@ -734,7 +755,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
           onPointerCancel={handlePointerCancel}
         >
           <Wheel items={wheelItems} rotation={rotation} isSpinning={isSpinning} spinDuration={spinDuration} segmentHeight={segmentHeight} />
-          <WheelPointer />
+          <WheelPointer ref={flapRef} />
         </div>
         {/* graduated out-of-focus + fade to background at the top/bottom edges */}
         <div
@@ -748,17 +769,45 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-[500px] flex flex-col justify-start lg:justify-center relative z-10 mt-[-6rem] lg:mt-0">
-        <div className="w-full max-w-sm mx-auto lg:ml-0 lg:mr-auto flex flex-col gap-5 p-4 lg:p-0">
+      <div className="flex-shrink-0 lg:w-[420px] flex flex-col justify-start lg:justify-center relative z-10 lg:mt-0">
+        <div className="w-full max-w-sm mx-auto flex flex-col gap-3 lg:gap-5 p-3 lg:p-0">
             {goldenRule && (
-              <GoldenRuleCard
-                name={goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
-                bg={goldenRule.isFlipped ? '#000000' : goldenRule.color?.labelBg}
-                textColor={goldenRule.isFlipped ? (goldenRule.color?.labelBg || '#e8835f') : goldenRule.color?.labelColor}
-                onClick={() => setIsGoldenRuleModalOpen(true)}
-              />
+              <div className="hidden lg:block">
+                <GoldenRuleCard
+                  name={goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
+                  bg={goldenRule.isFlipped ? '#000000' : goldenRule.color?.labelBg}
+                  textColor={goldenRule.isFlipped ? (goldenRule.color?.labelBg || '#e8835f') : goldenRule.color?.labelColor}
+                  onClick={() => setIsGoldenRuleModalOpen(true)}
+                />
+              </div>
             )}
-            <Scoreboard players={players} onScoreChange={onScoreChange} onNameChange={onNameChange} />
+            <Scoreboard
+              players={players}
+              onScoreChange={onScoreChange}
+              onNameChange={onNameChange}
+              mobileView={mobileView}
+              onMobileViewChange={setMobileView}
+              goldenRuleCard={goldenRule ? (
+                <button
+                  onClick={() => setIsGoldenRuleModalOpen(true)}
+                  className="relative w-full rounded-xl overflow-hidden p-4 flex items-center justify-center shadow-lg ring-1 ring-amber-200/50 active:scale-[0.99] transition"
+                  style={{ backgroundImage: 'url(/glitter.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+                >
+                  <span className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #f6d77c, #b8860b)', mixBlendMode: 'color' }} />
+                  <div
+                    className="relative aspect-video w-[70%] rounded-2xl border-[8px] border-black flex items-center justify-center p-3 text-center"
+                    style={{
+                      backgroundColor: goldenRule.isFlipped ? '#111827' : (goldenRule.color?.labelBg || '#CCAA4F'),
+                      color: goldenRule.isFlipped ? '#e8835f' : (goldenRule.color?.labelColor || '#1F2937'),
+                    }}
+                  >
+                    <span className="font-headline text-2xl uppercase leading-none break-words">
+                      {goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
+                    </span>
+                  </div>
+                </button>
+              ) : undefined}
+            />
              <div className="grid grid-cols-2 gap-3">
                <Button 
                 variant="outline"
@@ -832,6 +881,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
           setTimeout(() => setIsCheatSheetModalOpen(true), 150);
         }}
         onAustralia={handleAustralia}
+        promptScoring={promptScoring}
       />
       <CheatSheetModal 
         isOpen={isCheatSheetModalOpen} 

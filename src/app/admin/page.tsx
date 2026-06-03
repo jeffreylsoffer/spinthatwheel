@@ -30,6 +30,7 @@ export default function AdminPage() {
   const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
   const [isGoldenRuleEnabled, setIsGoldenRuleEnabled] = useState(true);
   const [goldenRule, setGoldenRule] = useState<RuleGroup>(defaultGoldenRule);
+  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('flat');
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
@@ -51,6 +52,8 @@ export default function AdminPage() {
     setIsBuzzerRuleEnabled(savedIsBuzzerEnabled ? JSON.parse(savedIsBuzzerEnabled) : true);
     setIsGoldenRuleEnabled(savedIsGoldenRuleEnabled ? JSON.parse(savedIsGoldenRuleEnabled) : true);
     setGoldenRule(savedGoldenRule ? JSON.parse(savedGoldenRule) : defaultGoldenRule);
+    const savedPromptScoring = localStorage.getItem('cms_prompt_scoring');
+    setPromptScoring(savedPromptScoring ? JSON.parse(savedPromptScoring) : 'flat');
 
     setIsLoading(false);
   }, []);
@@ -64,6 +67,7 @@ export default function AdminPage() {
       localStorage.setItem('cms_buzzer_countdown', JSON.stringify(buzzerCountdown));
       localStorage.setItem('cms_is_golden_rule_enabled', JSON.stringify(isGoldenRuleEnabled));
       localStorage.setItem('cms_golden_rule', JSON.stringify(goldenRule));
+      localStorage.setItem('cms_prompt_scoring', JSON.stringify(promptScoring));
       
       toast({
         title: "Changes Saved!",
@@ -87,6 +91,7 @@ export default function AdminPage() {
     localStorage.removeItem('cms_buzzer_countdown');
     localStorage.removeItem('cms_is_golden_rule_enabled');
     localStorage.removeItem('cms_golden_rule');
+    localStorage.removeItem('cms_prompt_scoring');
     window.location.reload();
   };
 
@@ -102,6 +107,7 @@ export default function AdminPage() {
       modifiers,
       isBuzzerEnabled: isBuzzerRuleEnabled,
       buzzerCountdown,
+      promptScoring,
     };
     
     try {
@@ -225,6 +231,8 @@ export default function AdminPage() {
         onIsBuzzerRuleEnabledChange={setIsBuzzerRuleEnabled}
         onIsGoldenRuleEnabledChange={setIsGoldenRuleEnabled}
         onGoldenRuleChange={setGoldenRule}
+        promptScoring={promptScoring}
+        onPromptScoringChange={setPromptScoring}
         onSaveChanges={handleSaveChanges}
       />
     </main>

@@ -22,9 +22,10 @@ interface ResultModalProps {
   result: { landed: WheelItem; evolution: WheelItem | null } | null;
   onOpenCheatSheet: () => void;
   onAustralia: () => void;
+  promptScoring?: 'flat' | 'perRule';
 }
 
-const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustralia }: ResultModalProps) => {
+const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustralia, promptScoring = 'flat' }: ResultModalProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
   // New state for prompt logic
@@ -126,7 +127,11 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
         <div className="flex flex-col items-center justify-center gap-4 text-center animate-in fade-in">
           <CheckCircle2 className="h-24 w-24 text-green-400" />
           <h3 className="text-4xl font-headline">SUCCESS!</h3>
-          <p className="text-lg max-w-sm">Award <span className="font-bold">+2 points</span> and shred one rule card.</p>
+          <p className="text-lg max-w-sm">
+            {promptScoring === 'perRule'
+              ? <>Award <span className="font-bold">+1 point for every active rule you followed</span>, then shred one rule card.</>
+              : <>Award <span className="font-bold">+2 points</span> and shred one rule card.</>}
+          </p>
         </div>
       );
     }

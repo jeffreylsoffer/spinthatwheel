@@ -161,8 +161,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 27,
     name: "Touch Reaction",
-    primary_rule: { id: 2701, name: "Say 'boop!' upon any touch", description: "You must say 'boop!' whenever you touch or are touched by anyone." },
-    flipped_rule: { id: 2702, name: "Say 'cooties!' upon any touch", description: "You must say 'cooties!' whenever you touch or are touched by anyone." },
+    primary_rule: { id: 2701, name: "Say 'boop!' upon any touch", description: "You must say 'boop!' whenever anyone is touched by anyone." },
+    flipped_rule: { id: 2702, name: "Say 'cooties!' upon any touch", description: "You must say 'cooties!' whenever anyone is touched by anyone." },
   },
   {
     id: 28,
@@ -197,8 +197,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 33,
     name: "Hand Gestures",
-    primary_rule: { id: 3301, name: "Jazz hands", description: "You must do jazz hands while speaking." },
-    flipped_rule: { id: 3302, name: "Heart hands", description: "You must make heart hands at whoever you're speaking to." },
+    primary_rule: { id: 3301, name: "Jazz hands", description: "You must do jazz hands all the time." },
+    flipped_rule: { id: 3302, name: "Heart hands", description: "You must make heart hands all the time." },
   },
   {
     id: 34,

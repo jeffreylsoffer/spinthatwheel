@@ -33,7 +33,7 @@ const CabaretBorder = () => {
   
   if (dimensions.width === 0 || dimensions.height === 0) {
     return (
-      <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none" />
+      <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none hidden lg:block" />
     );
   }
 
@@ -91,7 +91,7 @@ const CabaretBorder = () => {
     bulbs.push(<div key={`l-${i}`} className="bulb" style={getBulbStyle(bulbIndex++, position)} />);
   }
 
-  return <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none">{bulbs}</div>;
+  return <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none hidden lg:block">{bulbs}</div>;
 };
 
 export default CabaretBorder;

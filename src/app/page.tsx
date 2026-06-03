@@ -60,6 +60,7 @@ export default function Home() {
         localStorage.setItem('cms_modifiers', JSON.stringify(finalData.modifiers));
         localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(data.isBuzzerEnabled ?? true));
         localStorage.setItem('cms_buzzer_countdown', JSON.stringify(finalData.buzzerCountdown));
+        localStorage.setItem('cms_prompt_scoring', JSON.stringify(data.promptScoring ?? 'flat'));
 
         toast({
           title: "Shared Content Loaded!",

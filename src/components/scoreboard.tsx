@@ -7,14 +7,18 @@ import { Input } from "@/components/ui/input";
 import { Plus, Minus, Pencil, Check } from "lucide-react";
 import type { Player } from "@/app/page";
 import { SevenSegmentDisplay } from "./seven-segment-display";
+import { cn } from "@/lib/utils";
 
 interface ScoreboardProps {
   players: Player[];
   onScoreChange: (playerId: number, delta: number) => void;
   onNameChange: (playerId: number, newName: string) => void;
+  goldenRuleCard?: React.ReactNode;
+  mobileView?: 'scoreboard' | 'golden';
+  onMobileViewChange?: (v: 'scoreboard' | 'golden') => void;
 }
 
-const Scoreboard = ({ players, onScoreChange, onNameChange }: ScoreboardProps) => {
+const Scoreboard = ({ players, onScoreChange, onNameChange, goldenRuleCard, mobileView = 'scoreboard', onMobileViewChange }: ScoreboardProps) => {
   const [editingPlayerId, setEditingPlayerId] = useState<number | null>(null);
   const [currentName, setCurrentName] = useState('');
 
@@ -37,32 +41,50 @@ const Scoreboard = ({ players, onScoreChange, onNameChange }: ScoreboardProps) =
   };
 
   const topScore = Math.max(0, ...players.map(p => p.score));
+  const showGolden = !!goldenRuleCard && mobileView === 'golden';
 
   return (
     <div className="w-full rounded-2xl border border-white/10 bg-gradient-to-b from-white/[0.07] to-white/[0.02] shadow-xl shadow-black/40 overflow-hidden">
-      <div className="flex items-center gap-3 px-4 pt-3.5 pb-3">
-        <span className="font-headline text-xl sm:text-2xl tracking-wide">SCOREBOARD</span>
-        <span className="ml-auto flex items-center gap-1.5">
-          {[0, 1, 2].map(i => (
-            <span key={i} className="h-1.5 w-1.5 rounded-full bg-accent" style={{ boxShadow: '0 0 6px hsl(var(--accent) / 0.9)' }} />
-          ))}
-        </span>
+      <div className="px-2.5 pt-2.5 pb-2">
+        {/* mobile header: tabs if a golden rule exists, else title */}
+        <div className="lg:hidden">
+          {goldenRuleCard ? (
+            <div className="flex rounded-lg bg-white/5 border border-white/10 p-0.5 text-sm">
+              <button onClick={() => onMobileViewChange?.('scoreboard')} className={cn("flex-1 rounded-md py-1 font-headline tracking-wide transition-colors", mobileView === 'scoreboard' ? 'bg-white/15 text-foreground' : 'text-muted-foreground')}>SCOREBOARD</button>
+              <button onClick={() => onMobileViewChange?.('golden')} className={cn("flex-1 rounded-md py-1 font-headline tracking-wide transition-colors", mobileView === 'golden' ? 'bg-white/15 text-foreground' : 'text-muted-foreground')}>GOLDEN RULE</button>
+            </div>
+          ) : (
+            <span className="font-headline text-xl tracking-wide">SCOREBOARD</span>
+          )}
+        </div>
+        {/* desktop header: title + light strip */}
+        <div className="hidden lg:flex items-center gap-3">
+          <span className="font-headline text-2xl tracking-wide">SCOREBOARD</span>
+          <span className="ml-auto flex items-center gap-1.5">
+            {[0, 1, 2].map(i => (
+              <span key={i} className="h-1.5 w-1.5 rounded-full bg-accent" style={{ boxShadow: '0 0 6px hsl(var(--accent) / 0.9)' }} />
+            ))}
+          </span>
+        </div>
       </div>
-      <div className="h-px bg-white/10" />
-      <div className="flex flex-col gap-0.5 p-2">
+
+      {/* golden rule card in the body (mobile only, when selected) */}
+      {goldenRuleCard && (
+        <div className={cn("px-3 pb-3 lg:hidden", showGolden ? 'block' : 'hidden')}>{goldenRuleCard}</div>
+      )}
+
+      {/* scores */}
+      <div className={cn("flex-col gap-0.5 p-2 pt-0", showGolden ? 'hidden lg:flex' : 'flex')}>
         {players.map((player) => {
           const isEditing = editingPlayerId === player.id;
           const isLeader = player.score === topScore && topScore > 0;
           return (
-            <div
-              key={player.id}
-              className="flex items-center justify-between gap-2 rounded-xl px-2 py-1.5 transition-colors hover:bg-white/[0.04]"
-            >
+            <div key={player.id} className="flex items-center justify-between gap-2 rounded-xl px-2 py-1 transition-colors hover:bg-white/[0.04]">
               <div className="flex items-center gap-1.5 flex-1 min-w-0">
                 {isLeader && <span className="text-accent text-sm leading-none" title="Leader">★</span>}
                 {isEditing ? (
                   <>
-                    <Input 
+                    <Input
                       value={currentName}
                       onChange={(e) => setCurrentName(e.target.value)}
                       onKeyDown={(e) => handleKeyDown(e, player.id)}
@@ -83,26 +105,16 @@ const Scoreboard = ({ players, onScoreChange, onNameChange }: ScoreboardProps) =
                 )}
               </div>
               <div className="flex items-center gap-1.5 sm:gap-2">
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 transition"
-                  onClick={() => onScoreChange(player.id, -1)}
-                >
+                <Button variant="outline" size="icon" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 transition" onClick={() => onScoreChange(player.id, -1)}>
                   <Minus className="h-4 w-4" />
                 </Button>
                 <SevenSegmentDisplay score={player.score} />
-                <Button
-                  variant="outline"
-                  size="icon"
-                  className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 transition"
-                  onClick={() => onScoreChange(player.id, 1)}
-                >
+                <Button variant="outline" size="icon" className="w-7 h-7 sm:w-8 sm:h-8 rounded-lg border-white/15 bg-white/5 hover:bg-white/10 active:scale-95 transition" onClick={() => onScoreChange(player.id, 1)}>
                   <Plus className="h-4 w-4" />
                 </Button>
               </div>
             </div>
-          )
+          );
         })}
       </div>
     </div>
