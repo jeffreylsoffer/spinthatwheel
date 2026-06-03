@@ -6,6 +6,7 @@ import CardDeckWheel from '@/components/card-deck-wheel';
 import StartScreen from '@/components/start-screen';
 import { useToast } from '@/hooks/use-toast';
 import { ruleGroups, prompts, modifiers, defaultBuzzerCountdown, defaultGoldenRule } from '@/lib/data';
+import { smartQuotes } from '@/lib/utils';
 import type { RuleGroup, Prompt, Modifier } from '@/lib/types';
 
 export interface Player {
@@ -61,6 +62,7 @@ export default function Home() {
         localStorage.setItem('cms_is_buzzer_enabled', JSON.stringify(data.isBuzzerEnabled ?? true));
         localStorage.setItem('cms_buzzer_countdown', JSON.stringify(finalData.buzzerCountdown));
         localStorage.setItem('cms_prompt_scoring', JSON.stringify(data.promptScoring ?? 'flat'));
+        localStorage.setItem('cms_wheel_rule_count', JSON.stringify(data.wheelRuleCount ?? 0));
 
         toast({
           title: "Shared Content Loaded!",
@@ -106,6 +108,17 @@ export default function Home() {
       const savedGoldenRule = localStorage.getItem('cms_golden_rule');
       finalData.goldenRule = savedGoldenRule ? JSON.parse(savedGoldenRule) : defaultGoldenRule;
     }
+
+    // Curl straight quotes/apostrophes across all dynamic game text.
+    const eRule = (r: any) => r ? { ...r, name: smartQuotes(r.name), description: smartQuotes(r.description) } : r;
+    const eGroup = (g: any) => g ? { ...g, name: smartQuotes(g.name), primary_rule: eRule(g.primary_rule), flipped_rule: eRule(g.flipped_rule) } : g;
+    finalData = {
+      ...finalData,
+      prompts: finalData.prompts.map((p: any) => ({ ...p, text: smartQuotes(p.text) })),
+      ruleGroups: finalData.ruleGroups.map(eGroup),
+      modifiers: finalData.modifiers.map((m: any) => ({ ...m, name: smartQuotes(m.name), description: smartQuotes(m.description) })),
+      goldenRule: eGroup(finalData.goldenRule),
+    };
 
     setGameData(finalData);
   }, [toast]);

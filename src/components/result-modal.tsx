@@ -25,7 +25,7 @@ interface ResultModalProps {
   promptScoring?: 'flat' | 'perRule';
 }
 
-const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustralia, promptScoring = 'flat' }: ResultModalProps) => {
+const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustralia, promptScoring = 'perRule' }: ResultModalProps) => {
   const [showDetails, setShowDetails] = useState(false);
 
   // New state for prompt logic
@@ -40,7 +40,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
 
   const promptTimeDuration = useMemo(() => {
     if (!isPrompt || !landedItem?.data.text) return null;
-    const match = (landedItem.data.text as string).match(/in (\d+)\s*seconds/i);
+    const match = (landedItem.data.text as string).match(/(?:in|for) (\d+)\s*seconds/i);
     return match ? parseInt(match[1], 10) : null;
   }, [isPrompt, landedItem]);
   

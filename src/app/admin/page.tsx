@@ -30,7 +30,8 @@ export default function AdminPage() {
   const [isBuzzerRuleEnabled, setIsBuzzerRuleEnabled] = useState(true);
   const [isGoldenRuleEnabled, setIsGoldenRuleEnabled] = useState(true);
   const [goldenRule, setGoldenRule] = useState<RuleGroup>(defaultGoldenRule);
-  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('flat');
+  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('perRule');
+  const [wheelRuleCount, setWheelRuleCount] = useState(18);
 
   const [isLoading, setIsLoading] = useState(true);
   const [isSharing, setIsSharing] = useState(false);
@@ -53,7 +54,9 @@ export default function AdminPage() {
     setIsGoldenRuleEnabled(savedIsGoldenRuleEnabled ? JSON.parse(savedIsGoldenRuleEnabled) : true);
     setGoldenRule(savedGoldenRule ? JSON.parse(savedGoldenRule) : defaultGoldenRule);
     const savedPromptScoring = localStorage.getItem('cms_prompt_scoring');
-    setPromptScoring(savedPromptScoring ? JSON.parse(savedPromptScoring) : 'flat');
+    setPromptScoring(savedPromptScoring ? JSON.parse(savedPromptScoring) : 'perRule');
+    const savedWheelRuleCount = localStorage.getItem('cms_wheel_rule_count');
+    setWheelRuleCount(savedWheelRuleCount ? JSON.parse(savedWheelRuleCount) : 18);
 
     setIsLoading(false);
   }, []);
@@ -68,6 +71,7 @@ export default function AdminPage() {
       localStorage.setItem('cms_is_golden_rule_enabled', JSON.stringify(isGoldenRuleEnabled));
       localStorage.setItem('cms_golden_rule', JSON.stringify(goldenRule));
       localStorage.setItem('cms_prompt_scoring', JSON.stringify(promptScoring));
+      localStorage.setItem('cms_wheel_rule_count', JSON.stringify(wheelRuleCount));
       
       toast({
         title: "Changes Saved!",
@@ -92,6 +96,7 @@ export default function AdminPage() {
     localStorage.removeItem('cms_is_golden_rule_enabled');
     localStorage.removeItem('cms_golden_rule');
     localStorage.removeItem('cms_prompt_scoring');
+    localStorage.removeItem('cms_wheel_rule_count');
     window.location.reload();
   };
 
@@ -108,6 +113,7 @@ export default function AdminPage() {
       isBuzzerEnabled: isBuzzerRuleEnabled,
       buzzerCountdown,
       promptScoring,
+      wheelRuleCount,
     };
     
     try {
@@ -233,6 +239,8 @@ export default function AdminPage() {
         onGoldenRuleChange={setGoldenRule}
         promptScoring={promptScoring}
         onPromptScoringChange={setPromptScoring}
+        wheelRuleCount={wheelRuleCount}
+        onWheelRuleCountChange={setWheelRuleCount}
         onSaveChanges={handleSaveChanges}
       />
     </main>

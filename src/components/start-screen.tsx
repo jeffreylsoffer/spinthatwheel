@@ -1,7 +1,7 @@
 
 "use client";
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Settings, Plus, Minus, PlayCircle, X } from 'lucide-react';
@@ -14,6 +14,12 @@ import {
 
 export default function StartScreen({ onStartGame }: { onStartGame: (playerCount: number) => void }) {
   const [playerCount, setPlayerCount] = useState(3);
+  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('perRule');
+
+  useEffect(() => {
+    const s = localStorage.getItem('cms_prompt_scoring');
+    if (s) setPromptScoring(JSON.parse(s));
+  }, []);
 
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-12 gap-8">
@@ -69,7 +75,9 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
         <div>
           <h3 className="font-headline text-3xl text-foreground">How to Score</h3>
           <ul className="list-disc list-inside space-y-2 text-muted-foreground mt-4">
-            <li>Completing a <span className="font-bold text-white">PROMPT</span> successfully earns you <span className="font-bold text-white">+2 points</span> AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-white">-2 points</span>.</li>
+            <li>Completing a <span className="font-bold text-white">PROMPT</span> successfully earns you {promptScoring === 'perRule'
+              ? <span className="font-bold text-white">+1 point for every active rule you followed</span>
+              : <span className="font-bold text-white">+2 points</span>} AND you get to shred one of your active rules. Failing a prompt costs you <span className="font-bold text-white">-2 points</span>.</li>
             <li>Players can also earn a point by calling out another player who isn't following one of their rules. They also get to give that player one of their own rules.</li>
           </ul>
         </div>

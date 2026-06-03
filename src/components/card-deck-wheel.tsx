@@ -17,6 +17,7 @@ import { useIsMobile } from '@/hooks/use-mobile';
 import { cn } from '@/lib/utils';
 import WheelPointer from './wheel-pointer';
 import GoldenRuleModal from './golden-rule-modal';
+import SpinLights from './spin-lights';
 import GoldenRuleCard from './golden-rule-card';
 import { useToast } from '@/hooks/use-toast';
 import { BuzzerToast } from './buzzer-toast';
@@ -89,7 +90,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   const [soundMode, setSoundMode] = useState<'on' | 'sfx' | 'off'>('on');
   const [goldenRule, setGoldenRule] = useState<SessionRule | null>(null);
   const [isGoldenRuleModalOpen, setIsGoldenRuleModalOpen] = useState(false);
-  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('flat');
+  const [promptScoring, setPromptScoring] = useState<'flat' | 'perRule'>('perRule');
   const [mobileView, setMobileView] = useState<'scoreboard' | 'golden'>('scoreboard');
 
   const isSpinningRef = useRef(isSpinning);
@@ -148,7 +149,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     const audio = audioRefs[sound]?.current;
     if (audio) {
         audio.currentTime = 0;
-        audio.play().catch(e => console.error(`Could not play sound: ${sound}.mp3.`, e));
+        audio.play().catch(e => { if (e?.name !== 'AbortError') console.error(`Could not play sound: ${sound}.mp3.`, e); });
     }
   }, [soundMode, audioRefs]);
 
@@ -227,6 +228,11 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     }
 
     spinCountRef.current = 0;
+    // Randomly include only N rule groups per game (0 or unset = all). Legacy shares get 0.
+    const ruleCount = JSON.parse(localStorage.getItem('cms_wheel_rule_count') || '18');
+    if (ruleCount > 0 && ruleCount < finalRuleGroups.length) {
+      finalRuleGroups = [...finalRuleGroups].sort(() => Math.random() - 0.5).slice(0, ruleCount);
+    }
     const rules = createSessionDeck(finalRuleGroups);
     const items = populateWheel(rules);
 
@@ -739,7 +745,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
   };
   
   return (
-    <div className="flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden lg:p-8 lg:gap-8 lg:justify-center">
+    <div className="relative flex flex-col lg:flex-row min-h-screen lg:h-screen lg:overflow-hidden lg:p-8 lg:gap-8 lg:justify-center">
+      <SpinLights active={isSpinning} />
       
       {/* Wheel Column */}
       <div
@@ -759,12 +766,12 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
         </div>
         {/* graduated out-of-focus + fade to background at the top/bottom edges */}
         <div
-          className="pointer-events-none absolute inset-x-0 top-0 h-[22%] z-10"
-          style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', background: 'linear-gradient(to bottom, hsl(var(--background)), transparent)', WebkitMaskImage: 'linear-gradient(to top, transparent, #000)', maskImage: 'linear-gradient(to top, transparent, #000)' }}
+          className="pointer-events-none absolute inset-x-0 top-0 h-[22%] z-10 lg:backdrop-blur-[2px]"
+          style={{ background: 'linear-gradient(to bottom, hsl(var(--background)), transparent)', WebkitMaskImage: 'linear-gradient(to top, transparent, #000)', maskImage: 'linear-gradient(to top, transparent, #000)' }}
         />
         <div
-          className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] z-10"
-          style={{ backdropFilter: 'blur(2px)', WebkitBackdropFilter: 'blur(2px)', background: 'linear-gradient(to top, hsl(var(--background)), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000)', maskImage: 'linear-gradient(to bottom, transparent, #000)' }}
+          className="pointer-events-none absolute inset-x-0 bottom-0 h-[22%] z-10 lg:backdrop-blur-[2px]"
+          style={{ background: 'linear-gradient(to top, hsl(var(--background)), transparent)', WebkitMaskImage: 'linear-gradient(to bottom, transparent, #000)', maskImage: 'linear-gradient(to bottom, transparent, #000)' }}
         />
       </div>
 

@@ -55,13 +55,15 @@ function shuffle<T>(array: T[]): T[] {
   return array;
 }
 
-const PROMPT_COLORS = ['red', 'orange', 'yellow', 'green', 'blue', 'purple', 'pink', 'white', 'black', 'brown'];
+const PROMPT_COLORS = ['red', 'orange', 'yellow', 'green', 'brown', 'white'];
+// Letters that have plenty of well-known movies/answers (skip Q, X, Z, U, etc.)
+const PROMPT_LETTERS = 'ABCDEFGHLMPRSTW';
 
 // Replaces [color] and [letter] placeholders in a prompt with random values
 export function resolvePromptText(text: string): string {
   return text
     .replace(/\[color\]/gi, () => PROMPT_COLORS[Math.floor(Math.random() * PROMPT_COLORS.length)])
-    .replace(/\[letter\]/gi, () => String.fromCharCode(65 + Math.floor(Math.random() * 26)));
+    .replace(/\[letter\]/gi, () => PROMPT_LETTERS[Math.floor(Math.random() * PROMPT_LETTERS.length)]);
 }
 
 // Populates the wheel with an initial set of Rule items

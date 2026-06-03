@@ -108,3 +108,24 @@ body {
     box-shadow: none;
   }
 }
+
+@keyframes orb-sweep-x {
+  0%   { transform: translate(-80vw, -12vh) scale(0.85); }
+  50%  { transform: translate(80vw, 12vh) scale(1.3); }
+  100% { transform: translate(-80vw, -12vh) scale(0.85); }
+}
+@keyframes orb-sweep-y {
+  0%   { transform: translate(12vw, -90vh) scale(0.85); }
+  50%  { transform: translate(-12vw, 90vh) scale(1.3); }
+  100% { transform: translate(12vw, -90vh) scale(0.85); }
+}
+@keyframes spin-lights-in {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+.spin-orb {
+  animation-iteration-count: infinite;
+  animation-timing-function: ease-in-out;
+  animation-fill-mode: backwards;
+  will-change: transform;
+}

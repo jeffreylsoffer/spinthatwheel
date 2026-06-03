@@ -46,6 +46,8 @@ interface CmsFormProps {
   onGoldenRuleChange: (rule: RuleGroup) => void;
   promptScoring: 'flat' | 'perRule';
   onPromptScoringChange: (v: 'flat' | 'perRule') => void;
+  wheelRuleCount: number;
+  onWheelRuleCountChange: (n: number) => void;
   onSaveChanges: () => void;
 }
 
@@ -66,6 +68,8 @@ export default function CmsForm({
   onGoldenRuleChange,
   promptScoring,
   onPromptScoringChange,
+  wheelRuleCount,
+  onWheelRuleCountChange,
   onSaveChanges,
 }: CmsFormProps) {
   const [aiPrompt, setAiPrompt] = useState('');
@@ -497,6 +501,25 @@ export default function CmsForm({
                   <Button type="button" variant={promptScoring === 'flat' ? 'default' : 'outline'} onClick={() => onPromptScoringChange('flat')} className="flex-1">+2 points (flat)</Button>
                   <Button type="button" variant={promptScoring === 'perRule' ? 'default' : 'outline'} onClick={() => onPromptScoringChange('perRule')} className="flex-1">+1 per active rule</Button>
                 </div>
+              </CardContent>
+            </Card>
+          </AccordionContent>
+        </AccordionItem>
+
+        <AccordionItem value="item-rulecount">
+          <AccordionTrigger className="text-2xl font-headline">Rules Per Game</AccordionTrigger>
+          <AccordionContent className="pt-4">
+            <Card className="bg-card/50">
+              <CardContent className="pt-6 space-y-3">
+                <p className="text-sm text-muted-foreground">How many rules are randomly placed on the wheel each game. Set to <span className="font-medium text-accent">0</span> to use all {rules.length}.</p>
+                <input
+                  type="number"
+                  min={0}
+                  max={rules.length}
+                  value={wheelRuleCount}
+                  onChange={(e) => onWheelRuleCountChange(Math.max(0, Math.min(rules.length, parseInt(e.target.value) || 0)))}
+                  className="w-24 rounded-md border border-input bg-background px-3 py-2 text-sm"
+                />
               </CardContent>
             </Card>
           </AccordionContent>

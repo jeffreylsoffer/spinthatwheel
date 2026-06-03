@@ -56,8 +56,8 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
                 backfaceVisibility: 'hidden',
               }}
             >
-              {/* glitter frame on all 4 sides (colorized texture, static) */}
-              <div className="absolute inset-0" style={{ backgroundImage: 'url(/glitter.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
+              {/* glitter frame on all 4 sides (colorized texture, static) — desktop only */}
+              <div className="absolute inset-0 hidden lg:block" style={{ backgroundImage: 'url(/glitter.jpg)', backgroundSize: 'cover', backgroundPosition: 'center', backgroundRepeat: 'no-repeat' }}>
                 <div className="absolute inset-0" style={{ backgroundColor: segmentColor, mixBlendMode: 'color' }} />
               </div>
               {/* inner panel leaves an 8px glitter border */}

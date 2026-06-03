@@ -45,10 +45,10 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
               >
                 {/* Front Face */}
                 <div className="absolute w-full h-full [backface-visibility:hidden]">
-                  <div className="w-full h-full flex flex-col p-4 rounded-lg border-[14px] border-yellow-500/70 bg-yellow-500/10">
+                  <div className="w-full h-full flex flex-col p-4 rounded-lg border-[14px] border-black" style={{ backgroundColor: '#CCAA4F', color: '#1F2937' }}>
                     <div className="flex justify-between items-start">
-                      <span className="text-xs uppercase tracking-wider text-yellow-500 font-bold">★ Golden Rule ★</span>
-                      <Button variant="ghost" size="sm" onClick={onFlipGoldenRule} className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30">
+                      <span className="text-xs uppercase tracking-wider font-bold">★ Golden Rule ★</span>
+                      <Button variant="ghost" size="sm" onClick={onFlipGoldenRule} className="bg-black text-white hover:bg-zinc-800">
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Flip
                       </Button>
@@ -61,15 +61,15 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                 </div>
                 {/* Back Face */}
                 <div className="absolute w-full h-full [backface-visibility:hidden] [transform:rotateY(180deg)]">
-                  <div className="w-full h-full flex flex-col p-4 rounded-lg border-[14px] border-yellow-500/70 bg-black">
+                  <div className="w-full h-full flex flex-col p-4 rounded-lg border-[14px] border-black bg-black" style={{ color: '#CCAA4F' }}>
                     <div className="flex justify-between items-start">
-                      <span className="text-xs uppercase tracking-wider text-yellow-500 font-bold">★ Golden Rule ★</span>
-                      <Button variant="ghost" size="sm" onClick={onFlipGoldenRule} className="bg-yellow-500/20 text-yellow-500 hover:bg-yellow-500/30">
+                      <span className="text-xs uppercase tracking-wider font-bold">★ Golden Rule ★</span>
+                      <Button variant="ghost" size="sm" onClick={onFlipGoldenRule} className="bg-black text-white border border-white/30 hover:bg-zinc-800">
                         <RefreshCw className="h-4 w-4 mr-2" />
                         Flip
                       </Button>
                     </div>
-                    <div className="flex-grow flex flex-col justify-center text-center text-yellow-500">
+                    <div className="flex-grow flex flex-col justify-center text-center">
                       <h4 className="font-headline text-3xl uppercase">{goldenRule.flipped.name}</h4>
                       <p className="text-sm mt-1 font-body normal-case opacity-80">{goldenRule.flipped.description}</p>
                     </div>

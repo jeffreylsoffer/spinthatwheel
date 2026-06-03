@@ -29,7 +29,7 @@ const RuleGroupSchema = z.object({
 
 const PromptSchema = z.object({
   id: z.number(),
-  text: z.string().describe('A short challenge or question for the player (under 10 words).'),
+  text: z.string().describe("A short challenge or question for the player (ideally under ~12 words). May optionally include an 'in 60 seconds'/'for 60 seconds' timer phrase, or a [color]/[letter] placeholder."),
 });
 
 // Input and Output Schemas for the Flow
@@ -82,7 +82,9 @@ Your task is to generate a new set of Rules and Prompts based on a user-provided
 This is a game where players try to complete challenges (Prompts) while adhering to the various rules they've been given. The difficulty of a Prompt is mostly about completing it without breaking any of the Rules. For example, a player might have to sing the ABCs (a Prompt) while not showing their teeth (a Rule). The funniest moments come from these difficult combinations.
 
 **GUIDELINES**
-- **Prompts:** Create verbal or physical challenges. Avoid prompts that would require a fact-checker. Keep them short and actionable.
+- **Prompts:** Create verbal or physical challenges. Keep them short and actionable. A few timed "name N things" prompts are great, but most prompts shouldn't need a strict fact-checker — favor performance and creativity over trivia.
+- **Timer:** If a prompt should be timed, end it with "in 60 seconds" or "for 60 seconds" (any number works). That exact phrasing triggers an on-screen countdown, so only use it when you intend a timer.
+- **Placeholders:** You may use \`[color]\` or \`[letter]\` in a prompt — each is replaced at runtime with a random value (e.g., "Name 10 [color] foods in 60 seconds." or "Name 8 movies that start with '[letter]'."). Use them to make a prompt replayable.
 - **Rules:** For each rule, you will also create a "flipped" version which is its thematic opposite. This flip can be literal (e.g., "Speak very politely" vs. "Speak very rudely") or more humorous (e.g., "Your best Christopher Walken" vs. "Your worst Robert DeNiro"). Players don't know what the flipped version is until they land on a "Flip" modifier, so make it a fun surprise!
 
 **CRITICAL INSTRUCTIONS**

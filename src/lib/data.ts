@@ -125,8 +125,8 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 21,
     name: "Daddy's Home",
-    primary_rule: { id: 2101, name: "Say 'daddy's home' upon whistle", description: "When the whistle sounds, you must say 'daddy's home'.", special: 'BUZZER' },
-    flipped_rule: { id: 2102, name: "Say 'daddy's home, meow' with cat swipe upon whistle", description: "When the whistle sounds, you must say 'daddy's home, meow' with a cat swipe.", special: 'BUZZER' },
+    primary_rule: { id: 2101, name: "Say 'daddy's home' upon whistle", description: "When the referee blows the whistle, you must say 'daddy's home'." },
+    flipped_rule: { id: 2102, name: "Say 'daddy's home, meow' with cat swipe upon whistle", description: "When the referee blows the whistle, you must say 'daddy's home, meow' with a cat swipe." },
   },
   {
     id: 22,
@@ -149,7 +149,7 @@ export const ruleGroups: RuleGroup[] = [
   {
     id: 25,
     name: "Full Name",
-    primary_rule: { id: 2501, name: "End with famous full name", description: "You must end every sentence with a famous person's full name." },
+    primary_rule: { id: 2501, name: "End with famous full name", description: "You must end every sentence with a famous person's full name. No repeats." },
     flipped_rule: { id: 2502, name: "End with non-famous full name", description: "You must end every sentence with a random non-famous full name you make up." },
   },
   {
@@ -228,12 +228,12 @@ export const prompts: Prompt[] = [
   { id: 405, text: "Invent and define a new word." },
   { id: 406, text: "Name 5 blue things in this room." },
   { id: 407, text: "say the ABCs" },
-  { id: 408, text: "Name 10 [color] foods." },
+  { id: 408, text: "Name 10 [color] foods in 60 seconds." },
   { id: 409, text: "Recite the Star Spangled Banner." },
-  { id: 410, text: "Call a friend." },
-  { id: 411, text: "Defend Astrology." },
-  { id: 412, text: "Name 8 movies that start with '[letter]'." },
-  { id: 413, text: "Name 10 Shakespeare plays." },
+  { id: 410, text: "Call a friend in 60 seconds." },
+  { id: 411, text: "Defend Astrology for 60 seconds." },
+  { id: 412, text: "Name 8 movies that start with '[letter]' in 60 seconds." },
+  { id: 413, text: "Name 10 Shakespeare plays in 60 seconds." },
 ];
 
 export const defaultBuzzerCountdown = 20;
@@ -251,4 +251,5 @@ export const modifiers: Modifier[] = [
   { id: 504, type: 'CLONE', name: "Clone", description: "Clone one of your rules and give the copy to another player." },
   { id: 505, type: 'SWAP', name: "Swap", description: "Swap any rule with another player's rule." },
   { id: 506, type: 'AUSTRALIA', name: "Australia", description: "Everything flips! All rules (and the Golden Rule) flip to their alternate version — already-flipped rules flip back. Also: everyone must speak in their best Australian accent for the rest of the game." },
+  { id: 507, type: 'FREAKY_FRIDAY', name: "Freaky Friday", description: "Pick another player and swap ALL the rules on your body with theirs." },
 ];
