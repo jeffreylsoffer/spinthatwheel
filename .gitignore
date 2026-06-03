@@ -42,3 +42,6 @@ yarn-error.log*
 
 # Firestore migration export (one-time data)
 shares-export.json
+
+# Local-only scripts (migrations, one-off tools)
+scripts/
