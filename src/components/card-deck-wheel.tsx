@@ -38,6 +38,7 @@ import {
   AlertDialogHeader,
   AlertDialogTitle,
 } from "@/components/ui/alert-dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog";
 
 interface CardDeckWheelProps {
   players: Player[];
@@ -229,9 +230,13 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
 
     spinCountRef.current = 0;
     // Randomly include only N rule groups per game (0 or unset = all). Legacy shares get 0.
+    // The special Buzzer rule is always kept (when enabled) so the buzzer can still fire.
     const ruleCount = JSON.parse(localStorage.getItem('cms_wheel_rule_count') || '18');
     if (ruleCount > 0 && ruleCount < finalRuleGroups.length) {
-      finalRuleGroups = [...finalRuleGroups].sort(() => Math.random() - 0.5).slice(0, ruleCount);
+      const buzzer = finalRuleGroups.filter((rg: any) => rg.primary_rule.special === 'BUZZER');
+      const regular = finalRuleGroups.filter((rg: any) => rg.primary_rule.special !== 'BUZZER');
+      const picked = [...regular].sort(() => Math.random() - 0.5).slice(0, Math.max(0, ruleCount - buzzer.length));
+      finalRuleGroups = [...buzzer, ...picked];
     }
     const rules = createSessionDeck(finalRuleGroups);
     const items = populateWheel(rules);
@@ -854,15 +859,17 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                          <p>Sound Mode: {soundMode === 'on' ? 'All On' : soundMode === 'sfx' ? 'SFX Only' : 'All Off'}</p>
                     </TooltipContent>
                 </Tooltip>
-                <Tooltip>
-                    <TooltipTrigger asChild>
+                <Dialog>
+                    <DialogTrigger asChild>
                         <Button variant="ghost" size="icon" className="text-muted-foreground hover:text-foreground">
                             <Keyboard className="h-5 w-5" />
                             <span className="sr-only">Show Keyboard Shortcuts</span>
                         </Button>
-                    </TooltipTrigger>
-                    <TooltipContent align="center" className="p-4 w-64">
-                        <h4 className="font-bold mb-2 text-center">Keyboard Shortcuts</h4>
+                    </DialogTrigger>
+                    <DialogContent className="sm:max-w-sm">
+                        <DialogHeader>
+                            <DialogTitle className="text-center">Keyboard Shortcuts</DialogTitle>
+                        </DialogHeader>
                         <ul className="space-y-1 text-sm">
                             <li className="flex justify-between"><span>Add 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">1-8</span></li>
                             <li className="flex justify-between"><span>Remove 1 pt for Player</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Shift + 1-8</span></li>
@@ -872,8 +879,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                             <li className="flex justify-between"><span>New Game</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">R</span></li>
                             <li className="flex justify-between"><span>Close Window</span> <span className="font-mono bg-muted px-1.5 py-0.5 rounded">Esc</span></li>
                         </ul>
-                    </TooltipContent>
-                </Tooltip>
+                    </DialogContent>
+                </Dialog>
               </TooltipProvider>
             </div>
         </div>

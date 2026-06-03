@@ -230,7 +230,7 @@ export const prompts: Prompt[] = [
   { id: 407, text: "say the ABCs" },
   { id: 408, text: "Name 10 [color] foods in 60 seconds." },
   { id: 409, text: "Recite the Star Spangled Banner." },
-  { id: 410, text: "Call a friend in 60 seconds." },
+  { id: 410, text: "Call a friend for 60 seconds." },
   { id: 411, text: "Defend Astrology for 60 seconds." },
   { id: 412, text: "Name 8 movies that start with '[letter]' in 60 seconds." },
   { id: 413, text: "Name 10 Shakespeare plays in 60 seconds." },
