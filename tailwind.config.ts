@@ -10,8 +10,9 @@ export default {
   theme: {
     extend: {
       fontFamily: {
-        body: ['"PT Sans"', 'sans-serif'],
-        headline: ['"League Gothic"', 'sans-serif'],
+        body: ['"Nunito"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        headline: ['"Nunito"', 'sans-serif'],
+        card: ['"League Gothic"', 'sans-serif'],
         digital: ['"Orbitron"', 'sans-serif'],
         'digital-7': ['"DSEG7Classic"', 'sans-serif'],
         code: ['monospace'],

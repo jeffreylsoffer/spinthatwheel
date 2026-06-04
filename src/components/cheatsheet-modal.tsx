@@ -54,7 +54,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                       </Button>
                     </div>
                     <div className="flex-grow flex flex-col justify-center text-center">
-                      <h4 className="font-headline text-3xl uppercase">{goldenRule.primary.name}</h4>
+                      <h4 className="font-card text-3xl uppercase">{goldenRule.primary.name}</h4>
                       <p className="text-sm mt-1 font-body normal-case opacity-80">{goldenRule.primary.description}</p>
                     </div>
                   </div>
@@ -70,7 +70,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                       </Button>
                     </div>
                     <div className="flex-grow flex flex-col justify-center text-center">
-                      <h4 className="font-headline text-3xl uppercase">{goldenRule.flipped.name}</h4>
+                      <h4 className="font-card text-3xl uppercase">{goldenRule.flipped.name}</h4>
                       <p className="text-sm mt-1 font-body normal-case opacity-80">{goldenRule.flipped.description}</p>
                     </div>
                   </div>
@@ -118,7 +118,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                           </Button>
                         </div>
                         <div className="flex-grow flex flex-col justify-center text-center">
-                          <h4 className="font-headline text-3xl uppercase">{rule.primary.name}</h4>
+                          <h4 className="font-card text-3xl uppercase">{rule.primary.name}</h4>
                           <p className="text-sm mt-1 font-body normal-case opacity-80">{rule.primary.description}</p>
                         </div>
                       </div>
@@ -136,7 +136,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
                           </Button>
                         </div>
                         <div className="flex-grow flex flex-col justify-center text-center">
-                          <h4 className="font-headline text-3xl uppercase">{rule.flipped.name}</h4>
+                          <h4 className="font-card text-3xl uppercase">{rule.flipped.name}</h4>
                           <p className="text-sm mt-1 font-body normal-case opacity-80">{rule.flipped.description}</p>
                         </div>
                       </div>

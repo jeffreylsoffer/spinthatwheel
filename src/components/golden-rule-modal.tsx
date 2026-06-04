@@ -52,7 +52,7 @@ const GoldenRuleModal = ({ isOpen, onOpenChange, goldenRule, activeRules, onSwap
                   </Button>
                 </div>
                 <div className="flex-grow flex flex-col justify-center text-center">
-                  <h4 className="font-headline text-3xl uppercase">{goldenRule.primary.name}</h4>
+                  <h4 className="font-card text-3xl uppercase">{goldenRule.primary.name}</h4>
                   <p className="text-sm mt-1 font-body normal-case opacity-80">{goldenRule.primary.description}</p>
                 </div>
               </div>
@@ -67,7 +67,7 @@ const GoldenRuleModal = ({ isOpen, onOpenChange, goldenRule, activeRules, onSwap
                   </Button>
                 </div>
                 <div className="flex-grow flex flex-col justify-center text-center">
-                  <h4 className="font-headline text-3xl uppercase">{goldenRule.flipped.name}</h4>
+                  <h4 className="font-card text-3xl uppercase">{goldenRule.flipped.name}</h4>
                   <p className="text-sm mt-1 font-body normal-case opacity-80">{goldenRule.flipped.description}</p>
                 </div>
               </div>
@@ -96,7 +96,7 @@ const GoldenRuleModal = ({ isOpen, onOpenChange, goldenRule, activeRules, onSwap
                   style={{ backgroundColor: rule.color?.labelBg || '#CCAA4F', color: rule.color?.labelColor || '#1F2937' }}
                   className="rounded-2xl border-[8px] border-black p-3 aspect-video flex items-center justify-center text-center hover:opacity-90 transition-opacity cursor-pointer"
                 >
-                  <span className="font-headline text-2xl uppercase leading-none break-words">{name}</span>
+                  <span className="font-card text-2xl uppercase leading-none break-words">{name}</span>
                 </button>
               );
             })

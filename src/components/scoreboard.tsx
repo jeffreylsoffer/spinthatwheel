@@ -60,11 +60,6 @@ const Scoreboard = ({ players, onScoreChange, onNameChange, goldenRuleCard, mobi
         {/* desktop header: title + light strip */}
         <div className="hidden lg:flex items-center gap-3">
           <span className="font-headline text-2xl tracking-wide">SCOREBOARD</span>
-          <span className="ml-auto flex items-center gap-1.5">
-            {[0, 1, 2].map(i => (
-              <span key={i} className="h-1.5 w-1.5 rounded-full bg-accent" style={{ boxShadow: '0 0 6px hsl(var(--accent) / 0.9)' }} />
-            ))}
-          </span>
         </div>
       </div>
 

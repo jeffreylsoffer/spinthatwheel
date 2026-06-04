@@ -813,7 +813,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                       color: goldenRule.isFlipped ? '#e8835f' : (goldenRule.color?.labelColor || '#1F2937'),
                     }}
                   >
-                    <span className="font-headline text-2xl uppercase leading-none break-words">
+                    <span className="font-card text-2xl uppercase leading-none break-words">
                       {goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
                     </span>
                   </div>
@@ -834,7 +834,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                 variant="destructive"
                 size="lg"
                 onClick={handleWhistleClick}
-                className="w-full h-12 rounded-xl font-headline tracking-wider text-lg bg-gradient-to-b from-red-500 to-red-600 hover:from-red-500 hover:to-red-700 active:scale-[0.98] transition shadow-lg shadow-red-600/40"
+                className="w-full h-12 rounded-xl font-headline tracking-wider text-lg bg-gradient-to-b from-[#58b3b8] to-[#3f9298] hover:from-[#62bcc1] hover:to-[#368a90] active:scale-[0.98] transition shadow-lg shadow-[#3f9298]/40"
               >
                 <Megaphone className="mr-2 h-5 w-5" />
                 WHISTLE!

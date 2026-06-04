@@ -77,7 +77,7 @@ const Wheel = ({ items, rotation, isSpinning, spinDuration, segmentHeight }: Whe
               >
                 <span 
                   className={cn(
-                    "relative font-headline font-bold tracking-wider",
+                    "relative font-card font-bold tracking-wider",
                     segmentHeight < 150 ? 'text-3xl' : 'text-5xl'
                   )}
                   style={{

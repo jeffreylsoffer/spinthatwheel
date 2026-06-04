@@ -14,9 +14,9 @@ const SevenSegmentDisplayComponent = ({ score }: { score: number }) => {
       }}
     >
       {/* ghosted "off" segments */}
-      <span className="absolute right-3 tracking-[.1em] text-primary/15 select-none">888</span>
+      <span className="absolute right-3 tracking-[.1em] text-[#fb3b3b]/15 select-none">888</span>
       {/* lit value */}
-      <span className="relative tracking-[.1em] text-primary" style={{ textShadow: '0 0 8px hsl(var(--primary) / 0.9), 0 0 2px hsl(var(--primary))' }}>
+      <span className="relative tracking-[.1em] text-[#fb3b3b]" style={{ textShadow: '0 0 8px rgba(251,59,59,0.9), 0 0 2px rgba(251,59,59,1)' }}>
         {scoreStr}
       </span>
     </div>

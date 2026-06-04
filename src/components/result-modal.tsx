@@ -106,7 +106,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
     // Phase 1: Show initial label (e.g., "PROMPT")
     if (!showDetails) {
       return (
-        <h2 className="text-6xl md:text-8xl font-headline uppercase break-words animate-in fade-in">
+        <h2 className="text-6xl md:text-8xl font-card uppercase break-words animate-in fade-in">
           {initialLabel}
         </h2>
       );
@@ -149,7 +149,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
     switch(landedItem.type) {
       case 'PROMPT':
         return (
-          <h2 className="text-4xl sm:text-5xl md:text-7xl font-headline uppercase break-words animate-in fade-in">
+          <h2 className="text-4xl sm:text-5xl md:text-7xl font-card uppercase break-words animate-in fade-in">
             {(landedItem.data as any).text}
           </h2>
         );
@@ -157,7 +157,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
         return (
           <div className="animate-in fade-in">
             <h2 className={cn(
-              "font-headline uppercase break-words",
+              "font-card uppercase break-words",
               showDescriptionForRule ? "text-3xl sm:text-4xl md:text-6xl" : "text-4xl sm:text-5xl md:text-7xl"
             )}>
               {landedItem.data.name}
@@ -174,7 +174,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
           return (
             <div className="relative w-full h-full flex flex-col items-center justify-center animate-in fade-in">
               <AustraliaSilhouette className="absolute inset-0 m-auto w-[90%] h-[90%] opacity-30" />
-              <h2 className="font-headline uppercase break-words text-5xl sm:text-6xl md:text-8xl relative tracking-wide">
+              <h2 className="font-card uppercase break-words text-5xl sm:text-6xl md:text-8xl relative tracking-wide">
                 Australia
               </h2>
               <p className="text-xs sm:text-sm md:text-base mt-3 font-body normal-case max-w-md relative opacity-90">
@@ -186,7 +186,7 @@ const ResultModal = ({ isOpen, onOpenChange, result, onOpenCheatSheet, onAustral
         return (
           <div className="animate-in fade-in">
             <h2 className={cn(
-              "font-headline uppercase break-words",
+              "font-card uppercase break-words",
               showDescriptionForModifier ? "text-3xl sm:text-4xl md:text-6xl" : "text-4xl sm:text-5xl md:text-7xl"
             )}>
               {landedItem.data.name}
