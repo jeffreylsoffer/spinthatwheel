@@ -24,11 +24,11 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
   return (
     <div className="relative min-h-screen flex flex-col items-center justify-center p-12 gap-8">
 
-      <div className="inline-flex items-center gap-2 rounded-full border border-accent/30 bg-accent/10 px-4 py-1.5 text-sm font-headline text-foreground">
+      <div className="flex items-center gap-2 rounded-2xl border border-accent/30 bg-accent/10 px-4 py-1.5 text-sm font-headline text-foreground text-center max-w-fit">
         <span aria-hidden>🃏</span>
         <span>
-          Now updated based on{' '}
-          <a href="https://watch.dropout.tv/videos/rulette-2" target="_blank" rel="noopener noreferrer" className="text-accent underline decoration-accent/60 underline-offset-4 transition-colors hover:text-yellow-300">Rulette 2</a>!
+          <span className="whitespace-nowrap">Now updated based</span>{' '}
+          <span className="whitespace-nowrap">on <a href="https://watch.dropout.tv/videos/rulette-2" target="_blank" rel="noopener noreferrer" className="text-accent underline decoration-accent/60 underline-offset-4 transition-colors hover:text-yellow-300">Rulette 2</a>!</span>
         </span>
       </div>
 
