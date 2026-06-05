@@ -60,6 +60,29 @@ function InfoTip({ text }: { text: string }) {
   );
 }
 
+// Compact two-sided rule editor (Rule / Flipped) — defined at module level to avoid remount on parent re-render
+function RuleEditor({ group, idx, disabled, onRuleChange }: {
+  group: RuleGroup;
+  idx: number;
+  disabled?: boolean;
+  onRuleChange: (idx: number, ruleType: 'primary' | 'flipped', field: 'name' | 'description', value: string) => void;
+}) {
+  return (
+    <div className="grid gap-4 sm:grid-cols-2">
+      {(['primary', 'flipped'] as const).map((side) => {
+        const r = side === 'primary' ? group.primary_rule : group.flipped_rule;
+        return (
+          <div key={side} className={cn("space-y-2", side === 'flipped' && "sm:border-l sm:border-border/60 sm:pl-4")}>
+            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{side === 'primary' ? 'Rule' : 'Flipped'}</span>
+            <Input aria-label={`${side} name`} placeholder="Name" value={r.name} disabled={disabled} onChange={(e) => onRuleChange(idx, side, 'name', e.target.value)} />
+            <Textarea aria-label={`${side} description`} placeholder="Description" rows={2} value={r.description} disabled={disabled} onChange={(e) => onRuleChange(idx, side, 'description', e.target.value)} />
+          </div>
+        );
+      })}
+    </div>
+  );
+}
+
 interface CmsFormProps {
   rules: RuleGroup[];
   prompts: Prompt[];
@@ -162,9 +185,12 @@ export default function CmsForm({
   // --- Change Handlers ---
   const handleRuleChange = (idx: number, ruleType: 'primary' | 'flipped', field: 'name' | 'description', value: string) => {
     const newRules = [...rules];
-    const ruleToUpdate = newRules[idx];
-    if (ruleType === 'primary') ruleToUpdate.primary_rule[field] = value;
-    else ruleToUpdate.flipped_rule[field] = value;
+    const group = newRules[idx];
+    if (ruleType === 'primary') {
+      newRules[idx] = { ...group, primary_rule: { ...group.primary_rule, [field]: value } };
+    } else {
+      newRules[idx] = { ...group, flipped_rule: { ...group.flipped_rule, [field]: value } };
+    }
     onRulesChange(newRules);
   };
 
@@ -206,22 +232,6 @@ export default function CmsForm({
   const handleDeletePrompt = (index: number) => onPromptsChange(prompts.filter((_, i) => i !== index));
   const handleAddNewModifier = () => onModifiersChange([...modifiers, { id: Date.now(), type: 'FLIP', name: '', description: '' }]);
   const handleDeleteModifier = (index: number) => onModifiersChange(modifiers.filter((_, i) => i !== index));
-
-  // Compact two-sided rule editor (Rule / Flipped)
-  const RuleEditor = ({ group, idx, disabled }: { group: RuleGroup; idx: number; disabled?: boolean }) => (
-    <div className="grid gap-4 sm:grid-cols-2">
-      {(['primary', 'flipped'] as const).map((side) => {
-        const r = side === 'primary' ? group.primary_rule : group.flipped_rule;
-        return (
-          <div key={side} className={cn("space-y-2", side === 'flipped' && "sm:border-l sm:border-border/60 sm:pl-4")}>
-            <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">{side === 'primary' ? 'Rule' : 'Flipped'}</span>
-            <Input aria-label={`${side} name`} placeholder="Name" value={r.name} disabled={disabled} onChange={(e) => handleRuleChange(idx, side, 'name', e.target.value)} />
-            <Textarea aria-label={`${side} description`} placeholder="Description" rows={2} value={r.description} disabled={disabled} onChange={(e) => handleRuleChange(idx, side, 'description', e.target.value)} />
-          </div>
-        );
-      })}
-    </div>
-  );
 
   return (
     <div className="space-y-10">
@@ -268,7 +278,7 @@ export default function CmsForm({
                   <Trash2 className="h-5 w-5" />
                 </Button>
                 <CardContent className="pt-6">
-                  <RuleEditor group={group} idx={originalIndex} />
+                  <RuleEditor group={group} idx={originalIndex} onRuleChange={handleRuleChange} />
                 </CardContent>
               </Card>
             );
@@ -303,7 +313,7 @@ export default function CmsForm({
                 </div>
                 <Slider id="buzzer-countdown" value={[buzzerCountdown]} onValueChange={(value) => onBuzzerCountdownChange(value[0])} min={1} max={60} step={1} disabled={!isBuzzerRuleEnabled} />
               </div>
-              <RuleEditor group={buzzerRule} idx={buzzerRuleIndex} disabled={!isBuzzerRuleEnabled} />
+              <RuleEditor group={buzzerRule} idx={buzzerRuleIndex} disabled={!isBuzzerRuleEnabled} onRuleChange={handleRuleChange} />
             </CardContent>
           </Card>
         </Section>
