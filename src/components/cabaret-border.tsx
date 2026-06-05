@@ -55,7 +55,8 @@ const CabaretBorder = () => {
     animationDuration: `${animDuration}s`,
     animationTimingFunction: 'linear',
     animationIterationCount: 'infinite',
-    animationDelay: `${(index / CHASE_SPEED_BULBS_PER_SEC)}s`,
+    // Negative delay starts each bulb already at its steady-state phase (no startup ramp).
+    animationDelay: `${-(index / CHASE_SPEED_BULBS_PER_SEC)}s`,
   });
 
   // Top edge
@@ -91,7 +92,14 @@ const CabaretBorder = () => {
     bulbs.push(<div key={`l-${i}`} className="bulb" style={getBulbStyle(bulbIndex++, position)} />);
   }
 
-  return <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none hidden lg:block">{bulbs}</div>;
+  return (
+    <div ref={containerRef} className="absolute inset-4 z-[-1] pointer-events-none hidden lg:block">
+      {/* Keyed on totalBulbs: when a resize adds/removes a bulb, the whole set
+          remounts together so every bulb restarts its chase in lockstep,
+          instead of React patching new timing onto mid-flight animations. */}
+      <div key={totalBulbs} style={{ display: 'contents' }}>{bulbs}</div>
+    </div>
+  );
 };
 
 export default CabaretBorder;

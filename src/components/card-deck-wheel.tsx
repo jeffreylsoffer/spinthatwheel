@@ -324,47 +324,8 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     const segmentAngle = 360 / wheelItems.length;
     const normalizedAngle = ((-finalRotation) % 360 + 360) % 360;
     const effectiveAngle = (normalizedAngle + (segmentAngle / 2)) % 360;
-    let winningIndex = Math.floor(effectiveAngle / segmentAngle);
-
-    let itemThatWon = wheelItems[winningIndex];
-    let actualWinningIndex = winningIndex;
-    
-    const mustBeRule = spinCountRef.current <= players.length && wheelItems.some(i => i.type === 'RULE');
-
-    if (mustBeRule) {
-      // For the first spin for each player, force landing on a RULE
-      if (itemThatWon.type !== 'RULE') {
-        // Find the next available RULE card on the wheel
-        for (let i = 1; i < wheelItems.length; i++) {
-          const nextIndex = (winningIndex + i) % wheelItems.length;
-          const potentialWinner = wheelItems[nextIndex];
-          if (potentialWinner.type === 'RULE') {
-            itemThatWon = potentialWinner;
-            actualWinningIndex = nextIndex;
-            break;
-          }
-        }
-      }
-    } else {
-      // Regular logic for subsequent spins
-      const hasActiveCards = wheelItems.some(item => item.type !== 'END');
-      const isInvalidEnd = itemThatWon.type === 'END' && hasActiveCards;
-      const isFirstSpin = activeRules.length === 0; // Still relevant if players = 0
-      const isInvalidModifier = isFirstSpin && itemThatWon.type === 'MODIFIER';
-
-      if (isInvalidEnd || isInvalidModifier) {
-        for (let i = 1; i < wheelItems.length; i++) {
-          const nextIndex = (winningIndex + i) % wheelItems.length;
-          const potentialWinner = wheelItems[nextIndex];
-          const isPotentialWinnerValid = potentialWinner.type !== 'END' && (!isFirstSpin || potentialWinner.type !== 'MODIFIER');
-          if (isPotentialWinnerValid) {
-            itemThatWon = potentialWinner;
-            actualWinningIndex = nextIndex;
-            break;
-          }
-        }
-      }
-    }
+    const winningIndex = Math.floor(effectiveAngle / segmentAngle);
+    const itemThatWon = wheelItems[winningIndex];
     
     const processResult = (landedItem: WheelItem) => {
       setIsSpinning(false);
@@ -426,19 +387,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
       setIsResultModalOpen(true);
     };
     
-    if (actualWinningIndex !== winningIndex) {
-        // Correct the wheel's final position visually
-        const rotationDifference = (actualWinningIndex - winningIndex) * segmentAngle;
-        const correctedRotation = finalRotation - rotationDifference;
-        const nudgeDuration = 800;
-
-        setSpinDuration(nudgeDuration); 
-        setRotation(correctedRotation);
-
-        setTimeout(() => processResult(itemThatWon), nudgeDuration);
-    } else {
-        processResult(itemThatWon);
-    }
+    processResult(itemThatWon);
   }, [wheelItems, activeRules.length, gameData, evolutionDeck, playSound, stopMusic, players]);
 
   const handleSpinClick = useCallback(() => {
@@ -449,11 +398,57 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     resultProcessed.current = false;
     setIsSpinning(true);
 
-    const revolutions = 5 + Math.random() * 5;
-    const totalRevolutions = revolutions * 360;
-    const randomExtraAngle = Math.random() * 360;
+    const segCount = wheelItems.length;
+    const segAngle = 360 / segCount;
+
+    // --- Pre-pick a valid target ---
+    const mustBeRule = spinCountRef.current <= players.length && wheelItems.some(i => i.type === 'RULE');
+    let validIndices: number[];
+    if (mustBeRule) {
+      validIndices = wheelItems.map((item, i) => item.type === 'RULE' ? i : -1).filter(i => i !== -1);
+    } else {
+      const hasActiveCards = wheelItems.some(item => item.type !== 'END');
+      const isFirstSpin = activeRules.length === 0;
+      validIndices = wheelItems.map((item, i) => {
+        if (item.type === 'END' && hasActiveCards) return -1;
+        if (isFirstSpin && item.type === 'MODIFIER') return -1;
+        return i;
+      }).filter(i => i !== -1);
+    }
+    if (validIndices.length === 0) validIndices = [0]; // fallback
+
+    const targetIndex = validIndices[Math.floor(Math.random() * validIndices.length)];
+
+    // Reverse the handleSpinEnd formula to find the rotation that lands on targetIndex:
+    //   normalizedAngle = ((-finalRotation) % 360 + 360) % 360
+    //   effectiveAngle = (normalizedAngle + segAngle/2) % 360
+    //   winningIndex = Math.floor(effectiveAngle / segAngle)
+    // So we need normalizedAngle such that winningIndex == targetIndex.
+    // The center of the winning zone: normalizedAngle = targetIndex * segAngle
+    // Add jitter within safe bounds (avoid crossing into adjacent segment)
+    const jitter = (Math.random() - 0.5) * segAngle * 0.5;
+    const desiredNormalizedAngle = ((targetIndex * segAngle + jitter) % 360 + 360) % 360;
     
-    const newRotation = rotation - totalRevolutions - randomExtraAngle;
+    // We need: ((-newRotation) % 360 + 360) % 360 == desiredNormalizedAngle
+    // newRotation = rotation - delta, where delta > 0 (spinning forward)
+    // (-(rotation - delta)) % 360 = (-rotation + delta) % 360 = desiredNormalizedAngle (mod 360)
+    // So delta % 360 = (desiredNormalizedAngle + rotation) % 360 ... but modular arithmetic with negatives is tricky.
+    // Simpler: compute how much total negative rotation we need from zero:
+    // We want (-newRotation) % 360 == desiredNormalizedAngle
+    // So -newRotation = desiredNormalizedAngle + k*360 for some large k
+    // newRotation = -(desiredNormalizedAngle + k*360)
+    // We want newRotation < rotation (wheel keeps spinning in same direction) and at least 5 full revs from current.
+    const minDelta = 5 * 360;
+    const maxDelta = 10 * 360;
+    // delta = rotation - newRotation = rotation + desiredNormalizedAngle + k*360
+    // We need delta >= minDelta, so k >= (minDelta - rotation - desiredNormalizedAngle) / 360
+    const baseTarget = -(desiredNormalizedAngle); // newRotation without extra revolutions
+    const rawDelta = rotation - baseTarget;
+    const revsNeeded = Math.ceil((minDelta - rawDelta) / 360);
+    const extraRevs = revsNeeded + Math.floor(Math.random() * 5);
+    const newRotation = baseTarget - extraRevs * 360;
+    const delta = rotation - newRotation;
+    
     const duration = 5000 + Math.random() * 2000;
     setSpinDuration(duration);
     setRotation(newRotation);
@@ -461,9 +456,6 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     if (tickRafRef.current) cancelAnimationFrame(tickRafRef.current);
     // Compute the exact time each segment boundary (peg) passes the pointer,
     // using the spin's easing — so we get one tick + flap flick per peg.
-    const segCount = wheelItems.length;
-    const segAngle = 360 / segCount;
-    const delta = totalRevolutions + randomExtraAngle;
     const bez = (a: number, b: number, s: number) => { const mt = 1 - s; return 3 * mt * mt * s * a + 3 * mt * s * s * b + s * s * s; };
     const bezX = (s: number) => bez(0.25, 0.5, s); // cubic-bezier(0.25, 1, 0.5, 1)
     const bezY = (s: number) => bez(1, 1, s);
@@ -492,7 +484,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
     setTimeout(() => {
         handleSpinEnd(newRotation);
     }, duration);
-  }, [isSpinning, wheelItems.length, rotation, handleSpinEnd, playSound, playMusic]);
+  }, [isSpinning, wheelItems, rotation, handleSpinEnd, playSound, playMusic, players, activeRules.length]);
 
   // This effect handles processing the result after the modal closes.
   // It also now handles triggering the buzzer toast.
@@ -803,7 +795,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                 <button
                   onClick={() => setIsGoldenRuleModalOpen(true)}
                   className="relative w-full rounded-xl overflow-hidden p-4 flex items-center justify-center shadow-lg ring-1 ring-amber-200/50 active:scale-[0.99] transition"
-                  style={{ backgroundImage: 'url(/glitter.jpg)', backgroundSize: 'cover', backgroundPosition: 'center' }}
+                  style={{ backgroundImage: 'url(/glitter.webp)', backgroundSize: 'cover', backgroundPosition: 'center' }}
                 >
                   <span className="absolute inset-0" style={{ background: 'linear-gradient(135deg, #f6d77c, #b8860b)', mixBlendMode: 'color' }} />
                   <div

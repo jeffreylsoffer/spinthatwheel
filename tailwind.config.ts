@@ -9,11 +9,15 @@ export default {
   ],
   theme: {
     extend: {
+      screens: {
+        // "Desktop mode" (side-by-side wheel + scoreboard) kicks in at 950px instead of the 1024px default
+        lg: '950px',
+      },
       fontFamily: {
-        body: ['"Nunito"', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
-        headline: ['"Nunito"', 'sans-serif'],
-        card: ['"League Gothic"', 'sans-serif'],
-        digital: ['"Orbitron"', 'sans-serif'],
+        body: ['var(--font-nunito)', '-apple-system', 'BlinkMacSystemFont', '"Segoe UI"', 'Roboto', 'Helvetica', 'Arial', 'sans-serif'],
+        headline: ['var(--font-nunito)', 'sans-serif'],
+        card: ['var(--font-league-gothic)', 'sans-serif'],
+        digital: ['var(--font-orbitron)', 'sans-serif'],
         'digital-7': ['"DSEG7Classic"', 'sans-serif'],
         code: ['monospace'],
       },
