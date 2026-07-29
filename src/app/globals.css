@@ -89,6 +89,39 @@ body {
     @apply absolute w-4 h-4 bg-yellow-900 rounded-full -translate-x-1/2 -translate-y-1/2;
   }
 
+  /* Always-visible, themed scrollbar for in-modal scroll regions.
+     macOS hides overlay scrollbars until scroll, which makes scrollable
+     lists look like they have no more content. Declaring ::-webkit-scrollbar
+     opts into a persistent track. */
+  .themed-scrollbar {
+    scrollbar-gutter: stable;
+  }
+  /* Chrome ignores ::-webkit-scrollbar entirely if scrollbar-width or
+     scrollbar-color is set, so the standard props are Firefox-only. */
+  @supports not selector(::-webkit-scrollbar) {
+    .themed-scrollbar {
+      scrollbar-width: thin;
+      scrollbar-color: hsl(var(--primary) / 0.75) hsl(var(--muted) / 0.3);
+    }
+  }
+  .themed-scrollbar::-webkit-scrollbar {
+    width: 10px;
+  }
+  .themed-scrollbar::-webkit-scrollbar-track {
+    background: hsl(var(--muted) / 0.3);
+    border-radius: 9999px;
+  }
+  .themed-scrollbar::-webkit-scrollbar-thumb {
+    background: hsl(var(--primary) / 0.75);
+    border-radius: 9999px;
+    border: 2px solid transparent;
+    background-clip: content-box;
+  }
+  .themed-scrollbar::-webkit-scrollbar-thumb:hover {
+    background: hsl(var(--primary));
+    background-clip: content-box;
+  }
+
   .sr-only {
     position: absolute;
     width: 1px;
