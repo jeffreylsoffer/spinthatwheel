@@ -46,3 +46,8 @@ shares-export.json
 
 # Local-only scripts (migrations, one-off tools)
 scripts/
+
+# Local-only design scratch: aesthetic demo page and the Pangram Pangram
+# starter-pack faces it uses (personal-use licence only — not for deploy).
+src/app/demo/
+public/fonts/PP*.woff2

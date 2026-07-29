@@ -72,7 +72,7 @@ const FlipCard = ({ label, isFlipped, onFlip, front, back, frontStyle, backStyle
   );
 
   return (
-    <div className="w-full aspect-video shrink-0 snap-start [perspective:1000px]">
+    <div className="w-full aspect-video shrink-0 [perspective:1000px]">
       <div
         className={cn(
           "relative w-full h-full transition-transform duration-700 [transform-style:preserve-3d]",
@@ -144,7 +144,6 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
               <span className="rounded-full border border-border bg-background/60 px-2 py-0.5 font-semibold tabular-nums">
                 {cardCount} card{cardCount === 1 ? "" : "s"}
               </span>
-              {scroll.scrollable && <span>Scroll for more</span>}
             </div>
           )}
         </DialogHeader>
@@ -161,7 +160,7 @@ const CheatSheetModal = ({ isOpen, onOpenChange, rules, onFlipRule, goldenRule, 
               // against a flex item whose height comes from flex distribution,
               // so h-full would collapse to content height and never scroll.
               "themed-scrollbar flex min-h-0 flex-1 flex-col gap-6 overflow-y-auto overscroll-contain",
-              "snap-y snap-proximity scroll-py-1 p-1 pr-3",
+              "scroll-py-1 p-1 pr-3",
               "rounded-md focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
             )}
           >
