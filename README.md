@@ -43,7 +43,3 @@ Without the Upstash variables the app still runs, but creating and loading share
 - **`/admin`** ("Manage Cards") edits Rules, Prompts, Modifiers, the Golden Rule, scoring mode, and rules-per-game. Changes save to `localStorage`.
 - **Share** posts the current configuration to `POST /api/shares`, which stores it in Redis under the key `share:{id}` and returns a URL like `/?share=<id>`. Opening that URL loads the config via `GET /api/shares/{id}`.
 - Newer settings (Golden Rule, prompt scoring, rules-per-game) fall back to legacy-safe defaults when loading older links, so all existing share links keep working.
-
-## Scripts
-
-The `scripts/` folder is git-ignored and local-only (e.g., one-off migration/maintenance tools). Nothing in it ships with the app.
