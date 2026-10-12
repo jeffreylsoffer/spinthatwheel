@@ -98,7 +98,7 @@ export default function StartScreen({ onStartGame }: { onStartGame: (playerCount
             <Minus className="h-5 w-5" />
           </Button>
           <span className="font-bold text-5xl tabular-nums w-16 text-center text-foreground">{playerCount}</span>
-          <Button variant="outline" size="icon" onClick={() => setPlayerCount(p => Math.min(8, p + 1))} aria-label="Increase player count">
+          <Button variant="outline" size="icon" onClick={() => setPlayerCount(p => Math.min(12, p + 1))} aria-label="Increase player count">
             <Plus className="h-5 w-5" />
           </Button>
         </div>
