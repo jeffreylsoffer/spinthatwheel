@@ -773,10 +773,16 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
       </div>
 
       {/* Scoreboard & Controls Column */}
-      <div className="flex-shrink-0 lg:w-[420px] flex flex-col justify-start lg:justify-center relative z-10 lg:mt-0">
-        <div className="w-full max-w-sm mx-auto flex flex-col gap-3 lg:gap-5 p-3 lg:p-0">
+      <div className={cn(
+        "flex-shrink-0 flex flex-col justify-start lg:justify-center lg:min-h-0 relative z-10 lg:mt-0",
+        players.length > 8 ? "lg:w-[420px] xl:w-[clamp(420px,46vw,640px)]" : "lg:w-[420px]"
+      )}>
+        <div className={cn(
+          "w-full mx-auto flex flex-col gap-3 p-3 lg:p-0 lg:max-h-full lg:min-h-0",
+          players.length > 8 ? "max-w-sm xl:max-w-none lg:gap-3" : "max-w-sm lg:gap-5"
+        )}>
             {goldenRule && (
-              <div className="hidden lg:block">
+              <div className="relative hidden lg:block w-full aspect-[460/340] min-h-[96px] lg:shrink-[100]">
                 <GoldenRuleCard
                   name={goldenRule.isFlipped ? goldenRule.flipped.name : goldenRule.primary.name}
                   bg={goldenRule.isFlipped ? '#000000' : goldenRule.color?.labelBg}
@@ -786,6 +792,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
               </div>
             )}
             <Scoreboard
+              className="lg:min-h-0 lg:shrink"
               players={players}
               onScoreChange={onScoreChange}
               onNameChange={onNameChange}
@@ -812,7 +819,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                 </button>
               ) : undefined}
             />
-             <div className="grid grid-cols-2 gap-3">
+             <div className="grid grid-cols-2 gap-3 lg:shrink-0">
                <Button 
                 variant="outline"
                 size="lg"
@@ -832,7 +839,7 @@ const CardDeckWheel = ({ players, gameData, onScoreChange, onNameChange, onReset
                 WHISTLE!
               </Button>
             </div>
-            <div className="flex items-center justify-center gap-1 pt-1 border-t border-white/10 mt-1">
+            <div className="flex items-center justify-center gap-1 pt-1 border-t border-white/10 mt-1 lg:shrink-0">
               <Button variant="ghost" onClick={() => setIsResetConfirmOpen(true)} className="self-center text-muted-foreground hover:text-foreground rounded-lg">
                   <RefreshCw className="mr-2 h-4 w-4" />
                   New Game

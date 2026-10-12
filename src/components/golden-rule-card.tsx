@@ -40,8 +40,8 @@ const GoldenRuleCard = ({ name, onClick, bg = "#e8835f", textColor = "#4a3b32" }
   const FRAME = "M14 16 H446 V284 H14 Z M50 52 H410 V248 H50 Z";
 
   return (
-    <button onClick={onClick} className="w-full cursor-pointer transition-transform hover:scale-[1.02]" aria-label="Golden Rule — tap to swap">
-      <svg viewBox="0 0 460 340" className="w-full h-auto">
+    <button onClick={onClick} className="absolute inset-0 h-full w-full cursor-pointer transition-transform hover:scale-[1.02]" aria-label="Golden Rule — tap to swap">
+      <svg viewBox="0 0 460 340" className="block h-full w-full">
         <defs>
           <pattern id="woodH" patternUnits="userSpaceOnUse" width="120" height="36" patternTransform="translate(50 16)">
             <image href="/wood.jpg" width="120" height="36" preserveAspectRatio="xMidYMid slice" />
